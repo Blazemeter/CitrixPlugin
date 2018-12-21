@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.blazemeter.jmeter</groupId>
+		<artifactId>citrix-parent</artifactId>
+		<version>0.3.0</version>
+	</parent>
+
+	<artifactId>citrix-jmeter</artifactId>
+
+	<properties>
+		<jmeter.groupId>org.apache.jmeter</jmeter.groupId>
+		<jmeter.version>4.0</jmeter.version>
+	</properties>
+
+	<dependencies>
+	
+	<dependency>
+			<groupId>${project.parent.groupId}</groupId>
+            <artifactId>citrix-client-win</artifactId>
+			<version>${project.parent.version}</version>
+            <scope>compile</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>${project.parent.groupId}</groupId>
+            <artifactId>citrix-common</artifactId>
+			<version>${project.parent.version}</version>
+            <scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.kilianB</groupId>
+			<artifactId>JImageHash</artifactId>
+			<version>2.1.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.h2database</groupId>
+					<artifactId>h2</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jodd</groupId>
+			<artifactId>jodd-props</artifactId>
+			<version>4.1.4</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sourceforge.tess4j</groupId>
+			<artifactId>tess4j</artifactId>
+			<version>4.3.0</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_components -->
+		<dependency>
+			<groupId>${jmeter.groupId}</groupId>
+			<artifactId>ApacheJMeter_components</artifactId>
+			<version>${jmeter.version}</version>
+			<scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_http -->
+		<dependency>
+			<groupId>${jmeter.groupId}</groupId>
+			<artifactId>ApacheJMeter_http</artifactId>
+			<version>${jmeter.version}</version>
+			<scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/${jmeter.groupId}/jorphan -->
+		<dependency>
+			<groupId>${jmeter.groupId}</groupId>
+			<artifactId>jorphan</artifactId>
+			<version>${jmeter.version}</version>
+			<scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter -->
+		<dependency>
+			<groupId>${jmeter.groupId}</groupId>
+			<artifactId>ApacheJMeter</artifactId>
+			<version>${jmeter.version}</version>
+			<scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_config -->
+		<dependency>
+			<groupId>${jmeter.groupId}</groupId>
+			<artifactId>ApacheJMeter_config</artifactId>
+			<version>${jmeter.version}</version>
+			<scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_core -->
+		<dependency>
+			<groupId>${jmeter.groupId}</groupId>
+			<artifactId>ApacheJMeter_core</artifactId>
+			<version>${jmeter.version}</version>
+			<scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12.4</version>
+				<configuration>
+					<!--<classpathDependencyScopeExclude>runtime</classpathDependencyScopeExclude> -->
+					<classpathDependencyExcludes>
+						<classpathDependencyExcludes>org.apache.logging.log4j:log4j-slf4j-impl</classpathDependencyExcludes>
+					</classpathDependencyExcludes>
+				</configuration>
+			</plugin>
+            <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet>
+								<includes>
+									<include>com.blazemeter.jmeter:citrix-client-win</include>
+									<include>com.blazemeter.jmeter:citrix-common</include>
+									<include>com.github.kilianB:JImageHash</include>
+									<include>com.github.kilianB:UtilityCode</include>
+									<include>com.github.kilianB:pcg-java-8</include>
+									<include>com.github.wendykierp:JTransforms</include>
+									<include>org.jvnet.com4j:com4j</include>
+									<include>net.sourceforge.tess4j:tess4j</include>
+									<include>net.java.dev.jna:jna</include>
+									<include>org.slf4j:jul-to-slf4j</include>
+									<include>net.sourceforge.lept4j:lept4j</include>
+									<include>com.github.jai-imageio:jai-imageio-core</include>
+								</includes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
+            </plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>jcenter</id>
+			<url>https://jcenter.bintray.com/</url>
+		</repository>
+	</repositories>
+</project>

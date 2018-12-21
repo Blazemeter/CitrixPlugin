@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.blazemeter.jmeter</groupId>
+        <artifactId>citrix-parent</artifactId>
+        <version>0.3.0</version>
+    </parent>
+    <artifactId>citrix-client-win</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>${project.parent.groupId}</groupId>
+			<artifactId>citrix-common</artifactId>
+			<version>${project.parent.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jvnet.com4j</groupId>
+			<artifactId>com4j</artifactId>
+			<version>2.1</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- Excludes com4j generated code from Javadoc -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<configuration>
+					<excludePackageNames>com.blazemeter.jmeter.citrix.client.windows.com4j:com.blazemeter.jmeter.citrix.client.windows.com4j.*</excludePackageNames>
+				</configuration>
+			</plugin>
+		</plugins>
+
+	</build>
+
+</project>

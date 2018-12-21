@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java version="1.8.0_171" class="java.beans.XMLDecoder">
+ <object class="java.util.ArrayList">
+  <void method="add">
+   <object class="com.blazemeter.jmeter.citrix.steps.Step">
+    <void property="imagePath">
+     <string>4328_1536568867580.png</string>
+    </void>
+    <void property="samplersUsed">
+     <string>&lt;html&gt;Application started step&lt;/html&gt;</string>
+    </void>
+    <void property="stepName">
+     <string>1 \ first</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="com.blazemeter.jmeter.citrix.steps.Step">
+    <void property="imagePath">
+     <string>4328_1536568879467.png</string>
+    </void>
+    <void property="samplersUsed">
+     <string>&lt;html&gt;Text Input : RR&lt;br&gt;&lt;/html&gt;</string>
+    </void>
+    <void property="stepName">
+     <string>2 \ second</string>
+    </void>
+   </object>
+  </void>
+ </object>
+</java>
