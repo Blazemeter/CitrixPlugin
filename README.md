@@ -15,11 +15,12 @@ At the end of sampling, you can check the results in regular JMeter listeners.
 
 ### Pre-Requisite
 
-**Ensure you read and follow instructions of PRE_REQUISITES.md**
+**Ensure you read and follow instructions of [PRE_REQUISITES](https://github.com/Blazemeter/CitrixPlugin/blob/master/PRE_REQUISITES.md)**
 
 ### Step
 
-#### Use tempalte Blazemeter Citrix Recording
+#### Use template Blazemeter Citrix Recording
+
 A Citrix Recording Template is available to ease the script creation.
 Click on Files → Templates... and select **Blazemeter Citrix Recording**.
 
