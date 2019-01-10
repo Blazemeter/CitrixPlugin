@@ -73,6 +73,7 @@ public final class OcrManager {
 	 * @throws OcrException when OCR analysis fails or when specified area is
 	 *                      invalid
 	 */
+	// POSSIBLE_IMPROVEMENT : To avoid multiple image conversions Tesseract1.doOCR(int xsize, int ysize, ByteBuffer buf, Rectangle rect, int bpp) should be used.
 	public String recognize(BufferedImage imageToScan, Rectangle area) throws OcrException {
 		if (imageToScan == null) {
 			throw new IllegalArgumentException("imageToScan must not be null.");

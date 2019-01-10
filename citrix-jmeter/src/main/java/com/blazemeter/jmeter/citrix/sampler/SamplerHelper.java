@@ -169,7 +169,7 @@ public class SamplerHelper {
 	private static boolean areClickComponents(CaptureItem down, CaptureItem up) {
 		final InteractionEvent downEvent = down.getEvent();
 		final InteractionEvent upEvent = up.getEvent();
-		// Add tolerance threshold ?
+		// POSSIBLE_IMPROVEMENT : Add tolerance threshold ?
 		return downEvent.getButtons().equals(upEvent.getButtons()) && downEvent.getX() == upEvent.getX()
 				&& downEvent.getY() == upEvent.getY();
 	}
@@ -178,7 +178,7 @@ public class SamplerHelper {
 		final InteractionEvent lastClickEvent = lastClick.captures.get(0).getEvent();
 		final InteractionEvent upEvent = up.getEvent();
 		final Set<MouseButton> lastClickButtons = lastClickEvent.getButtons();
-		// Add tolerance threshold ?
+		// POSSIBLE_IMPROVEMENT : Add tolerance threshold ?
 		return DOUBLE_CLICK_BUTTONS.equals(lastClickButtons) && Objects.equals(lastClickButtons, upEvent.getButtons())
 				&& lastClickEvent.getX() == upEvent.getX() && lastClickEvent.getY() == upEvent.getY();
 	}
