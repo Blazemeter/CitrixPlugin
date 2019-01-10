@@ -1,14 +1,23 @@
 # JMeter Citrix Plugin setup
 
-## 1. Citrix pre-requisites
+## 1. Apache JMeter pre-requisites
 
-* **Ensure you run below commands as Administrator**
+* Install a **JDK 8 Windows x86** (not 64 bits !) in last minor update from [here](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+* Install Apache JMeter from [here](https://jmeter.apache.org/download_jmeter.cgi). Last version is advised (>=5.1)
+
+## 2. Citrix pre-requisites
+
 * Ensure that you are working with supported versions of your Citrix client and server. If you don't have
 yet Citrix receiver, install it from [here](https://www.citrix.com/downloads/citrix-receiver/windows/receiver-for-windows-latest.html) 
 
-    Since version 1.1.1, the plugin provides an installer which checks and sets up the below pre-requisites. If you encounter any errors, please check these points manually.
+* Once installed, start JMeter as **as administrator**, see below, it will automatically run required installation steps.
+If you encounter any errors, please check below points manually.
 
-* Once installed, register ICA Client COM Object, run as administrator : 
+### Citrix pre-requisites to check **only if automatic installation fails**:
+
+* **Ensure you run below commands as Administrator**
+
+* Once Citrix Receiver is installed, register ICA Client COM Object, run **as administrator** : 
 
     regsvr32 C:\Program Files (x86)\Citrix\ICA Client\wfica.ocx
    
@@ -46,16 +55,33 @@ yet Citrix receiver, install it from [here](https://www.citrix.com/downloads/cit
    
 - https://support.citrix.com/article/CTX133536
 
+---
+
+## 3. Install Plugin
+
+#### From JMeter-Plugins (Advised way, NOT AVAILABLE YET until plugin is published)
+
+* Install plugins-manager from [here](https://jmeter-plugins.org/install/Install/)
+* Start it and search for Citrix then install
+
+#### From archive (Installation through jmeter-plugins is advised)
+
+* Uncompress jmeter-citrix-plugin archive
+* Copy citrix-jmeter-<version>.jar in JMETER_HOME/lib/ext 
+
+    Since version 1.1.1, the plugin provides an installer which checks and sets up the next step. If you encounter any errors, please check this point manually.
+
+* Edit jmeter/bin/saveservices.properties and add at the end of file
+
+        # Add the following line at the end of JMeter saveservice.properties file
+        _com.blazemeter.jmeter.citrix.sampler.CitrixSampleResultConverter=collection
+
+## 4. Run JMeter 
+Run your JMeter installation by going to jmeter/bin folder and launching jmeter or jmeterw.
 
 ---
- 
-## 2. Apache JMeter pre-requisites
 
-* Install a **JDK 8 Windows x86** (not 64 bits !) in last minor update from [here](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-* Install Apache JMeter from [here](https://jmeter.apache.org/download_jmeter.cgi)
-
-
-### Plugin Properties
+### 4.1 Plugin Properties
 
 You can adjust plugin properties by adding an entry in JMeter file located in jmeter/bin/user.properties.
 
@@ -74,29 +100,7 @@ Here is the list of configurable properties,  **non bold** properties should be 
 | **bzm.citrix.ica_recording_folder**               | Default recording folder                                                                                      | <JMeterHome>/citrix_recording                                 |
 | **bzm.citrix.ica_files_folder**                   | Folder where ICA files are downloaded                                                                         | <JMeterHome>/ica_files                                        |
 | **bzm.citrix.selection_color**                    | Color of the selection mask expressed as R,G,B                                                           | 0,255,0 which is Green                                        |
----
 
-## 3. Install Plugin
-
-#### From archive
-* Uncompress jmeter-citrix-plugin archive
-* Copy citrix-jmeter-<version>.jar in JMETER_HOME/lib/ext 
-
-    Since version 1.1.1, the plugin provides an installer which checks and sets up the next step. If you encounter any errors, please check this point manually.
-
-* Edit jmeter/bin/saveservices.properties and add at the end of file
-
-        # Add the following line at the end of JMeter saveservice.properties file
-        _com.blazemeter.jmeter.citrix.sampler.CitrixSampleResultConverter=collection
-
-
-#### From JMeter-Plugins (NOT AVAILABLE YET)
-
-* Install plugins-manager from [here](https://jmeter-plugins.org/install/Install/)
-* Start it and search for Citrix then install
-
-## 4. Run JMeter 
-Run your JMeter installation by going to jmeter/bin folder and launching jmeter or jmeterw.
 
 ---
 
