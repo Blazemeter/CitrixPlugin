@@ -1,6 +1,6 @@
 # Licenses used:
 
-## Drag and drop icon by ChangHoon Baek from the Noun Project:
+## Drag and drop icon by ChangHoon Baek from the Noun Project
 
 * https://creativecommons.org/licenses/by/3.0/us/legalcode
 

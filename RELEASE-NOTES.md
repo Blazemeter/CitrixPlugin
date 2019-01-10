@@ -69,7 +69,7 @@ Gateway between JMeter and Citrix Server:
 
 * Integration of Trial license, the enterprise license has not been provided
 
-# 0.3.0 (DELIVERED ON 20 december 2018):
+# 0.3.0 (DELIVERED ON 20 december 2018)
 
 ### Lot 2 Features (includes parts of 2(B)) 
 
