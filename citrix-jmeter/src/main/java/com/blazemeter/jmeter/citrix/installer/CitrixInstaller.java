@@ -31,7 +31,7 @@ import com.blazemeter.jmeter.citrix.client.windows.com4j.IICAClient;
  * - Citrix Client Receiver installed
  * - Registry keys with correct values
  * - saveservice.properties updated
- * - We don't have a way to check wfica.ocx is registered, so just inform
+ * - Register wfica.ocx
  * 
  * @since 1.1
  *
