@@ -1,4 +1,4 @@
-#JMeter-Citrix-plugin#
+# JMeter-Citrix-plugin
 
 This JMeter plugin enable load-testing Citrix XenApp exposed applications.
 
@@ -11,15 +11,15 @@ At the end of sampling, you can check the results in regular JMeter listeners.
 
 ---
 
-##Usage##
+## Usage
 
-###Pre-Requisites###
+### Pre-Requisite
 
 **Ensure you read and follow instructions of PRE_REQUISITES.md**
 
-###Steps###
+### Step
 
-####Use tempalte Blazemeter Citrix Recording ####
+#### Use tempalte Blazemeter Citrix Recording
 A Citrix Recording Template is available to ease the script creation.
 Click on Files → Templates... and select **Blazemeter Citrix Recording**.
 
@@ -27,7 +27,7 @@ The template will add below elements:
 
 ![alt text](images/template_test_plan.png "Citrix Template overview")
 
-####Update portal connection informations in it ####
+#### Update portal connection informations in it
 You need then to update in **UDV**:
 
 - citrix_portal_host to the Host name of your portal
@@ -48,7 +48,7 @@ Here is what the recorder looks like :
 
 ![alt text](images/recorder.png "Citrix Recorder overview")
 
-####Recorder configuration : ICA Downloading####
+#### Recorder configuration : ICA Downloading
 
 Before you can start a recording, you must reference in the Citrix Recorder the Controller that contains the sequence of HTTP Requests 
 needed to download the ICA file. 
@@ -61,14 +61,14 @@ To reference it, you do it in the Tree of **ICA File Downloading Controller**.
 The referenced controller should ideally be inside a **Test Fragment** as you’ll also need to also reference it for regular 
 sampling from **Module Controller** in the Thread Group that will run the test plan
 
-####Start Recorder####
+#### Start Recorder
 Once done, click on the **Start Recording** button. You will see in the **Recorder status** the progress.
 
 ![alt text](images/recorder_status_started.png "ICA download panel")
 
 Then your Citrix application will launch, you can view the HTTP download steps in the **View Results Tree** located under Test Plan
 
-####Recording Actions####
+#### Recording Actions
 
 Once your citrix application has launched, click on the **Application Started** button to tell the plugin that the citrix application
 is ready to be used. 
@@ -99,7 +99,7 @@ You can also chose to end the recording by closing yourself the Citrix applicati
 
 The Target Controller is a controller in your JMeter testPlan where the created samplers will be added during the recording.
 
-####Saving a recording ####
+#### Saving a recording
 
 To save a Citrix Recording, the Template comes with a **View Results Tree** located under **Citrix Recorder**.
 
@@ -110,7 +110,7 @@ Please note that if you add one yourself, ensure you click on **Configure** butt
 ![Saving Citrix Recording](images/vrt_saving_recording.png "Saving Recording")
 
 
-####Samplers####
+#### Samplers
 In this section we will cover the 2 samplers this plugin adds to JMeter.
 
 ####Citrix Application Launcher####
@@ -128,7 +128,7 @@ During sampling, it will be used as the maximum time to wait for application to 
 
 The End Clause panel will be explained in the **Citrix Interaction** section.
 
-####Citrix Interaction####
+#### Citrix Interaction
 
 ![Citrix interaction sampler](images/citrix_interaction_informations.png "Citrix interaction sampler")
 
@@ -156,15 +156,16 @@ This tells the Sampler that the expected state has been reached. For example, as
 
 If the sampler hash or text (if you used OCR) is different from the one retrieved in the same area during the sampling, the sampler will retry until timeout is reached. If timeout is exceeded and expected state is not reached, the sampler will be in failed state.
 
-####Assertions####
-##### Citrix Session State Assertion #####
+#### Assertions
+
+##### Citrix Session State Assertion 
 ![Citrix Session State Assertion](images/session_state_assertion.png "Citrix Session State Assertion")
 
 This one is very simple. Place it under a **Citrix Interaction** or **Citrix Application Launcher** sampler. 
 It checks if the citrix session is open or closed. 
 Just select one of the 2 options.
 
-##### Citrix Assertion #####
+##### Citrix Assertion
 ![Citrix Assertion](images/citrix_assertion.png "Citrix Assertion")
 
 It must be placed in the scope of **Citrix Interaction**/**Citrix Application Launcher** samplers. 
@@ -186,7 +187,7 @@ Click on any screenshot of the recorded steps. Select a rectangle and click on "
 
 If you want to create assertion for this rectangle, drag from the **Drag Created Assertion** and drop under one of your samplers in the test plan.
 
-#### Listeners ####
+#### Listeners
 
 The plugin adds a **Listener** to JMeter called **ICA File Saver**. 
 This listener must be added as a child of the **HTTP Request** that downloads the ICA file.
@@ -198,7 +199,7 @@ The configuration of this element is very simple:
 * **ICA file path variable** is the name of the variable that contains the path to the ICA file downloaded for 1 thread. It defaults to **citrix_ica_file**. Note this variable name must be the same as the one defined in the **Citrix Application Launcher** element.
 * **ICA files folder** is the folder where ICA files for all users are downloaded. You should cleanup this folder when starting a test
 
-#### View Results Tree Renderer ####
+#### View Results Tree Renderer
 
 The Citrix plugin provides a renderer **Citrix Interaction** that allows you to view the Citrix screenshot and create required OCR or Hash Assertions.
 
@@ -210,7 +211,7 @@ Then you can work with the screenshot:
 
 ![Citrix Renderer](images/vrt_citrix_renderer.png "Citrix Renderer selection")
 
-####Sampling####
+#### Sampling
 
 When the recording is done, click on the start button. It launches the sampling.
 *Note for the load test you should use JMeter Non GUI mode.*
@@ -226,7 +227,7 @@ You can see the results in the View Results Tree.
 
 ---
 
-##Recording Example##
+## Recording Example
 
 Here we will make a recording on the Notepad application. We want to record the following sequences :
 
@@ -293,7 +294,7 @@ With this example you should have something looking like this :
 
 Enhance then your test plan with the **Citrix Assertions** and **Citrix Session State Assertion** required to have the expected states.
 
-##Without template##
+## Without template
 
 If the template doesn't work for you as there might be some variations between portal versions, you should then use JMeter HTTP(S) Test Script Recorder to record the steps that lead to the download of the ICA. 
 For more details, read [this](https://jmeter.apache.org/usermanual/jmeter_proxy_step_by_step.html) which explains how to make HTTP(S) recording.
