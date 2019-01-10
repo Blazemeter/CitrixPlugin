@@ -13,40 +13,60 @@ At the end of sampling, you can check the results in regular JMeter listeners.
 
 ##Usage##
 
-####Pre-Requisites####
+###Pre-Requisites###
 
 **Ensure you read and follow instructions of PRE_REQUISITES.md**
 
-####Overview####
+###Steps###
 
-A Citrix Recording Template is available to facilitate the script creation.
+####Use tempalte Blazemeter Citrix Recording ####
+A Citrix Recording Template is available to ease the script creation.
 Click on Files → Templates... and select **Blazemeter Citrix Recording**.
 
-The template will add below elements :
+The template will add below elements:
 
 ![alt text](images/template_test_plan.png "Citrix Template overview")
 
-If you do not want to use the template, you can add a Citrix Recorder by right-clicking on Test Plan → add → Non-Test Elements → Citrix Recorder.
+####Update portal connection informations in it ####
+You need then to update in **UDV**:
+
+- citrix_portal_host to the Host name of your portal
+- citrix_app_name to the name of the application you want to test
+
+And in **UDV-Recording**:
+
+- citrix_login to the login on portal
+- citrix_passord to the password on portal
+
+Note that since JMeter 5.1, the new parameterized template will make this step optional as those 4 informations will be required 
+on template creation. 
+
+If you do not want to use the template (this is not advised), you can add a Citrix Recorder by right-clicking on Test Plan → add → Non-Test Elements → Citrix Recorder.
 Then, you will need to reference the Controller that contains the steps needed to download the application's ICA.
 
 Here is what the recorder looks like : 
 
 ![alt text](images/recorder.png "Citrix Recorder overview")
 
-####ICA Downloading####
+####Recorder configuration : ICA Downloading####
 
 Before you can start a recording, you must reference in the Citrix Recorder the Controller that contains the sequence of HTTP Requests 
-needed to download the ICA file. The Template already contains an example of a ICA Download and is referenced when you open it.
+needed to download the ICA file. 
+The Template already contains an example of a ICA Download and is referenced when you open it.
 
-To reference it, you'll do this in the Tree of **ICA File Downloading Controller**. The referenced controller should ideally be inside a **Test Fragment** as you’ll also need to reference it from **Module Controller** in the Thread Group that will run the test plan.
+To reference it, you do it in the Tree of **ICA File Downloading Controller**. 
 
 ![alt text](images/download_ica.png "Select DownloadIca")
 
+The referenced controller should ideally be inside a **Test Fragment** as you’ll also need to also reference it for regular 
+sampling from **Module Controller** in the Thread Group that will run the test plan
+
+####Start Recorder####
 Once done, click on the **Start Recording** button. You will see in the **Recorder status** the progress.
 
 ![alt text](images/recorder_status_started.png "ICA download panel")
 
-Then your citrix application will launch.
+Then your Citrix application will launch, you can view the HTTP download steps in the **View Results Tree** located under Test Plan
 
 ####Recording Actions####
 
@@ -82,8 +102,10 @@ The Target Controller is a controller in your JMeter testPlan where the created 
 ####Saving a recording ####
 
 To save a Citrix Recording, the Template comes with a **View Results Tree** located under **Citrix Recorder**.
-Just modify the **Filename** of the output file and recording will be saved in the XML file and be reloadable on demand in it 
-as with regular HTTP Recording.
+
+Just modify the **Filename** of the output file and recording will be saved in the XML file and be reloadable on demand in it as with regular HTTP Recording.
+
+Please note that if you add one yourself, ensure you click on **Configure** button and check all fields except *Save Field Names (CSV)*
 
 ![Saving Citrix Recording](images/vrt_saving_recording.png "Saving Recording")
 
@@ -96,11 +118,13 @@ In this section we will cover the 2 samplers this plugin adds to JMeter.
 
 This sampler is added when you click on the **Application Started** button of the Citrix Recorder.
 
-**ICA file path variable** contains the name of the variable that contains the path where the ica files are saved. 
+**ICA file path variable** contains the name of the variable (defaults to *citrix_ica_file*) that contains the path where the ica file is saved. 
+
 If you use the template you can see it in Test Fragment -> DownloadICA -> ClickApp -> ClickApp-0 -> **ICA File Saver**. 
 See below for **ICA File Saver** documentation.
 
-**Logon Timeout** field is computed by the **Citrix Recorder** and is the time between the launch of the citrix window and the moment the user clicks on the "Application Started" button. During sampling, it will be used as the maximum time to wait for application to start.
+**Timeout** field is computed by the **Citrix Recorder** and is the time between the launch of the citrix window and the moment the user clicks on the "Application Started" button. 
+During sampling, it will be used as the maximum time to wait for application to start.
 
 The End Clause panel will be explained in the **Citrix Interaction** section.
 
@@ -194,6 +218,7 @@ When the recording is done, click on the start button. It launches the sampling.
 ![Start Button](images/start_button.png "Start button")
 
 The sampling repeats the sequences you made during the recording by looking at the samplers informations.
+
 If everything has been setup correctly, you will see your citrix application starting and replaying everything. 
 At the end of the replay, the Citrix window closes even if you did not explicitly closed it in your recording.
 
