@@ -69,7 +69,7 @@ If you encounter any errors, please check below points manually.
 * Uncompress jmeter-citrix-plugin archive
 * Copy citrix-jmeter-<version>.jar in JMETER_HOME/lib/ext 
 
-    Since version 1.1.1, the plugin provides an installer which checks and sets up the next step. If you encounter any errors, please check this point manually.
+    Since version 1.0, the plugin provides an installer which checks and sets up the next step. If you encounter any errors, please check this point manually.
 
 * Edit jmeter/bin/saveservices.properties and add at the end of file
 
@@ -90,7 +90,7 @@ Here is the list of configurable properties,  **non bold** properties should be 
 | Property name                                 | Description                                                                                                   | Default Value                                                 |
 |--------------------------------------------   |------------------------------------------------------------------------------------------------------------   |------------------------------------------------------------   |
 | bzm.citrix.clause_check_interval              | Interval for the timing of clause checks                                                                      | 1000 (in millis)                                              |
-| bzm.citrix.clause_check_timeout               | Time period (in ms) during which a clause must be validated                                                   | 3000 (in millis)                                              |
+| bzm.citrix.clause_check_timeout               | Default time period (in ms) during which a clause must be validated                                                   | 3000 (in millis)                                              |
 | bzm.citrix.clause_check_max_results           | Maximum number of check results kept in the responseMessage                                                   | 20                                                            |
 | bzm.citrix.connect_timeout                    | Time (in millis) during which a Citrix session must send a CONNECT event (maximum application launch time)    | 5000 (in millis)                                              |
 | **bzm.citrix.default_recording_import_path**      | Directory used to decompress during import recording                                                          | <JMeterHome>/citrix-recordings/<folder with date and time>    |
@@ -159,6 +159,14 @@ To view the Citrix client settings, right-click an item from the Citrix program 
 
 Display settings of 1024 x 768 are recommended.
 
+Alternatively, you can use the following JMeter parameters to try to set display settings of the Citrix session (See citrix.properties file for futher information):
+
+* bzm.citrix.client_factory.client_property.horizontal_resolution 
+* bzm.citrix.client_factory.client_property.vertical_resolution
+* bzm.citrix.client_factory.client_property.color_depth
+
+Keep in mind that Citrix server settings have precedence on the above parameters.
+
 #### Windows Style
  
 Record all windows in the "classic" windows style—not the XP style. This is relevant when using Hash. 
@@ -216,6 +224,17 @@ If you are going to run more than one Citrix Session on JMeter, ensure that the 
 
 ## 7. Commons issues / Limitations
 
+####Inconsistency with ongoing Citrix sessions####
+Due to a limitation of the Citrix receiver, this plug-in does not support sessions already in progress. In this case, the Citrix client does not send any events and the plug-in cannot synchronize with it either for registration or sampling.
+
+Please **make sure to always run new Citrix sessions**.
+
+####No screenshot during sampling####
+Due to a limitation with the Citrix Receiver handling, the samplers that use the following check types do not create screenshot:
+
+* Window Closed
+* Window Gets Foreground
+
 #### Black screenshots
 
 If you get black screenshots while recording, check you graphical card. 
@@ -224,6 +243,18 @@ If you get black screenshots while recording, check you graphical card.
 #### Failed to get session from client
 
 If you get this error, Make sure the AllowSimulationAPI key is present in the above registry and not set to 0, as it enables Citrix ICO functionality. Note that in 64-bit operating systems, these keys should reside under the HKLM\Software\Wow6432Node, node, since the Citrix client is a 32-bit application.  
+
+####Foreground window inconsistency####
+Due to limitation of the Citrix receiver, avoid minimizing any application windows when you want to use the "Relative to foreground" checks because the detection of the foreground area then becomes inconsistent.
+
+####Text interpretation of keystrokes####
+Only the following keys on the keyboard are interpreted as text:
+
+* A to Z
+* 0 to 9
+* Space
+
+The use of any other key or modifier results in the generation of a "Key Sequence" sampler rather than a "Text" sampler.
 
 #### Citrix Error 13 "Unsupported Function"
 
@@ -257,6 +288,7 @@ If running JMeter on virtual machines, check that you're dedicating memory and p
 
 #### Common issues
 
+##### Error code 0x80070005
 Getting error 
 
      The module C:\Program Files (x86)\Citrix\ICA Client\wfica.ocx was loaded but the call to DLLRegisterServer failed with error code 0x80070005
@@ -265,3 +297,12 @@ Ensure you run the regsvr32 and registry updates as Administrator as per:
 
 - https://techjourney.net/the-call-to-dllregisterserver-failed-with-error-code-0x80004005-on-windows/
 - https://social.technet.microsoft.com/Forums/windows/en-US/71037d62-d842-44a3-86df-6ed74df6fc39/0x80070005-error-trying-to-register-dll?forum=itprovistasecurity
+
+##### Citrix user not logged before ...
+At execution of a "Citrix Application launcher" sampler, getting error
+
+    Citrix user not logged before ...
+
+Means the Citrix Client does not signal the user is logged before the **Logon Timeout** set in the sampler.
+First ensure the downloaded ICA file run a new Citrix session because Citrix client does not send any event when running a session already in progress.
+Then you can increase the **Logon Timeout** setting.

@@ -82,7 +82,7 @@ From this point, you can use the **Record Text Input** and **Record Mouse Click*
 **Record Text Input** allow you to record every text input on the citrix window while the button is activated. When you are done with the text recording,
 just click again on the button and the associated samplers will be added in the JMeter tree and in the **View Results Tree** under **Citrix Recorder**.
 If there are many Interactions, they will be grouped under a **Transaction Controller**. 
-You can also chose to use one of the three following buttons to stop the text input capture : 
+You can also choose to use one of the three following buttons to stop the text input capture : 
 
 * **Full Screenshot Check** adds to the created sampler a hash of the entire citrix window that will be analyzed during sampling process.
 * **Selection Screenshot Check** pops up a window with a screenshot of your citrix application. You can select an area of the screenshot that will be hashed and passed to the created sampler.
@@ -151,11 +151,34 @@ This tells the Sampler that the expected state has been reached. For example, as
 
 **Check Type**: 
 
-* HASH makes a hash of the selected area (makes a hash of the full screenshot if there are no coordinates in the selected area).
-* OCR detects the text in the selected area.
-* None makes nothing, which means Sampler will run the interaction and consider result as OK
+* **HASH** makes a hash of the selected area (makes a hash of the full screenshot if there are no coordinates in the selected area).
+* **OCR** detects the text in the selected area.
+* **HASH Changed** detects whether content of the selected area changes using hash computation.
+* **OCR Changed** detects whether content of the selected area changes using text recognition.
+* **Session Closed** detects whether the Citrix session is closed.
+* **Window Exists** ensures a window with an expected title is present in Citrix session. 
+* **Window Closed** ensures a window with an expected title is closed during the check.
+* **Window Gets Foreground** ensures a window with an expected title gets the foreground during the check.
+* **None** makes nothing, which means Sampler will run the interaction and consider result as OK.
 
-If the sampler hash or text (if you used OCR) is different from the one retrieved in the same area during the sampling, the sampler will retry until timeout is reached. If timeout is exceeded and expected state is not reached, the sampler will be in failed state.
+**Selection Zone**:
+
+* **Relative to foreground window**, check this option if you want the coordinates below to be relative to the foreground window during sampling.
+* **X, Y, Width and Height** specify the screen area where the check is performed during sampling.
+
+**Expected value**:
+
+* **Use regular expression**, check this option if you want to use regular expression pattern matching instead of text equality.
+* The textarea contains the expected value depending to the check you want to perform :
+    * **HASH**, the hash value of the selected area.
+    * **OCR**, the text contained in the selected area.
+    * **Window Exists**, the title of the window that must be present.
+    * **Window Closed**, the title of the window that must be closed during the check.
+    * **Window Gets Foreground**, the title of the window that must get the foreground during the check. 
+
+**Timeout**: The maximum time during which the end clause must be honored.
+
+If the end clause state of the sampler is different from the one retrieved in the same area during the recording, the sampler will retry until timeout is reached. If timeout is exceeded and expected state is not reached, the sampler will be in failed state.
 
 #### Assertions
 
@@ -172,10 +195,11 @@ Just select one of the 2 options.
 It must be placed in the scope of **Citrix Interaction**/**Citrix Application Launcher** samplers. 
 You can notice it is very similar to the **End Clause** panel of the samplers.
 
-There are 2 differences:
+There are 3 differences:
 
 * The sampler in its scope must have already completed the end clause or timeouted. Otherwise it would not take a screenshot on which the assertion works.
 * You can't use the "None" check type (would mean the assertion does nothing).
+* You can only use "HASH" or "OCR" because only these can work on a single screenshot .
 
 After sampler has executed, the assertion compares the expected hashes/texts (separated by **|**) in the selected area with what it finds in the screenshot. 
 If none matches, the sampler in scope is marked as failed.
