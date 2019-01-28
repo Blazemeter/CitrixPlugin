@@ -3,6 +3,7 @@ package com.blazemeter.jmeter.citrix.client;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Set;
 
 import com.blazemeter.jmeter.citrix.client.events.MouseButton;
@@ -68,6 +69,13 @@ public interface CitrixClient {
 	public Rectangle getForegroundWindowArea();
 
 	/**
+	 * Gets details on current windows in the Citrix session
+	 * 
+	 * @return details on current windows in the Citrix session
+	 */
+	public Collection<WindowInfo> getWindowInfos();
+
+	/**
 	 * Add a @{link CitrixClientHandler} to the client
 	 * 
 	 * @param clientHandler to add
@@ -85,7 +93,7 @@ public interface CitrixClient {
 	 * Starts the Citrix session
 	 * 
 	 * @param replayMode defines is the client is in replay mode
-	 * @param visible defines is the client is visible during replay
+	 * @param visible    defines is the client is visible during replay
 	 * @throws CitrixClientException when starting session fails
 	 */
 	void start(boolean replayMode, boolean visible) throws CitrixClientException;

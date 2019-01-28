@@ -121,14 +121,14 @@ public class SessionEvent extends ClientEvent {
 	 * </p>
 	 * 
 	 * <p>
-	 * Use {@link SessionEvent(CitrixClient, EventType, int)} to instantiate
-	 * error events.
+	 * Use {@link #SessionEvent(CitrixClient, EventType, int)} to instantiate error
+	 * events instead.
 	 * </p>
 	 * 
 	 * @param source    the source of the session event
 	 * @param eventType the type of event
-	 * @throws IllegalArgumentException See {@link SessionEvent(CitrixClient,
-	 *                                  EventType, int)}
+	 * @throws IllegalArgumentException See
+	 *                                  {@link #SessionEvent(CitrixClient, EventType, int)}
 	 */
 	public SessionEvent(CitrixClient source, EventType eventType) {
 		this(source, eventType, KnownError.NO_ERROR.getCode());

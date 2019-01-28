@@ -12,8 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.blazemeter.jmeter.citrix.client.events.ForegroundEvent;
-import com.blazemeter.jmeter.citrix.client.events.ForegroundEvent.ForegroundState;
+import com.blazemeter.jmeter.citrix.client.events.WindowEvent;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent;
 import com.blazemeter.jmeter.citrix.client.events.Modifier;
 import com.blazemeter.jmeter.citrix.client.events.MouseButton;
@@ -41,8 +40,6 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 	private final AtomicBoolean running = new AtomicBoolean(false);
 	private final AtomicBoolean userLogged = new AtomicBoolean(false);
 	private final AtomicBoolean visible = new AtomicBoolean(false);
-
-	private Rectangle fgWindowArea;
 
 	// Contains the list of the handler of this client.
 	private final List<CitrixClientHandler> handlers = new ArrayList<>();
@@ -75,12 +72,6 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 	@Override
 	public final void setICAFilePath(Path icaFilePath) {
 		this.icaFilePath = icaFilePath;
-	}
-
-	@Override
-	public final Rectangle getForegroundWindowArea() {
-		// Provide copy to protect mutable property
-		return fgWindowArea != null ? new Rectangle(fgWindowArea) : null;
 	}
 
 	/**
@@ -191,17 +182,11 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 	 * 
 	 * @param event the window change to emit
 	 */
-	protected final void notifyHandlers(ForegroundEvent event) {
+	protected final void notifyHandlers(WindowEvent event) {
 		if (event != null) {
-			final ForegroundState state = event.getForegroundState();
-			if (state == ForegroundState.NEW || state == ForegroundState.CHANGE_AREA) {
-				Rectangle area = event.getWindowArea();
-				fgWindowArea = area != null ? new Rectangle(area) : null;
-				LOGGER.debug("Foreground window event {} with area: {}", state, fgWindowArea);
-			}
 			synchronized (handlers) {
 				for (CitrixClientHandler handler : handlers) {
-					handler.handleForegroundEvent(event);
+					handler.handleWindowEvent(event);
 				}
 			}
 		}

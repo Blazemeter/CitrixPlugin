@@ -7,7 +7,7 @@ import com.blazemeter.jmeter.citrix.client.CitrixClient;
 import com.blazemeter.jmeter.citrix.client.events.MouseButton;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent;
 import com.blazemeter.jmeter.citrix.client.events.SessionEvent;
-import com.blazemeter.jmeter.citrix.client.events.ForegroundEvent;
+import com.blazemeter.jmeter.citrix.client.events.WindowEvent;
 import com.blazemeter.jmeter.citrix.client.events.Modifier;
 
 /**
@@ -31,11 +31,11 @@ public interface CitrixClientHandler {
 	public void handleSessionEvent(SessionEvent sessionEvent);
 
 	/**
-	 * Handles the foreground window event
+	 * Handles the window event
 	 * 
-	 * @param fgEvent the foreground windows event
+	 * @param winEvent the foreground windows event
 	 */
-	public void handleForegroundEvent(ForegroundEvent fgEvent);
+	public void handleWindowEvent(WindowEvent winEvent);
 
 	/**
 	 * Handles a key query

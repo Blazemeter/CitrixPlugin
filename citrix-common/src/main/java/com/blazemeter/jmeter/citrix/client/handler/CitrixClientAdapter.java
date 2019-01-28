@@ -7,7 +7,7 @@ import com.blazemeter.jmeter.citrix.client.CitrixClient;
 import com.blazemeter.jmeter.citrix.client.events.MouseButton;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent;
 import com.blazemeter.jmeter.citrix.client.events.SessionEvent;
-import com.blazemeter.jmeter.citrix.client.events.ForegroundEvent;
+import com.blazemeter.jmeter.citrix.client.events.WindowEvent;
 import com.blazemeter.jmeter.citrix.client.events.Modifier;
 
 /**
@@ -26,7 +26,7 @@ public class CitrixClientAdapter implements CitrixClientHandler {
 	}
 
 	@Override
-	public void handleForegroundEvent(ForegroundEvent windowEvent) {
+	public void handleWindowEvent(WindowEvent windowEvent) {
 		// NOOP
 	}
 
