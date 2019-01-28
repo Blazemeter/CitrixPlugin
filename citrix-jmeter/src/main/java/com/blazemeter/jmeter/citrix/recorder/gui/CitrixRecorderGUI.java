@@ -927,9 +927,10 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
 						options = new Object[] { CitrixUtils.getResString("yes", false),
 								CitrixUtils.getResString("no", false) };
 					}
-					int response = JOptionPane.showOptionDialog(null,
+					int response = JOptionPane.showOptionDialog(GuiPackage.getInstance().getMainFrame(),
 							CitrixUtils.getResString("save_events_popup_question", false),
-							CitrixUtils.getResString("save_events_popup_title", false), JOptionPane.DEFAULT_OPTION,
+							CitrixUtils.getResString("save_events_popup_title", false), 
+							JOptionPane.DEFAULT_OPTION,
 							JOptionPane.WARNING_MESSAGE, null, options, options[0]);
 
 					// Interpret Close response according to cancelable
