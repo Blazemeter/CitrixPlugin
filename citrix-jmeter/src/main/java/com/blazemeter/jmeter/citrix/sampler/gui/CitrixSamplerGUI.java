@@ -8,7 +8,7 @@ import javax.swing.border.TitledBorder;
 import org.apache.jmeter.samplers.gui.AbstractSamplerGui;
 import org.apache.jmeter.testelement.TestElement;
 
-import com.blazemeter.jmeter.citrix.clauses.gui.ClausePanel;
+import com.blazemeter.jmeter.citrix.clause.gui.ClausePanel;
 import com.blazemeter.jmeter.citrix.sampler.CitrixBaseSampler;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 

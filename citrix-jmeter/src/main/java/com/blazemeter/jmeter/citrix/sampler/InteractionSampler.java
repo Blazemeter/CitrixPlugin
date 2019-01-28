@@ -176,7 +176,7 @@ public class InteractionSampler extends CitrixBaseSampler {
 	}
 
 	@Override
-	protected Long doClientAction(CitrixClient client) throws CitrixClientException, InterruptedException {
+	protected void doClientAction(CitrixClient client) throws CitrixClientException, InterruptedException {
 		switch (getSamplerType()) {
 		case TEXT:
 			sampleText(client);
@@ -194,8 +194,6 @@ public class InteractionSampler extends CitrixBaseSampler {
 			sampleMouseSequence(client);
 			break;
 		}
-
-		return null;
 	}
 
 	private void sampleClick(CitrixClient client) throws CitrixClientException {

@@ -109,7 +109,7 @@ public class StartApplicationSampler extends CitrixBaseSampler
 	}
 
 	@Override
-	protected Long doClientAction(CitrixClient client)
+	protected void doClientAction(CitrixClient client)
 			throws CitrixClientException, SamplerRunException, InterruptedException {
 		String icaFilePath = getThreadContext().getVariables().get(getICAPathVar());
 		if (icaFilePath == null) {
@@ -129,7 +129,6 @@ public class StartApplicationSampler extends CitrixBaseSampler
 					.format(CitrixUtils.getResString("start_application_sampler_logon_timeout_fmt", false), timeout));
 
 		}
-		return System.currentTimeMillis();
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package com.blazemeter.jmeter.citrix.clauses;
+package com.blazemeter.jmeter.citrix.clause;
 
 /**
  * Provides exception when clause value computation fails.

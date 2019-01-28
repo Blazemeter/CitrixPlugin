@@ -58,6 +58,7 @@ public class SamplerHelper {
 		return sampler;
 	}
 
+	// POSSIBLE_IMPROVEMENT Handle more characters
 	// This implementation is basic, it is based on matching between ASCII table,
 	// Windows API and AWT symbols.
 	private static boolean isInterpretable(final InteractionEvent e) {
@@ -169,7 +170,7 @@ public class SamplerHelper {
 	private static boolean areClickComponents(CaptureItem down, CaptureItem up) {
 		final InteractionEvent downEvent = down.getEvent();
 		final InteractionEvent upEvent = up.getEvent();
-		// POSSIBLE_IMPROVEMENT : Add tolerance threshold ?
+		// POSSIBLE_IMPROVEMENT Add tolerance threshold
 		return downEvent.getButtons().equals(upEvent.getButtons()) && downEvent.getX() == upEvent.getX()
 				&& downEvent.getY() == upEvent.getY();
 	}
@@ -178,7 +179,7 @@ public class SamplerHelper {
 		final InteractionEvent lastClickEvent = lastClick.captures.get(0).getEvent();
 		final InteractionEvent upEvent = up.getEvent();
 		final Set<MouseButton> lastClickButtons = lastClickEvent.getButtons();
-		// POSSIBLE_IMPROVEMENT : Add tolerance threshold ?
+		// POSSIBLE_IMPROVEMENT Add tolerance threshold
 		return DOUBLE_CLICK_BUTTONS.equals(lastClickButtons) && Objects.equals(lastClickButtons, upEvent.getButtons())
 				&& lastClickEvent.getX() == upEvent.getX() && lastClickEvent.getY() == upEvent.getY();
 	}
@@ -313,7 +314,7 @@ public class SamplerHelper {
 		final StringBuilder builder = new StringBuilder(
 				CitrixUtils.getResString("sampler_helper_response_message_header", false)).append(newLine);
 		if (details.isEmpty()) {
-			builder.append(CitrixUtils.getResString("sampler_helper_response_message_no_checks", false));
+			builder.append(CitrixUtils.getResString("sampler_helper_response_message_no_check", false));
 		} else {
 			if (overflow) {
 				builder.append(MessageFormat.format(

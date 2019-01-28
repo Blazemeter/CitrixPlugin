@@ -93,6 +93,18 @@ public class TemplateUpdater {
         }
     }
     
+    /**
+     * @return true if TemplateManager understands parameterized templates
+     */
+    public static final boolean hasParameterizedTemplate() {
+        try {
+            TemplateManager.getInstance().getClass().getMethod("parseTemplateFile", File.class);
+            return true;
+        } catch (NoSuchMethodException ex) {
+            return false;
+        }
+    }
+    
     private String extractDescriptionTag(String resourcePath, String resourceAsString) {
         final String text = "<description><![CDATA[";
         int startIndex = resourceAsString.indexOf("<description><![CDATA[");

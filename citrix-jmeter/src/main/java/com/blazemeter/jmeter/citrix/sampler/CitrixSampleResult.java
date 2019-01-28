@@ -8,8 +8,8 @@ import org.apache.jmeter.samplers.SampleResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.blazemeter.jmeter.citrix.clauses.Clause;
-import com.blazemeter.jmeter.citrix.clauses.ClauseHelper;
+import com.blazemeter.jmeter.citrix.clause.Clause;
+import com.blazemeter.jmeter.citrix.clause.ClauseHelper;
 import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
 
 /**

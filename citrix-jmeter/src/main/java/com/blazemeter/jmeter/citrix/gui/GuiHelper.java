@@ -1,14 +1,16 @@
 package com.blazemeter.jmeter.citrix.gui;
 
 import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import com.blazemeter.jmeter.citrix.clauses.Clause;
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckType;
-import com.blazemeter.jmeter.citrix.clauses.gui.ClauseBuilderPanel;
+
+import com.blazemeter.jmeter.citrix.clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.Clause;
+import com.blazemeter.jmeter.citrix.clause.gui.ClauseBuilderPanel;
 import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 
@@ -18,18 +20,26 @@ public class GuiHelper {
 	}
 
 	public static JLabel addLabeledComponent(JComponent component, String resLabel, JComponent parent) {
+		return addLabeledComponent(component, resLabel, parent, new Insets(0, 0, 0, 0));
+	}
+	
+	public static JLabel addLabeledComponent(JComponent component, String resLabel, JComponent parent, Insets insets) {
 		JLabel label = new JLabel(CitrixUtils.getResString(resLabel, false));
 		label.setLabelFor(component);
 		GridBagConstraints gbcLabel = new GridBagConstraints();
 		gbcLabel.anchor = GridBagConstraints.BASELINE_LEADING;
 		gbcLabel.fill = GridBagConstraints.HORIZONTAL;
+		gbcLabel.insets = insets;
 		parent.add(label, gbcLabel);
+		
 		GridBagConstraints gbcComponent = new GridBagConstraints();
 		gbcComponent.anchor = GridBagConstraints.BASELINE;
 		gbcComponent.fill = GridBagConstraints.HORIZONTAL;
 		gbcComponent.gridwidth = GridBagConstraints.REMAINDER;
 		gbcComponent.weightx = 1d;
+		gbcComponent.insets = insets;
 		parent.add(component, gbcComponent);
+		
 		return label;
 	}
 

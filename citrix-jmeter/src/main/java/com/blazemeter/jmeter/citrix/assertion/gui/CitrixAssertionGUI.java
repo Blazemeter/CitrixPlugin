@@ -7,8 +7,8 @@ import org.apache.jmeter.assertions.gui.AbstractAssertionGui;
 import org.apache.jmeter.testelement.TestElement;
 
 import com.blazemeter.jmeter.citrix.assertion.CitrixAssertion;
-import com.blazemeter.jmeter.citrix.clauses.Clause;
-import com.blazemeter.jmeter.citrix.clauses.gui.ClausePanel;
+import com.blazemeter.jmeter.citrix.clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.gui.ClausePanel;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 
 /**
@@ -31,7 +31,7 @@ public class CitrixAssertionGUI extends AbstractAssertionGui { // NOSONAR Ignore
 		Box box = Box.createVerticalBox();
 		box.add(makeTitlePanel());
 		box.add(Box.createVerticalStrut(10));
-		pnlClause = new ClausePanel(Clause.SNAPSHOT_CHECKTYPES, false);
+		pnlClause = new ClausePanel(CheckType.ASSERTION_CHECKS, false);
 		pnlClause.setTimeoutVisible(false);
 		box.add(pnlClause);
 		add(box, BorderLayout.NORTH);

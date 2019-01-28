@@ -11,9 +11,9 @@ import org.apache.jmeter.visualizers.ResultRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.blazemeter.jmeter.citrix.clauses.Clause;
-import com.blazemeter.jmeter.citrix.clauses.ClauseHelper;
-import com.blazemeter.jmeter.citrix.clauses.gui.ClauseBuilderPanel;
+import com.blazemeter.jmeter.citrix.clause.Clause;
+import com.blazemeter.jmeter.citrix.clause.ClauseHelper;
+import com.blazemeter.jmeter.citrix.clause.gui.ClauseBuilderPanel;
 import com.blazemeter.jmeter.citrix.sampler.CitrixSampleResult;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 
@@ -76,6 +76,7 @@ public class CitrixResultRenderer implements ResultRenderer {
 
 	@Override
 	public void renderImage(SampleResult sampleResult) {
+		// Use image stored in sample result as byte array
 		BufferedImage image = null;
 		try {
 			image = ClauseHelper.convertByteArrayToImage(result.getResponseData());
@@ -83,6 +84,7 @@ public class CitrixResultRenderer implements ResultRenderer {
 			LOGGER.error("Unable to get image from response data", e);
 		}
 
+		// Get result data
 		Rectangle fgWindowArea = null;
 		Rectangle selection = null;
 		boolean relative = false;
@@ -91,7 +93,7 @@ public class CitrixResultRenderer implements ResultRenderer {
 			fgWindowArea = citrixSampleResult.getFgWindowArea();
 
 			Clause clause = citrixSampleResult.getEndClause();
-			if (clause != null) {
+			if (clause != null && clause.getCheckType().isSupportingSelection()) {
 				selection = clause.getSelection();
 				relative = clause.isRelative();
 			}

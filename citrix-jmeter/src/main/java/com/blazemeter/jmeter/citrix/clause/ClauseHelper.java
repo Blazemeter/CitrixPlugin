@@ -1,4 +1,4 @@
-package com.blazemeter.jmeter.citrix.clauses;
+package com.blazemeter.jmeter.citrix.clause;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -6,30 +6,30 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 import javax.imageio.ImageIO;
 
 import org.apache.jmeter.util.JMeterUtils;
+import org.apache.oro.text.regex.Pattern;
+import org.apache.oro.text.regex.PatternMatcher;
+import org.apache.oro.text.regex.Perl5Compiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckResult;
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckType;
-import com.blazemeter.jmeter.citrix.client.CitrixClient;
-import com.blazemeter.jmeter.citrix.client.CitrixClientException;
 import com.blazemeter.jmeter.citrix.ocr.OcrManagerHolder;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 import com.github.kilianB.hashAlgorithms.PerceptiveHash;
 import com.github.kilianB.matcher.Hash;
 
+/**
+ * Provides helper class to facilitate clause computation
+ */
 public class ClauseHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClauseHelper.class);
 
-	// public static final String HASH_ALGORITHM = "MD5";
 	public static final String IMAGE_FORMAT = "png";
 
 	private static final String CLAUSE_TIMEOUT_PROP = CitrixUtils.PROPERTIES_PFX + "clause_check_timeout";
@@ -38,26 +38,12 @@ public class ClauseHelper {
 
 	private static final String CLAUSE_INTERVAL_PROP = CitrixUtils.PROPERTIES_PFX + "clause_check_interval";
 	private static final long CLAUSE_INTERVAL_DEFAULT = 100L;
-	private static final long CLAUSE_INTERVAL = JMeterUtils.getPropDefault(CLAUSE_INTERVAL_PROP,
+	public static final long CLAUSE_INTERVAL = JMeterUtils.getPropDefault(CLAUSE_INTERVAL_PROP,
 			CLAUSE_INTERVAL_DEFAULT);
 
 	private static final int BIT_RESOLUTION = 20;
 
 	private ClauseHelper() {
-	}
-
-	public static String computeValue(CheckType checkType, BufferedImage screenshot, Rectangle selection)
-			throws ClauseComputationException {
-		if (checkType == null) {
-			throw new IllegalArgumentException("checkType cannot be null.");
-		}
-
-		if (!Clause.SNAPSHOT_CHECKTYPES.contains(checkType)) {
-			throw new IllegalArgumentException(MessageFormat.format("Cannot compute value for check {0}", checkType));
-		}
-
-		return checkType == CheckType.HASH ? ClauseHelper.hash(screenshot, selection)
-				: ClauseHelper.recognize(screenshot, selection);
 	}
 
 	public static BufferedImage convertByteArrayToImage(byte[] array) throws IOException {
@@ -100,10 +86,6 @@ public class ClauseHelper {
 		}
 
 		try {
-//          MessageDigest md = MessageDigest.getInstance(HASH_ALGORITHM);
-//			byte[] digest = md.digest(convertImageToByteArray(target));
-//			return new String(Hex.encodeHex(digest)).toUpperCase();
-
 			PerceptiveHash perceptiveHash = new PerceptiveHash(BIT_RESOLUTION);
 			Hash hash = perceptiveHash.hash(target);
 			return hash.getHashValue().toString();
@@ -136,51 +118,6 @@ public class ClauseHelper {
 	}
 
 	/**
-	 * Wait until the specified clause is honored or the timeout is reached
-	 * 
-	 * @param clause  the clause to check
-	 * @param client  the Citrix client where the clause must be checked
-	 * @param start   start time to take into account for the timeout
-	 * @param onCheck callback function called each time a check occurs
-	 * @return true if the clause is honored; false otherwise
-	 * @throws InterruptedException     if current thread is interrupted
-	 * @throws IllegalArgumentException if clause is null
-	 */
-	public static boolean waitForClause(Clause clause, CitrixClient client, long start,
-			BiConsumer<Optional<CheckResult>, Integer> onCheck) throws InterruptedException {
-		if (clause == null) {
-			throw new IllegalArgumentException("clause must not be null.");
-		}
-
-		boolean success = false;
-		final long maxTime = start + clause.getTimeout();
-		int count = 1;
-		while (!success && System.currentTimeMillis() <= maxTime) {
-			
-			// Check clause
-			CheckResult result = null;
-			try {
-				result = clause.check(client);
-				success = result.isSuccessful();
-			} catch (CitrixClientException | ClauseComputationException e) {
-				LOGGER.debug("Unable to compute clause value at test #{}: {}", count, e.getMessage(), e);
-			}
-
-			// Callback function call
-			if (onCheck != null) {
-				onCheck.accept(Optional.ofNullable(result), Integer.valueOf(count));
-			}
-
-			// Wait until the next check
-			if (!success) {
-				TimeUnit.MILLISECONDS.sleep(CLAUSE_INTERVAL);
-			}
-			count++;
-		}
-		return success;
-	}
-
-	/**
 	 * Get selection area with absolute position according to specified parameters
 	 * 
 	 * @param selection    the selection area
@@ -210,6 +147,34 @@ public class ClauseHelper {
 					selectedArea, selection, fgWindowArea);
 		}
 		return selectedArea;
+	}
+
+	/**
+	 * Gets a predicate to use on clause check result to decide if the clause is
+	 * honored.
+	 * 
+	 * If clause uses regular expression on expected value, the predicate will
+	 * return true if its argument matches {@link Clause#getExpectedValue()};
+	 * othserwise the predicate will return true if its argument is equals to
+	 * {@link Clause#getExpectedValue()}.
+	 * 
+	 * @param clause the clause to use
+	 * @return a predicate to use on clause check result to decide if the clause is
+	 *         honored.
+	 */
+	public static Predicate<String> getValuePredicate(Clause clause) {
+		Predicate<String> predicate = null;
+		if (clause.isUsingRegex()) {
+			// Build regex matching predicate
+			PatternMatcher matcher = JMeterUtils.getMatcher();
+			Pattern pattern = JMeterUtils.getPatternCache().getPattern(clause.getExpectedValue(),
+					Perl5Compiler.READ_ONLY_MASK);
+			predicate = v -> matcher.matches(v, pattern);
+		} else {
+			// Build equality predicate
+			predicate = v -> Objects.equals(v, clause.getExpectedValue());
+		}
+		return predicate;
 	}
 
 }

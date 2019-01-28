@@ -9,8 +9,8 @@ import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.samplers.SampleSaveConfiguration;
 import org.apache.jmeter.save.converters.SampleResultConverter;
 
-import com.blazemeter.jmeter.citrix.clauses.Clause;
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.Clause;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
@@ -35,6 +35,7 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 	private static final String ATT_CLAUSE_TYPE = "type";
 	private static final String ATT_CLAUSE_EXPECTEDVALUE = "expected_value";
 	private static final String ATT_CLAUSE_TIMEOUT = "timeout";
+	private static final String ATT_CLAUSE_USE_REGEX = "use_regex";
 
 	private static final String JAVA_LANG_STRING = "java.lang.String"; //$NON-NLS-1$
 	private static final String ATT_CLASS = "class"; //$NON-NLS-1$
@@ -93,8 +94,9 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 		String checkType = reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_TYPE);
 		if (!StringUtils.isEmpty(checkType)) {
 			Rectangle selection = readRectangle(reader, CLAUSE_SELECTION_PFX);
+			boolean useRegex = Boolean.parseBoolean(reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_USE_REGEX));
 			Clause clause = new Clause(Enum.valueOf(CheckType.class, checkType),
-					reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_EXPECTEDVALUE), selection);
+					reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_EXPECTEDVALUE), useRegex, selection);
 			clause.setTimeout(Long.parseLong(reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_TIMEOUT)));
 			citrixSampleResult.setEndClause(clause);
 		}
@@ -114,6 +116,7 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 		if (clause != null) {
 			writer.addAttribute(CLAUSE_PFX + ATT_CLAUSE_TYPE, clause.getCheckType().name());
 			writer.addAttribute(CLAUSE_PFX + ATT_CLAUSE_EXPECTEDVALUE, clause.getExpectedValue());
+			writer.addAttribute(CLAUSE_PFX + ATT_CLAUSE_USE_REGEX, Boolean.toString(clause.isUsingRegex()));
 			writer.addAttribute(CLAUSE_PFX + ATT_CLAUSE_TIMEOUT, Long.toString(clause.getTimeout()));
 			writeRectangle(writer, clause.getSelection(), CLAUSE_SELECTION_PFX);
 		}

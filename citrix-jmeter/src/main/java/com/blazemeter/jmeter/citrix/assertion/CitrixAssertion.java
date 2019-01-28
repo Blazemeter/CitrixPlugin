@@ -10,10 +10,10 @@ import org.apache.jmeter.testelement.property.ObjectProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.blazemeter.jmeter.citrix.clauses.Clause;
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckResult;
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckType;
-import com.blazemeter.jmeter.citrix.clauses.ClauseComputationException;
+import com.blazemeter.jmeter.citrix.clause.CheckResult;
+import com.blazemeter.jmeter.citrix.clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.Clause;
+import com.blazemeter.jmeter.citrix.clause.ClauseComputationException;
 import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
 import com.blazemeter.jmeter.citrix.sampler.CitrixSampleResult;
 
@@ -68,10 +68,10 @@ public class CitrixAssertion extends AbstractTestElement implements Serializable
 				final CheckType checkType = clause.getCheckType();
 				final String expectedValue = clause.getExpectedValue();
 				try {
-					CheckResult checkResult = clause.check(snapshot);
+					CheckResult checkResult = checkType.checkSnapshot(clause, snapshot);
 					if (!checkResult.isSuccessful()) {
 						result.setResultForFailure(checkType.name() + " assertion: Expected value " + expectedValue
-								+ " but got : " + checkResult.getComputedValue());
+								+ " but got : " + checkResult.getValue());
 					}
 				} catch (ClauseComputationException e) {
 					result.setError(true);

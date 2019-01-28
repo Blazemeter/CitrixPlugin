@@ -56,7 +56,7 @@ public class SelectionPanel extends JPanel implements SelectionChangedSubject {
 		initialize();
 	}
 
-	private void updateSelection() {
+	public void updateSelection() {
 		Point position = pnlPosition.getPosition();
 		Dimension dimension = pnlDimension.getDimension();
 		Rectangle newSelection;

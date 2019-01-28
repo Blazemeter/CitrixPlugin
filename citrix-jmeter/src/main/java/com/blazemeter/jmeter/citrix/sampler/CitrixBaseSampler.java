@@ -11,10 +11,8 @@ import org.apache.jmeter.testelement.property.ObjectProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.blazemeter.jmeter.citrix.clauses.Clause;
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckResult;
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckType;
-import com.blazemeter.jmeter.citrix.clauses.ClauseHelper;
+import com.blazemeter.jmeter.citrix.clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.Clause;
 import com.blazemeter.jmeter.citrix.client.CitrixClient;
 import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
 import com.blazemeter.jmeter.citrix.client.CitrixClientException;
@@ -61,7 +59,7 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 
 	protected abstract SamplingHandler createHandler();
 
-	protected abstract Long doClientAction(CitrixClient client)
+	protected abstract void doClientAction(CitrixClient client)
 			throws SamplerRunException, CitrixClientException, InterruptedException;
 
 	// Instantiates a Citrix client and place it the session holder
@@ -88,6 +86,7 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 		}
 	}
 
+	// Throws SamplerRunException if policy is not respected
 	private void ensurePolicyCompliance(CitrixClient client) throws SamplerRunException {
 		if (policy == RunningClientPolicy.FORBIDDEN && client.isRunning()) {
 			// A client is running whereas none is required
@@ -100,13 +99,12 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 		}
 	}
 
-	private Long handleClientAction(CitrixClient client, CitrixSampleResult result)
+	private void handleClientAction(CitrixClient client, CitrixSampleResult result)
 			throws SamplerRunException, InterruptedException {
-		Long realStartTime = null;
 		SamplingHandler handler = createHandler();
 		client.addHandler(handler);
 		try {
-			realStartTime = doClientAction(client);
+			doClientAction(client);
 		} catch (CitrixClientException e) {
 			throw new SamplerRunException(
 					CitrixUtils.getResString("base_sampler_response_code_error_client_action", false));
@@ -118,35 +116,25 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 		if (!handler.errors.isEmpty()) {
 			throw new SamplerRunException(Integer.toString(handler.errors.get(0)));
 		}
-
-		return realStartTime;
 	}
 
-	private void checkClause(final CitrixSampleResult result, Long realStartTime)
-			throws SamplerRunException, InterruptedException {
+	private void checkClause(final CitrixSampleResult result) throws SamplerRunException, InterruptedException {
 		final Clause clause = getEndClause();
 		if (clause != null) {
-			final String expectedValue = clause.getExpectedValue();
 			final CheckType checkType = clause.getCheckType();
 			final LinkedList<String> details = new LinkedList<>();
 			final Snapshot[] lastSnapshot = new Snapshot[1];
 			final boolean[] overflow = new boolean[] { false };
 
-			final String expectedValueLabel = CitrixUtils.getResString("base_sampler_response_message_expected_value",
-					false);
-
 			final String checkErrorLabel = CitrixUtils.getResString("base_sampler_response_message_check_error", false);
 
 			// Wait for end clause and register intermediate results
 			try {
-				long startTime = realStartTime != null ? realStartTime.longValue() : result.getStartTime();
-				boolean success = ClauseHelper.waitForClause(clause, CitrixSessionHolder.getClient(), startTime,
-						(optionalResult, i) -> {
+				boolean success = checkType.wait(clause, CitrixSessionHolder.getClient(),
+						(checkResult, previous, i) -> {
 							String detail = checkType.name() + " #" + i + ": ";
-							if (optionalResult.isPresent()) {
-								CheckResult checkResult = optionalResult.get();
-								detail += "'" + checkResult.getComputedValue() + "', " + expectedValueLabel + " '"
-										+ expectedValue + "'";
+							if (checkResult != null) {
+								detail += checkType.format(checkResult, previous, clause, i);
 								lastSnapshot[0] = checkResult.getSnapshot();
 							} else {
 								detail += checkErrorLabel;
@@ -182,9 +170,9 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 				client = createClient();
 			}
 			ensurePolicyCompliance(client);
-			Long realStartTime = handleClientAction(client, result);
+			handleClientAction(client, result);
 			ensureConnected(client);
-			checkClause(result, realStartTime);
+			checkClause(result);
 			SamplerResultHelper.setResultOk(result);
 		} catch (SamplerRunException | IllegalStateException ex) {
 			result.setResponseCode(ex.getMessage());

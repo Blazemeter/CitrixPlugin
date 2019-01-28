@@ -1,7 +1,8 @@
-package com.blazemeter.jmeter.citrix.clauses.gui;
+package com.blazemeter.jmeter.citrix.clause.gui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.EventListener;
@@ -18,8 +19,9 @@ import javax.swing.text.JTextComponent;
 import org.apache.jmeter.gui.util.JSyntaxTextArea;
 import org.apache.jmeter.gui.util.JTextScrollPane;
 
-import com.blazemeter.jmeter.citrix.clauses.Clause;
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.Clause;
+import com.blazemeter.jmeter.citrix.clause.ClauseHelper;
 import com.blazemeter.jmeter.citrix.gui.GuiHelper;
 import com.blazemeter.jmeter.citrix.gui.SelectionPanel;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
@@ -30,13 +32,14 @@ public class ClausePanel extends JPanel {
 
 	private static final long serialVersionUID = -1950474156401033057L;
 
-	private final transient EnumWrapper<CheckType>[] check_types;
+	private final transient EnumWrapper<CheckType>[] checkTypeWrappers;
 
 	private boolean editable;
 	private Clause clause;
 
 	private JComboBox<EnumWrapper<CheckType>> cbbCheckType;
 	private JSyntaxTextArea taExpectedValue;
+	private JCheckBox chbUseRegex;
 	private SelectionPanel pnlSelection;
 	private JCheckBox chbRelative;
 	private JTextField tfTimeout;
@@ -60,13 +63,15 @@ public class ClausePanel extends JPanel {
 
 	public void setClause(Clause clause) {
 		if (clause != null) {
-			cbbCheckType.setSelectedItem(EnumHelper.lookup(check_types, clause.getCheckType()));
+			cbbCheckType.setSelectedItem(EnumHelper.lookup(checkTypeWrappers, clause.getCheckType()));
+			chbUseRegex.setSelected(clause.isUsingRegex());
 			taExpectedValue.setText(clause.getExpectedValue());
 			pnlSelection.setSelection(clause.getSelection());
 			chbRelative.setSelected(clause.isRelative());
 			tfTimeout.setText(Long.toString(clause.getTimeout()));
 		} else {
-			cbbCheckType.setSelectedItem(check_types[0]);
+			cbbCheckType.setSelectedItem(checkTypeWrappers[0]);
+			chbUseRegex.setSelected(false);
 			taExpectedValue.setText("");
 			pnlSelection.setSelection(null);
 			chbRelative.setSelected(false);
@@ -85,7 +90,7 @@ public class ClausePanel extends JPanel {
 	}
 
 	public ClausePanel(Set<CheckType> acceptedChecks, boolean isNoneAccepted) {
-		check_types = EnumHelper.getWrappersAsArray(CheckType.class, acceptedChecks, isNoneAccepted);
+		checkTypeWrappers = EnumHelper.getWrappersAsArray(CheckType.class, acceptedChecks, isNoneAccepted);
 		initialize();
 		setEditable(true);
 	}
@@ -108,13 +113,17 @@ public class ClausePanel extends JPanel {
 		@SuppressWarnings("unchecked")
 		final CheckType checkType = ((EnumWrapper<CheckType>) cbbCheckType.getSelectedItem()).getEnumValue();
 		if (checkType != null) {
+			pnlSelection.updateSelection();
+			long timeout;
 			try {
-				clause = new Clause(checkType, taExpectedValue.getText(), pnlSelection.getSelection());
-				clause.setRelative(chbRelative.isSelected());
-				clause.setTimeout(Long.parseLong(tfTimeout.getText()));
+				timeout = Long.parseLong(tfTimeout.getText());
 			} catch (NumberFormatException ex) {
-				clause = null;
+				timeout = ClauseHelper.CLAUSE_TIMEOUT;
 			}
+			clause = new Clause(checkType, taExpectedValue.getText(), chbUseRegex.isSelected(),
+					pnlSelection.getSelection());
+			clause.setRelative(chbRelative.isSelected());
+			clause.setTimeout(timeout);
 		} else {
 			clause = null;
 		}
@@ -128,36 +137,40 @@ public class ClausePanel extends JPanel {
 			EnumWrapper<CheckType> type = (EnumWrapper<CheckType>) item;
 			final CheckType checkType = type.getEnumValue();
 			final boolean canEdit = editable && checkType != null;
-			final boolean canEditSnapshot = canEdit && Clause.SNAPSHOT_CHECKTYPES.contains(checkType);
-
-			lblExpectedValue.setEnabled(canEditSnapshot);
-			taExpectedValue.setEditable(canEditSnapshot);
-			taExpectedValue.setFocusable(canEditSnapshot);
-
-			lblSelection.setEnabled(canEditSnapshot);
-			pnlSelection.setEnabled(canEditSnapshot);
-			pnlSelection.setEditable(canEditSnapshot);
-			pnlSelection.setFocusable(canEditSnapshot);
-
-			chbRelative.setEnabled(canEditSnapshot);
-			chbRelative.setFocusable(canEditSnapshot);
 
 			lblTimeout.setEnabled(canEdit);
 			tfTimeout.setEditable(canEdit);
 			tfTimeout.setFocusable(canEdit);
+
+			final boolean canEditExpectedValue = canEdit && checkType.isUsingExpectedValue();
+			chbUseRegex.setEnabled(canEditExpectedValue);
+			chbUseRegex.setFocusable(canEditExpectedValue);
+			lblExpectedValue.setEnabled(canEditExpectedValue);
+			taExpectedValue.setEditable(canEditExpectedValue);
+			taExpectedValue.setFocusable(canEditExpectedValue);
+
+			final boolean canEditSelection = canEdit && checkType.isSupportingSelection();
+			lblSelection.setEnabled(canEditSelection);
+			pnlSelection.setEnabled(canEditSelection);
+			pnlSelection.setEditable(canEditSelection);
+			pnlSelection.setFocusable(canEditSelection);
+
+			chbRelative.setEnabled(canEditSelection);
+			chbRelative.setFocusable(canEditSelection);
 
 		}
 	}
 
 	private void initialize() {
 		setLayout(new GridBagLayout());
+		Insets insets = new Insets(2, 0, 2, 0);
 
-		cbbCheckType = new JComboBox<>(check_types);
+		cbbCheckType = new JComboBox<>(checkTypeWrappers);
 		cbbCheckType.addItemListener(e -> {
 			updateEditable();
 			updateClause();
 		});
-		GuiHelper.addLabeledComponent(cbbCheckType, "clause_panel_type", this);
+		GuiHelper.addLabeledComponent(cbbCheckType, "clause_panel_type", this, insets);
 
 		JPanel pnlArea = new JPanel();
 		pnlArea.setLayout(new GridBagLayout());
@@ -178,16 +191,32 @@ public class ClausePanel extends JPanel {
 		gbcSelection.weightx = 1d;
 		pnlArea.add(pnlSelection, gbcSelection);
 
-		lblSelection = GuiHelper.addLabeledComponent(pnlArea, "clause_panel_selection", this);
+		lblSelection = GuiHelper.addLabeledComponent(pnlArea, "clause_panel_selection", this, insets);
+
+		JPanel pnlExpectedValue = new JPanel();
+		pnlExpectedValue.setLayout(new GridBagLayout());
+
+		chbUseRegex = new JCheckBox(CitrixUtils.getResString("clause_panel_use_regex", false));
+		chbUseRegex.addActionListener(e -> updateClause());
+		GridBagConstraints gbcUseRegex = new GridBagConstraints();
+		gbcUseRegex.anchor = GridBagConstraints.LINE_START;
+		gbcUseRegex.gridwidth = GridBagConstraints.REMAINDER;
+		pnlExpectedValue.add(chbUseRegex, gbcRelative);
 
 		taExpectedValue = JSyntaxTextArea.getInstance(5, 80);
 		taExpectedValue.addFocusListener(new ChangeHandler());
-		lblExpectedValue = GuiHelper.addLabeledComponent(JTextScrollPane.getInstance(taExpectedValue),
-				"clause_panel_expected_value", this);
+		GridBagConstraints gbcExpectedValue = new GridBagConstraints();
+		gbcExpectedValue.anchor = GridBagConstraints.LINE_START;
+		gbcExpectedValue.fill = GridBagConstraints.HORIZONTAL;
+		gbcExpectedValue.gridwidth = GridBagConstraints.REMAINDER;
+		gbcExpectedValue.weightx = 1d;
+		pnlExpectedValue.add(JTextScrollPane.getInstance(taExpectedValue), gbcExpectedValue);
+
+		lblExpectedValue = GuiHelper.addLabeledComponent(pnlExpectedValue, "clause_panel_expected_value", this, insets);
 
 		tfTimeout = new JTextField();
 		tfTimeout.addFocusListener(new ChangeHandler());
-		lblTimeout = GuiHelper.addLabeledComponent(tfTimeout, "clause_panel_timeout", this);
+		lblTimeout = GuiHelper.addLabeledComponent(tfTimeout, "clause_panel_timeout", this, insets);
 
 	}
 

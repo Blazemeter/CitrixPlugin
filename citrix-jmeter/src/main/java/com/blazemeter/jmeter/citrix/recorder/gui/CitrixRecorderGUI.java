@@ -81,9 +81,9 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.blazemeter.jmeter.citrix.clauses.Clause;
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckType;
 import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
+import com.blazemeter.jmeter.citrix.clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.Clause;
 import com.blazemeter.jmeter.citrix.client.CitrixClientException;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent.InteractionType;
 import com.blazemeter.jmeter.citrix.client.events.SessionEvent;
@@ -179,29 +179,19 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
 		setupTemplate();
 	}
 
-	void stopClientSilently() {
-		if (recorder != null) {
-			recorder.stopClientSilently();
-		}
-	}
-
 	private void setupTemplate() {
 		TemplateUpdater templateUpdater = new TemplateUpdater(new File(JMeterUtils.getJMeterBinDir(), "templates"));
 		try {
-			// Official version uses space, nightly use -
-			String[] versionInfos = JMeterUtils.getJMeterVersion().split("[ \\-]");
-			Float version = Float.parseFloat(versionInfos[0]);
-			if (version > 5.0f) {
-				templateUpdater.addTemplate("Blazemeter Citrix Recording", "citrixRecordingTemplateWithParameters.jmx",
-						"bzmCitrixTemplateWithParameters.xml", "/com/blazemeter/jmeter/citrix/template");
-			} else {
-				templateUpdater.addTemplate("Blazemeter Citrix Recording", "citrixRecordingTemplate.jmx",
-						"bzmCitrixTemplate.xml", "/com/blazemeter/jmeter/citrix/template");
-			}
+		    if(TemplateUpdater.hasParameterizedTemplate()) {
+                templateUpdater.addTemplate("Blazemeter Citrix Recording", "citrixRecordingTemplateWithParameters.jmx",
+                        "bzmCitrixTemplateWithParameters.xml", "/com/blazemeter/jmeter/citrix/template");
+		    } else {
+                templateUpdater.addTemplate("Blazemeter Citrix Recording", "citrixRecordingTemplate.jmx",
+                        "bzmCitrixTemplate.xml", "/com/blazemeter/jmeter/citrix/template");
+		    }
 		} catch (IOException ex) {
 			LOGGER.error("Error setting up templates using JMeter home: {}", JMeterUtils.getJMeterHome(), ex);
 		}
-
 	}
 
 	private void init() {

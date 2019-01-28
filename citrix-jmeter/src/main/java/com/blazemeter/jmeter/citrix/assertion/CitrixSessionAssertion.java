@@ -8,7 +8,7 @@ import org.apache.jmeter.assertions.AssertionResult;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testelement.AbstractTestElement;
 
-import com.blazemeter.jmeter.citrix.clauses.Clause.SessionState;
+import com.blazemeter.jmeter.citrix.clause.SessionState;
 import com.blazemeter.jmeter.citrix.client.CitrixClient;
 import com.blazemeter.jmeter.citrix.sampler.CitrixSessionHolder;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;

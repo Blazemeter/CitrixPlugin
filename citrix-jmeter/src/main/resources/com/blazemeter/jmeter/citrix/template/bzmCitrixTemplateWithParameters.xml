@@ -11,13 +11,13 @@
         </p>
         <h2>Useful links</h2>
             <ul>
-                <li><a href="https://github.com/Blazemeter/CitrixPlugin/master/docs/PRE_REQUISITES.md" >Citrix Plugin pre-requisites</a></li>
-                <li><a href="https://github.com/Blazemeter/CitrixPlugin/master/docs/README.md" >Citrix Plugin user manual</a></li>
+                <li><a href="https://github.com/Blazemeter/CitrixPlugin/blob/master/PRE_REQUISITES.md" >Citrix Plugin pre-requisites</a></li>
+                <li><a href="https://github.com/Blazemeter/CitrixPlugin/blob/master/README.md" >Citrix Plugin user manual</a></li>
                 <li><a href="http://jmeter.apache.org/usermanual/jmeter_proxy_step_by_step.pdf" >Recording Tests</a></li>
             </ul>
         ]]></description>
         <parameters>
-            <parameter defaultValue="Citrix Portal URL" key="citrixPortalUrl"/>
+            <parameter defaultValue="Citrix Portal Hostname" key="citrixPortalHost"/>
             <parameter defaultValue="Citrix Application you want to record" key="citrixApplicationName"/>
             <parameter defaultValue="Citrix Portal Login" key="citrixLogin"/>
             <parameter defaultValue="Citrix Portal Password" key="citrixPassword"/>

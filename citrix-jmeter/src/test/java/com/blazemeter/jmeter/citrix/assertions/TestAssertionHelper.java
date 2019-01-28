@@ -8,16 +8,13 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.imageio.ImageIO;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import com.blazemeter.jmeter.citrix.clauses.ClauseHelper;
-import com.blazemeter.jmeter.citrix.clauses.ClauseComputationException;
+import com.blazemeter.jmeter.citrix.clause.ClauseComputationException;
+import com.blazemeter.jmeter.citrix.clause.ClauseHelper;
 
 /**
  * Test the HashHelper class

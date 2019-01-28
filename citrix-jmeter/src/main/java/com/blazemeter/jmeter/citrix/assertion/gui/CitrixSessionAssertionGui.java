@@ -14,7 +14,7 @@ import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.testelement.TestElement;
 
 import com.blazemeter.jmeter.citrix.assertion.CitrixSessionAssertion;
-import com.blazemeter.jmeter.citrix.clauses.Clause.SessionState;
+import com.blazemeter.jmeter.citrix.clause.SessionState;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 
 /**

@@ -44,9 +44,9 @@ import org.apache.jorphan.collections.ListedHashTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.blazemeter.jmeter.citrix.clauses.Clause;
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckType;
-import com.blazemeter.jmeter.citrix.clauses.ClauseComputationException;
+import com.blazemeter.jmeter.citrix.clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.Clause;
+import com.blazemeter.jmeter.citrix.clause.ClauseComputationException;
 import com.blazemeter.jmeter.citrix.client.CitrixClient;
 import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
 import com.blazemeter.jmeter.citrix.client.CitrixClientException;
@@ -220,7 +220,7 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
 		}
 	}
 
-	public void stopClientSilently() {
+	private void stopClientSilently() {
 		if (client != null) {
 			try {
 				client.stop();
@@ -281,6 +281,7 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
 					if (clauseType != null) {
 						switch (clauseType) {
 						case FULL:
+							// POSSIBLE_IMPROVEMENT Handle relative to foreground window
 							lastSampler.setEndClause(new Clause(CheckType.HASH, snapshot.getScreenshot(), null));
 							break;
 						case FORCE_HASH:
@@ -371,6 +372,7 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
 			LOGGER.info("ICA file successfully downloaded in : {}", file);
 			if (LOGGER.isDebugEnabled()) {
 				try {
+					// POSSIBLE_IMPROVEMENT Handle charset
 					LOGGER.debug("ICA file content: \n{}\n\n", new String(Files.readAllBytes(file)));
 				} catch (IOException e) {
 					LOGGER.warn("Unable to get ICA file content: {}", e.getMessage(), e);

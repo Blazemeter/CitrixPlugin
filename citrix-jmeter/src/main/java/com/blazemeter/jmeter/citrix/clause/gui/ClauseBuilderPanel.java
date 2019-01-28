@@ -1,4 +1,4 @@
-package com.blazemeter.jmeter.citrix.clauses.gui;
+package com.blazemeter.jmeter.citrix.clause.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -23,7 +23,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
-import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.EventListener;
 import java.util.EventObject;
@@ -50,15 +49,15 @@ import org.apache.jmeter.testelement.TestElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.blazemeter.jmeter.citrix.clauses.ClauseHelper;
 import com.blazemeter.jmeter.citrix.assertion.CitrixAssertion;
 import com.blazemeter.jmeter.citrix.assertion.gui.CitrixAssertionGUI;
-import com.blazemeter.jmeter.citrix.clauses.Clause;
-import com.blazemeter.jmeter.citrix.clauses.Clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.Clause;
+import com.blazemeter.jmeter.citrix.clause.ClauseComputationException;
+import com.blazemeter.jmeter.citrix.clause.ClauseHelper;
 import com.blazemeter.jmeter.citrix.gui.ImagePanel;
 import com.blazemeter.jmeter.citrix.gui.PositionPanel;
 import com.blazemeter.jmeter.citrix.gui.SelectionPanel;
-import com.blazemeter.jmeter.citrix.clauses.ClauseComputationException;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 import com.blazemeter.jmeter.citrix.utils.DialogHelper;
 
@@ -88,7 +87,7 @@ public class ClauseBuilderPanel extends JPanel implements ActionListener, DragGe
 
 	private Point lastPosition;
 
-	private final Set<CheckType> checkTypes = EnumSet.copyOf(Clause.SNAPSHOT_CHECKTYPES);
+	private final Set<CheckType> checkTypes = CheckType.ASSERTION_CHECKS;
 
 	static {
 		// Load custom cursor for drag n drop
@@ -152,7 +151,7 @@ public class ClauseBuilderPanel extends JPanel implements ActionListener, DragGe
 		if (checkTypes == null) {
 			throw new IllegalArgumentException("checkTypes cannot be null.");
 		}
-		checkTypes.retainAll(Clause.SNAPSHOT_CHECKTYPES);
+		checkTypes.retainAll(CheckType.ASSERTION_CHECKS);
 
 		this.checkTypes.clear();
 		this.checkTypes.addAll(checkTypes);
@@ -203,7 +202,7 @@ public class ClauseBuilderPanel extends JPanel implements ActionListener, DragGe
 			CheckType checkType = Enum.valueOf(CheckType.class, model.getActionCommand());
 			String expectedValue = taClauseValue.getText();
 			Rectangle selection = pnlSelection.getSelection();
-			clause = new Clause(checkType, expectedValue, selection);
+			clause = new Clause(checkType, expectedValue, false, selection);
 			clause.setRelative(chbRelative.isSelected());
 		} else {
 			clause = null;
@@ -267,7 +266,7 @@ public class ClauseBuilderPanel extends JPanel implements ActionListener, DragGe
 
 		btngCheckTypes = new ButtonGroup();
 
-		for (CheckType checkType : Clause.SNAPSHOT_CHECKTYPES) {
+		for (CheckType checkType : CheckType.ASSERTION_CHECKS) {
 			JToggleButton button = new JToggleButton(
 					CitrixUtils.getResString("clause_builder_cmd_" + checkType.name().toLowerCase(), false));
 			button.setActionCommand(checkType.name());
@@ -352,20 +351,9 @@ public class ClauseBuilderPanel extends JPanel implements ActionListener, DragGe
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		CheckType checkType = Enum.valueOf(CheckType.class, e.getActionCommand());
-		String value;
 		try {
-			switch (checkType) {
-			case HASH:
-				value = ClauseHelper.hash(pnlImage.getImage(), pnlImage.getSelection());
-				taClauseValue.setText(value);
-				break;
-			case OCR:
-				value = ClauseHelper.recognize(pnlImage.getImage(), pnlImage.getSelection());
-				taClauseValue.setText(value);
-				break;
-			default:
-				// NOOP
-			}
+			String value = checkType.assess(pnlImage.getImage(), pnlImage.getSelection());
+			taClauseValue.setText(value);
 		} catch (ClauseComputationException ex) {
 			DialogHelper.showError(CitrixUtils.getResString("clause_builder_computation_error", false));
 			taClauseValue.setText("");

@@ -7,12 +7,13 @@
 		<description><![CDATA[
         <h1>Template you can use to record a Citrix application called through ICA Client</h1>
         <p>This template is provided by Citrix Plugin which allows load testing Citrix Applications.<br/>
-        Ensure you read Pre-requisites and User Manual before using the plugin. See <b>Useful links</b> below. 
+        Ensure you read Pre-requisites and User Manual before using the plugin. See <b>Useful links</b> below.
+        Once the new plan is created update configuration properties in elements called UDV and UDV-Recording. 
         </p>
         <h2>Useful links</h2>
             <ul>
-                <li><a href="https://github.com/Blazemeter/CitrixPlugin/master/docs/PRE_REQUISITES.md" >Citrix Plugin pre-requisites</a></li>
-                <li><a href="https://github.com/Blazemeter/CitrixPlugin/master/docs/README.md" >Citrix Plugin user manual</a></li>
+                <li><a href="https://github.com/Blazemeter/CitrixPlugin/blob/master/PRE_REQUISITES.md" >Citrix Plugin pre-requisites</a></li>
+                <li><a href="https://github.com/Blazemeter/CitrixPlugin/blob/master/README.md" >Citrix Plugin user manual</a></li>
                 <li><a href="http://jmeter.apache.org/usermanual/jmeter_proxy_step_by_step.pdf" >Recording Tests</a></li>
             </ul>
         ]]></description>
