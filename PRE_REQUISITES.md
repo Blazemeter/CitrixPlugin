@@ -324,4 +324,4 @@ If you get this message at execution of a "Citrix Application launcher" sampler,
     Foreground window area must be defined while obtaining the absolute position of a relative selection.
 
 This means the **Timeout** is too short. 
-Then you can increase the **Logon Timeout** setting.
+Then you can increase the **Timeout** setting.
