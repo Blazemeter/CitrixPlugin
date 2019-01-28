@@ -87,9 +87,9 @@ Scope to be completed, ideas:
 
 # 0.4.0 (DELIVERED ON 28 january 2019)
 
-** Important note : With the new regular expression support for clauses, backwards compatibility is not possible. As a result, jmx files created with previous versions of the plugin are no longer usable.**
+**Important note : With the new regular expression support for clauses, backwards compatibility is not possible. As a result, jmx files created with previous versions of the plugin are no longer usable.**
 
-** New Features:**
+**New Features:**
 
 * #159 End Clause : Bitmap Change
 * #161 End Clause : Window is visible on the screen
@@ -111,7 +111,7 @@ Scope to be completed, ideas:
 * #176 Clearing timeout of end clause makes end clause disappear
 * #188 CitrixRecorder is not initialized in nightly builds due to error in parsing version number
 
-** Bug fixes in JMeter: **
+**Bug fixes available in upcoming JMeter 5.1**
 
 * #182 Recording file does not contain end of file leading to popup error without impact
 * #187 NullPointerException / NPE when searching with JMeter 5.0
