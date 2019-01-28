@@ -306,3 +306,22 @@ At execution of a "Citrix Application launcher" sampler, getting error
 Means the Citrix Client does not signal the user is logged before the **Logon Timeout** set in the sampler.
 First ensure the downloaded ICA file run a new Citrix session because Citrix client does not send any event when running a session already in progress.
 Then you can increase the **Logon Timeout** setting.
+
+
+##### Citrix user not logged before ...
+At execution of a "Citrix Application launcher" sampler, getting error
+
+    Citrix user not logged before ...
+
+Means the Citrix Client does not signal the user is logged before the **Logon Timeout** set in the sampler.
+First ensure the downloaded ICA file run a new Citrix session because Citrix client does not send any event when running a session already in progress.
+Then you can increase the **Logon Timeout** setting.
+
+##### Foreground window area must be defined while obtaining the absolute position of a relative selection.
+
+If you get this message at execution of a "Citrix Application launcher" sampler, getting error
+
+    Foreground window area must be defined while obtaining the absolute position of a relative selection.
+
+This means the **Timeout** is too short. 
+Then you can increase the **Logon Timeout** setting.
