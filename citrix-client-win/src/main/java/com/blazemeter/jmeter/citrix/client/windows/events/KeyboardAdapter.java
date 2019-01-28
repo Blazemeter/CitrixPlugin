@@ -11,13 +11,13 @@ public class KeyboardAdapter extends _IKeyboardEvents {
 
 	@Override
 	public void onKeyDown(int keyId, int modifierState) {
-		LOGGER.debug("onKeyDown: keyId={} (0x{}, {}), modifierState={} ({})", keyId, Integer.toHexString(keyId),
-				(char) keyId, modifierState, Integer.toBinaryString(modifierState));
+		LOGGER.debug("onKeyDown: keyId={} (0x{}, {}), modifierState=0b{}", keyId, Integer.toHexString(keyId),
+				(char) keyId, Integer.toBinaryString(modifierState));
 	}
 
 	@Override
 	public void onKeyUp(int keyId, int modifierState) {
-		LOGGER.debug("onKeyUp: keyId={} (0x{}, {}), modifierState={} ({})", keyId, Integer.toHexString(keyId),
-				modifierState, (char) keyId, modifierState, Integer.toBinaryString(modifierState));
+		LOGGER.debug("onKeyUp: keyId={} (0x{}, {}), modifierState=0b{}", keyId, Integer.toHexString(keyId),
+				modifierState, (char) keyId, Integer.toBinaryString(modifierState));
 	}
 }

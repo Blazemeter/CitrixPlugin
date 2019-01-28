@@ -13,19 +13,22 @@ public class MouseAdapter extends _IMouseEvents {
 	public void onDoubleClick() {
 		LOGGER.debug("onDoubleClick");
 	}
-	
+
 	@Override
 	public void onMouseDown(int buttonState, int modifierState, int xPos, int yPos) {
-		LOGGER.debug("onMouseDown: buttonState={}, modifierState={}, xPos={}, yPos={}", buttonState, modifierState, xPos, yPos);
+		LOGGER.debug("onMouseDown: buttonState=0b{}, modifierState=0b{}, xPos={}, yPos={}",
+				Integer.toBinaryString(buttonState), Integer.toBinaryString(modifierState), xPos, yPos);
 	}
-	
+
 	@Override
 	public void onMouseUp(int buttonState, int modifierState, int xPos, int yPos) {
-		LOGGER.debug("onMouseUp: buttonState={}, modifierState={}, xPos={}, yPos={}", buttonState, modifierState, xPos, yPos);
+		LOGGER.debug("onMouseUp: buttonState=0b{}, modifierState=0b{}, xPos={}, yPos={}",
+				Integer.toBinaryString(buttonState), Integer.toBinaryString(modifierState), xPos, yPos);
 	}
-	
+
 	@Override
 	public void onMove(int buttonState, int modifierState, int xPos, int yPos) {
-		LOGGER.trace("onMove: buttonState={}, modifierState={}, xPos={}, yPos={}", buttonState, modifierState, xPos, yPos);
+		LOGGER.trace("onMove: buttonState=0b{}, modifierState=0b{}, xPos={}, yPos={}",
+				Integer.toBinaryString(buttonState), Integer.toBinaryString(modifierState), xPos, yPos);
 	}
 }

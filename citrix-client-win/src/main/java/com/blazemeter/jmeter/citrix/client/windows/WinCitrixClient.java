@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.blazemeter.jmeter.citrix.client.AbstractCitrixClient;
 import com.blazemeter.jmeter.citrix.client.CitrixClientException;
+import com.blazemeter.jmeter.citrix.client.WindowInfo;
 import com.blazemeter.jmeter.citrix.client.events.MouseButton;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent.KeyState;
@@ -26,8 +29,8 @@ import com.blazemeter.jmeter.citrix.client.events.InteractionEvent.MouseAction;
 import com.blazemeter.jmeter.citrix.client.events.SessionEvent;
 import com.blazemeter.jmeter.citrix.client.events.SessionEvent.EventType;
 import com.blazemeter.jmeter.citrix.client.events.SessionEvent.KnownError;
-import com.blazemeter.jmeter.citrix.client.events.ForegroundEvent;
-import com.blazemeter.jmeter.citrix.client.events.ForegroundEvent.ForegroundState;
+import com.blazemeter.jmeter.citrix.client.events.WindowEvent;
+import com.blazemeter.jmeter.citrix.client.events.WindowEvent.WindowState;
 import com.blazemeter.jmeter.citrix.client.events.Modifier;
 import com.blazemeter.jmeter.citrix.client.events.EventHelper;
 import com.blazemeter.jmeter.citrix.client.windows.com4j.ClassFactory;
@@ -57,7 +60,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinCitrixClient.class);
 
-	private final ConcurrentHashMap<Integer, Rectangle> windowAreas = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Integer, WindowInfo> windowInfos = new ConcurrentHashMap<>();
 	private Integer fgKey;
 	private Integer delayedFgKey;
 
@@ -70,6 +73,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
 	private Integer desiredVRes = null;
 	private ICAColorDepth desiredColorDepth = null;
 
+	// POSSIBLE_IMPROVEMENT See onDisconnect handler in createICAClient
 	@SuppressWarnings("unused")
 	private EventCookie keyboardCookie;
 	@SuppressWarnings("unused")
@@ -173,6 +177,16 @@ public class WinCitrixClient extends AbstractCitrixClient {
 	 */
 	public void setDesiredColorDepth(ICAColorDepth colorDepth) {
 		this.desiredColorDepth = colorDepth;
+	}
+
+	@Override
+	public Rectangle getForegroundWindowArea() {
+		return fgKey != null ? new Rectangle(windowInfos.get(fgKey).getArea()) : null;
+	}
+
+	@Override
+	public Collection<WindowInfo> getWindowInfos() {
+		return new ArrayList<>(windowInfos.values());
 	}
 
 	@Override
@@ -295,13 +309,13 @@ public class WinCitrixClient extends AbstractCitrixClient {
 		ensureMouse().sendMouseMove(EventHelper.fromButtons(buttons), EventHelper.fromModifiers(modifiers), x, y);
 	}
 
-	private ForegroundEvent createForegroundEvent(ForegroundState state, Rectangle area) {
-		return new ForegroundEvent(this, state, new Rectangle(area));
+	private WindowEvent createWindowEvent(WindowState state, WindowInfo info) {
+		return new WindowEvent(this, state, new WindowInfo(info));
 	}
 
 	private void switchForeground(Integer key) {
 		fgKey = key;
-		notifyHandlers(createForegroundEvent(ForegroundState.NEW, windowAreas.get(fgKey)));
+		notifyHandlers(createWindowEvent(WindowState.FOREGROUND, fgKey != null ? windowInfos.get(fgKey) : null));
 	}
 
 	private IICAClient createICAClient(boolean replayMode, boolean visible) {
@@ -361,38 +375,59 @@ public class WinCitrixClient extends AbstractCitrixClient {
 							final Integer key = Integer.valueOf(windowID);
 							Rectangle newArea = new Rectangle(window.positionX(), window.positionY(), window.width(),
 									window.height());
-							windowAreas.put(key, newArea);
+							String caption = window.caption();
+							windowInfos.put(key, new WindowInfo(newArea, caption));
 
 							window.advise(_IWindowEvents.class, new WindowAdapter(windowID) {
 
 								@Override
 								public void onMove(int xPos, int yPos) {
 									super.onMove(xPos, yPos);
-									final Rectangle area = windowAreas.get(key);
+									final WindowInfo winInfo = windowInfos.get(key);
+									final Rectangle area = winInfo.getArea();
 									area.setLocation(xPos, yPos);
-									if (key.equals(fgKey)) {
-										notifyHandlers(createForegroundEvent(ForegroundState.CHANGE_AREA, area));
-									}
+									notifyHandlers(createWindowEvent(WindowState.CHANGE_AREA, winInfo));
 								}
 
 								@Override
 								public void onSize(int width, int height) {
 									super.onSize(width, height);
-									final Rectangle area = windowAreas.get(key);
+									final WindowInfo winInfo = windowInfos.get(key);
+									final Rectangle area = winInfo.getArea();
 									area.setSize(width, height);
-									if (key.equals(fgKey)) {
-										notifyHandlers(createForegroundEvent(ForegroundState.CHANGE_AREA, area));
-									}
+									notifyHandlers(createWindowEvent(WindowState.CHANGE_AREA, winInfo));
 								}
 
 								@Override
 								public void onDestroy() {
 									super.onDestroy();
-									windowAreas.remove(key);
+									final WindowInfo winInfo = windowInfos.remove(key);
+									notifyHandlers(createWindowEvent(WindowState.CLOSED, winInfo));
 									if (key.equals(fgKey)) {
-										notifyHandlers(createForegroundEvent(ForegroundState.CHANGE_AREA, null));
+										switchForeground(null);
 									}
 								}
+
+								@Override
+								public void onCaptionChange(String caption) {
+									super.onCaptionChange(caption);
+									final WindowInfo winInfo = windowInfos.get(key);
+									winInfo.setCaption(caption);
+									notifyHandlers(createWindowEvent(WindowState.CLOSED, winInfo));
+								}
+
+								@Override
+								public void onActivate() {
+									super.onActivate();
+									notifyHandlers(createWindowEvent(WindowState.ACTIVATED, windowInfos.get(key)));
+								}
+
+								@Override
+								public void onDeactivate() {
+									super.onDeactivate();
+									notifyHandlers(createWindowEvent(WindowState.DEACTIVATED, windowInfos.get(key)));
+								}
+
 							});
 
 							if (key.equals(delayedFgKey)) {
@@ -406,7 +441,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
 							super.onWindowForeground(windowID);
 							if (windowID != 0) {
 								Integer key = Integer.valueOf(windowID);
-								if (windowAreas.containsKey(key)) {
+								if (windowInfos.containsKey(key)) {
 									switchForeground(key);
 								} else {
 									LOGGER.debug("Potential foreground window: {}", key);
@@ -498,7 +533,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
 			public void onDisconnect() {
 				super.onDisconnect();
 
-				// Why next lines throw TargetInvocationException
+				// POSSIBLE_IMPROVEMENT Analyze why next lines throw TargetInvocationException
 				// http://com4j.kohsuke.org/event.html
 				// mouseCookie.close();
 				// keyboardCookie.close();
@@ -514,5 +549,4 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
 		return client;
 	}
-
 }

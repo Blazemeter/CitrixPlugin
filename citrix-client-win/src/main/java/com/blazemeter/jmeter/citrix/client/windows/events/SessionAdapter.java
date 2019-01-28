@@ -17,12 +17,14 @@ public class SessionAdapter extends _ISessionEvents {
 
 	@Override
 	public void onWindowCreate(IWindow window) {
-		LOGGER.debug("onWindowCreate: window=[ID={}, caption={}]", window.windowID(), window.caption());
+		LOGGER.debug("onWindowCreate: window=[ID={}, caption={}, style=0x{}, extendedStyle=0x{}]", window.windowID(),
+				window.caption(), Integer.toHexString(window.style()), Integer.toHexString(window.extendedStyle()));
 	}
 
 	@Override
 	public void onWindowDestroy(IWindow window) {
-		LOGGER.debug("onWindowDestroy: window=[ID={}, caption={}]", window.windowID(), window.caption());
+		LOGGER.debug("onWindowDestroy: window=[ID={}, caption={}, style=0x{}, extendedStyle=0x{}]", window.windowID(),
+				window.caption(), Integer.toHexString(window.style()), Integer.toHexString(window.extendedStyle()));
 	}
 
 	@Override

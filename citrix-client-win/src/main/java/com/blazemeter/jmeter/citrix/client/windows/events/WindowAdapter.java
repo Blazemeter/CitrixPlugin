@@ -75,6 +75,7 @@ public class WindowAdapter extends _IWindowEvents {
 
 	@Override
 	public void onStyleChange(int style, int extendedStyle) {
-		log("onStyleChange: style={}, extendedStyle={}", style, extendedStyle);
+		log("onStyleChange: style=0x{}, extendedStyle=0x{}", Integer.toHexString(style),
+				Integer.toHexString(extendedStyle));
 	}
 }

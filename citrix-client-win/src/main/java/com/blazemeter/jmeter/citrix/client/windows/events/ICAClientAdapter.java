@@ -102,12 +102,12 @@ public class ICAClientAdapter extends _IICAClientEvents {
 
 	@Override
 	public void onDisconnectSessions(int hCommand) {
-		log("DisconnectSessions: hCommand={}", hCommand);
+		log("DisconnectSessions: hCommand=0x{}", Integer.toHexString(hCommand));
 	}
 
 	@Override
 	public void onDisconnectSessionsFailed(int hCommand) {
-		log("DisconnectSessionsFailed: hCommand={}", hCommand);
+		log("DisconnectSessionsFailed: hCommand=0x{}", Integer.toHexString(hCommand));
 	}
 
 	@Override
@@ -137,12 +137,12 @@ public class ICAClientAdapter extends _IICAClientEvents {
 
 	@Override
 	public void onLogoffSessions(int hCommand) {
-		log("LogoffSessions: hCommand={}", hCommand);
+		log("LogoffSessions: hCommand=0x{}", Integer.toHexString(hCommand));
 	}
 
 	@Override
 	public void onLogoffSessionsFailed(int hCommand) {
-		log("LogoffSessionsFailed: hCommand={}", hCommand);
+		log("LogoffSessionsFailed: hCommand=0x{}", Integer.toHexString(hCommand));
 	}
 
 	@Override
@@ -172,17 +172,17 @@ public class ICAClientAdapter extends _IICAClientEvents {
 
 	@Override
 	public void onReadyStateChange(int lReadyState) {
-		log("ReadyStateChange: lReadyState={}", lReadyState);
+		log("ReadyStateChange: lReadyState=0x{}", Integer.toHexString(lReadyState));
 	}
 
 	@Override
 	public void onSessionAttach(int hSession) {
-		log("SessionAttach: hSession={}", hSession);
+		log("SessionAttach: hSession={}(0x{})", hSession, Integer.toHexString(hSession));
 	}
 
 	@Override
 	public void onSessionDetach(int hSession) {
-		log("SessionDetach: hSession={}", hSession);
+		log("SessionDetach: hSession={}(0x{})", hSession, Integer.toHexString(hSession));
 	}
 
 	@Override
