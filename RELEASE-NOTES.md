@@ -84,3 +84,34 @@ Scope to be completed, ideas:
    
 * Application Window tracking
 * Ability to be notified of Windows events, and as a consequence, wait or assert
+
+# 0.4.0 (DELIVERED ON 28 january 2019)
+
+** Important note : With the new regular expression support for clauses, backwards compatibility is not possible. As a result, jmx files created with previous versions of the plugin are no longer usable.**
+
+** New Features:**
+
+* #159 End Clause : Bitmap Change
+* #161 End Clause : Window is visible on the screen
+* #163 End Clause : Wait for window to get the foreground
+* #162 End Clause : Wait for a Window close
+
+**Enhancements:**
+
+* #191 End Clause And Citrix Assertion : Allow using Regex for Expected values
+* #186 The clause timeout countdown must be started after the last interaction sent
+* #177: Enhances OCR reliability by using grayscale image conversion as workaround to BufferedImage's Byte Per Pixel miscalculation
+* #194 Allow configuring Color depth
+
+**Bug fixes:**
+
+* #148 Improves error handling when checks outside the screen area occur
+* #192 Modify check summaries
+* #183 Value entered in Assertion is not saved unless it loses focus
+* #176 Clearing timeout of end clause makes end clause disappear
+* #188 CitrixRecorder is not initialized in nightly builds due to error in parsing version number
+
+** Bug fixes in JMeter: **
+
+* #182 Recording file does not contain end of file leading to popup error without impact
+* #187 NullPointerException / NPE when searching with JMeter 5.0
