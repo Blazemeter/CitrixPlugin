@@ -115,3 +115,10 @@ Scope to be completed, ideas:
 
 * #182 Recording file does not contain end of file leading to popup error without impact
 * #187 NullPointerException / NPE when searching with JMeter 5.0
+
+# 0.4.1 (DELIVERED ON 29 january 2019)
+
+**Bug fixes:**
+
+* #198 The "Relative to" information of the CitrixSampleResultConverter processes is missing
+* #197 Switching between OCR and Hash controls causes the calculation buttons in the dialog box to disappear
