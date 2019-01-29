@@ -22,8 +22,8 @@
 	  "com.blazemeter.jmeter.citrix.sampler.gui.CitrixSamplerGUI"
     ],
     "versions": {
-      "0.4.0": {
-        "downloadUrl": "https://github.com/Blazemeter/CitrixPlugin/releases/download/0.4.0/citrix-jmeter-0.4.0.jar",
+      "0.4.1": {
+        "downloadUrl": "https://github.com/Blazemeter/CitrixPlugin/releases/download/0.4.1/citrix-jmeter-0.4.1.jar",
         "depends":["jmeter-core", "jmeter-components", "jmeter-http"]
       }
     }
