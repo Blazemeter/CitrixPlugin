@@ -23,6 +23,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.EventListener;
 import java.util.EventObject;
@@ -87,7 +88,7 @@ public class ClauseBuilderPanel extends JPanel implements ActionListener, DragGe
 
 	private Point lastPosition;
 
-	private final Set<CheckType> checkTypes = CheckType.ASSERTION_CHECKS;
+	private final Set<CheckType> checkTypes = EnumSet.copyOf(CheckType.ASSERTION_CHECKS);
 
 	static {
 		// Load custom cursor for drag n drop

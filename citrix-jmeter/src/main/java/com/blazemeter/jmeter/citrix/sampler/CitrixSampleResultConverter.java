@@ -35,6 +35,7 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 	private static final String ATT_CLAUSE_TYPE = "type";
 	private static final String ATT_CLAUSE_EXPECTEDVALUE = "expected_value";
 	private static final String ATT_CLAUSE_TIMEOUT = "timeout";
+	private static final String ATT_CLAUSE_IS_RELATIVE = "is_relative";
 	private static final String ATT_CLAUSE_USE_REGEX = "use_regex";
 
 	private static final String JAVA_LANG_STRING = "java.lang.String"; //$NON-NLS-1$
@@ -95,8 +96,10 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 		if (!StringUtils.isEmpty(checkType)) {
 			Rectangle selection = readRectangle(reader, CLAUSE_SELECTION_PFX);
 			boolean useRegex = Boolean.parseBoolean(reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_USE_REGEX));
+			boolean relative = Boolean.parseBoolean(reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_IS_RELATIVE));
 			Clause clause = new Clause(Enum.valueOf(CheckType.class, checkType),
 					reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_EXPECTEDVALUE), useRegex, selection);
+			clause.setRelative(relative);
 			clause.setTimeout(Long.parseLong(reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_TIMEOUT)));
 			citrixSampleResult.setEndClause(clause);
 		}
@@ -118,6 +121,7 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 			writer.addAttribute(CLAUSE_PFX + ATT_CLAUSE_EXPECTEDVALUE, clause.getExpectedValue());
 			writer.addAttribute(CLAUSE_PFX + ATT_CLAUSE_USE_REGEX, Boolean.toString(clause.isUsingRegex()));
 			writer.addAttribute(CLAUSE_PFX + ATT_CLAUSE_TIMEOUT, Long.toString(clause.getTimeout()));
+			writer.addAttribute(CLAUSE_PFX + ATT_CLAUSE_IS_RELATIVE, Boolean.toString(clause.isRelative()));
 			writeRectangle(writer, clause.getSelection(), CLAUSE_SELECTION_PFX);
 		}
 	}

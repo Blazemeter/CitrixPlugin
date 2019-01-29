@@ -63,7 +63,7 @@ public enum CheckType {
 		if (r.isSuccessful()) {
 			value = "The Citrix session is closed.";
 		} else {
-			value = "The Citrix session is still open open when it is expected to be closed.";
+			value = "The Citrix session is still open when it is expected to be closed.";
 		}
 		return value;
 	}),
