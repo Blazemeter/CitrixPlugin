@@ -126,6 +126,7 @@ public class ClauseHelper {
 	 * @param fgWindowArea the foreground window area
 	 * @return if relative, the selection area with absolute position; otherwise the
 	 *         initial selection area.
+	 * @throws IllegalStateException when relative is true and fgWindowArea is null
 	 */
 	public static Rectangle getAbsoluteSelection(Rectangle selection, boolean relative, Rectangle fgWindowArea) {
 		Rectangle selectedArea = selection != null ? new Rectangle(selection) : null;

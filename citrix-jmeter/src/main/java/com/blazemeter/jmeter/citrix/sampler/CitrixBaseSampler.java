@@ -132,6 +132,7 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 			try {
 				boolean success = checkType.wait(clause, CitrixSessionHolder.getClient(),
 						(checkResult, previous, i) -> {
+							// Build response message
 							String detail = checkType.name() + " #" + i + ": ";
 							if (checkResult != null) {
 								detail += checkType.format(checkResult, previous, clause, i);
@@ -139,6 +140,8 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 							} else {
 								detail += checkErrorLabel;
 							}
+							
+							// Handle too long message : remove first check details
 							if (i > SamplerHelper.MAX_KEPT_CHECKS) {
 								overflow[0] = true;
 								details.remove();
@@ -174,7 +177,7 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 			ensureConnected(client);
 			checkClause(result);
 			SamplerResultHelper.setResultOk(result);
-		} catch (SamplerRunException | IllegalStateException ex) {
+		} catch (SamplerRunException ex) {
 			result.setResponseCode(ex.getMessage());
 		} catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();

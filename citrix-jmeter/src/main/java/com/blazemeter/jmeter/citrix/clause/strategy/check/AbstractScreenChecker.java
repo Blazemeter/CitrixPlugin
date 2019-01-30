@@ -2,6 +2,10 @@ package com.blazemeter.jmeter.citrix.clause.strategy.check;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.text.MessageFormat;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.blazemeter.jmeter.citrix.clause.CheckResult;
 import com.blazemeter.jmeter.citrix.clause.ClauseComputationException;
@@ -14,6 +18,8 @@ import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
  * of Citrix session
  */
 public abstract class AbstractScreenChecker implements ClientChecker, ScreenshotAssessor {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractScreenChecker.class);
 
 	private final ScreenshotAssessor screenshotAssessor;
 
@@ -38,9 +44,18 @@ public abstract class AbstractScreenChecker implements ClientChecker, Screenshot
 	 * @throws ClauseComputationException when clause computation fails
 	 */
 	protected CheckResult checkSnapshot(Snapshot snapshot, PollingContext context) throws ClauseComputationException {
+		final Rectangle fgArea = snapshot.getForegroundWindowArea();
+		
 		// Get real area selection depending to foreground info
-		Rectangle selection = context.getAreaSelector().select(snapshot.getForegroundWindowArea());
-
+		Rectangle selection;
+		try {
+			selection = context.getAreaSelector().select(fgArea);
+		} catch (Exception ex) {
+			// Catch any exception and encapsulate it in ClauseComputationException
+			String msg = MessageFormat.format("Unable to select area with foreground area {0}", fgArea);
+			LOGGER.debug(msg, ex);
+			throw new ClauseComputationException(msg, ex);
+		}
 		// Do screenshot assessment
 		String value = assess(snapshot.getScreenshot(), selection);
 

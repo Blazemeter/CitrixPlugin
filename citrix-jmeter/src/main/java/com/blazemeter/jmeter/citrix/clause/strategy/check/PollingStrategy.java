@@ -81,12 +81,14 @@ public class PollingStrategy implements CheckStrategy {
 		// Do checks within the time allotted
 		boolean success = false;
 		final long maxTime = System.currentTimeMillis() + clause.getTimeout();
+		LOGGER.debug("Will poll with timeout:{}, maxTime:{}", clause.getTimeout(), maxTime);
 		int index = 1;
 		while (!success && System.currentTimeMillis() <= maxTime) {
 
 			// Check clause
 			CheckResult result = null;
 			try {
+			    LOGGER.debug("Checking at :{} for {}th time", System.currentTimeMillis(), index);
 				result = checker.check(client, context);
 				success = result.isSuccessful();
 			} catch (CitrixClientException | ClauseComputationException e) {
@@ -105,10 +107,12 @@ public class PollingStrategy implements CheckStrategy {
 
 			if (!success) {
 				// Wait until the next check
+			    LOGGER.debug("Sleeping for {}ms before next check", ClauseHelper.CLAUSE_INTERVAL);
 				TimeUnit.MILLISECONDS.sleep(ClauseHelper.CLAUSE_INTERVAL);
 			}
 			index++;
 		}
+		LOGGER.debug("Returning after {} tries with result:{} and time condition:{}", index, success, (System.currentTimeMillis() <= maxTime));
 		return success;
 	}
 

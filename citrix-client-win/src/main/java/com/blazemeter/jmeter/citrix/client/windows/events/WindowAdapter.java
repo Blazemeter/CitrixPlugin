@@ -25,7 +25,7 @@ public class WindowAdapter extends _IWindowEvents {
 		int size = (arguments != null ? arguments.length : 0) + 1;
 		Object[] args = Arrays.copyOf(arguments, size);
 		args[size - 1] = Integer.valueOf(windowID);
-		LOGGER.debug(format + " for window {}", args);
+		LOGGER.debug("{} for window {}", format, args);
 	}
 
 	@Override
