@@ -2,6 +2,9 @@ package com.blazemeter.jmeter.citrix.clause.strategy.check;
 
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.blazemeter.jmeter.citrix.clause.CheckResult;
 
 /**
@@ -9,6 +12,8 @@ import com.blazemeter.jmeter.citrix.clause.CheckResult;
  * screen
  */
 public class DiffChecker extends AbstractScreenChecker {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DiffChecker.class);
 
 	/**
 	 * Instantiates a new {@link DiffChecker}
@@ -22,8 +27,14 @@ public class DiffChecker extends AbstractScreenChecker {
 	@Override
 	protected boolean isSuccess(PollingContext context, String resultValue) {
 		// Compare with the previous result if it exists
-		CheckResult previous = context.getPrevious();
-		return previous != null && !Objects.equals(resultValue, previous.getValue());
+		final CheckResult previous = context.getPrevious();
+		final boolean result = previous != null && !Objects.equals(resultValue, previous.getValue());
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("'{}' differs from previous result '{}': {}", resultValue,
+					(previous != null ? previous.getValue() : null), result);
+		}
+
+		return result;
 	}
 
 }

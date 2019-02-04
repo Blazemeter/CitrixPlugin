@@ -19,7 +19,6 @@ import com.blazemeter.jmeter.citrix.client.events.InteractionEvent.KeyState;
 import com.blazemeter.jmeter.citrix.client.events.MouseButton;
 import com.blazemeter.jmeter.citrix.recorder.Capture;
 import com.blazemeter.jmeter.citrix.recorder.CaptureItem;
-import com.blazemeter.jmeter.citrix.sampler.InteractionSampler.SamplerType;
 import com.blazemeter.jmeter.citrix.sampler.gui.InteractionSamplerGUI;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 

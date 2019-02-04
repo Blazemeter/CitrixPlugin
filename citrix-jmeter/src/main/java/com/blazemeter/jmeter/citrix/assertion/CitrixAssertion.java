@@ -73,6 +73,10 @@ public class CitrixAssertion extends AbstractTestElement implements Serializable
 						result.setResultForFailure(checkType.name() + " assertion: Expected value " + expectedValue
 								+ " but got : " + checkResult.getValue());
 					}
+					if(LOGGER.isDebugEnabled()) {
+					    LOGGER.debug("{} on assertion {} gets {} assertion result: failure={}, value='{}' wheras expected value='{}'",
+							getThreadName(), getName(), checkType, result.isFailure(), checkResult.getValue(), expectedValue);
+					}
 				} catch (ClauseComputationException e) {
 					result.setError(true);
 					result.setFailureMessage(e.getMessage());

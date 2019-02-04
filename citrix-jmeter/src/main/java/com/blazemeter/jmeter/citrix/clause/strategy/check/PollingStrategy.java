@@ -60,7 +60,7 @@ public class PollingStrategy implements CheckStrategy {
 	// Provides a polling context based on the specified clause
 	private PollingContext createPollingContext(Clause clause) {
 		// NOTE : the valuePredicate will be null when usingExpectedValue is false
-		return new PollingContext(usingExpectedValue ? ClauseHelper.getValuePredicate(clause) : null,
+		return new PollingContext(usingExpectedValue ? ClauseHelper.buildValuePredicate(clause) : null,
 				r -> ClauseHelper.getAbsoluteSelection(clause.getSelection(), clause.isRelative(), r));
 	}
 

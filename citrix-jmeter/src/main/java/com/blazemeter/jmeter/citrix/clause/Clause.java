@@ -20,6 +20,9 @@ public class Clause implements Serializable {
 	private final Rectangle selection;
 	private final String expectedValue;
 	private boolean relative;
+	// POSSIBLE_IMPROVEMENT Do not store timeout in clause but in sampler
+	// This timeout is only used by samplers, assertions and extractors need not it.
+	// Consequently, assertions and extractors GUI must hide it.
 	private long timeout = ClauseHelper.CLAUSE_TIMEOUT;
 	private final boolean usingRegex;
 

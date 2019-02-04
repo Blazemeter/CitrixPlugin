@@ -58,7 +58,8 @@ public abstract class AbstractScreenChecker implements ClientChecker, Screenshot
 		}
 		// Do screenshot assessment
 		String value = assess(snapshot.getScreenshot(), selection);
-
+		LOGGER.debug("Gets '{}' by evaluating the area {} of the screen", value, selection);
+		
 		return new CheckResult(snapshot, value, isSuccess(context, value));
 	}
 

@@ -170,8 +170,11 @@ public class ClausePanel extends JPanel {
 			updateEditable();
 			updateClause();
 		});
-		GuiHelper.addLabeledComponent(cbbCheckType, "clause_panel_type", this, insets);
-
+		JLabel lblCheckType = GuiHelper.addLabeledComponent(cbbCheckType, "clause_panel_type", this, insets);
+		if (checkTypeWrappers.length <= 1) {
+			cbbCheckType.setVisible(false);
+			lblCheckType.setVisible(false);
+		}
 		JPanel pnlArea = new JPanel();
 		pnlArea.setLayout(new GridBagLayout());
 

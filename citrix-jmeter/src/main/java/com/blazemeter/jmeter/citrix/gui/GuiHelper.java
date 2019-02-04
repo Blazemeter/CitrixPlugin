@@ -20,18 +20,28 @@ public class GuiHelper {
 	}
 
 	public static JLabel addLabeledComponent(JComponent component, String resLabel, JComponent parent) {
-		return addLabeledComponent(component, resLabel, parent, new Insets(0, 0, 0, 0));
+		return addLabeledComponent(component, resLabel, parent, false);
 	}
-	
+
 	public static JLabel addLabeledComponent(JComponent component, String resLabel, JComponent parent, Insets insets) {
-		JLabel label = new JLabel(CitrixUtils.getResString(resLabel, false));
+		return addLabeledComponent(component, resLabel, parent, false, insets);
+	}
+
+	public static JLabel addLabeledComponent(JComponent component, String resLabel, JComponent parent,
+			boolean useJMeterRes) {
+		return addLabeledComponent(component, resLabel, parent, useJMeterRes, new Insets(0, 0, 0, 0));
+	}
+
+	public static JLabel addLabeledComponent(JComponent component, String resLabel, JComponent parent,
+			boolean useJMeterRes, Insets insets) {
+		JLabel label = new JLabel(CitrixUtils.getResString(resLabel, useJMeterRes));
 		label.setLabelFor(component);
 		GridBagConstraints gbcLabel = new GridBagConstraints();
 		gbcLabel.anchor = GridBagConstraints.BASELINE_LEADING;
 		gbcLabel.fill = GridBagConstraints.HORIZONTAL;
 		gbcLabel.insets = insets;
 		parent.add(label, gbcLabel);
-		
+
 		GridBagConstraints gbcComponent = new GridBagConstraints();
 		gbcComponent.anchor = GridBagConstraints.BASELINE;
 		gbcComponent.fill = GridBagConstraints.HORIZONTAL;
@@ -39,7 +49,7 @@ public class GuiHelper {
 		gbcComponent.weightx = 1d;
 		gbcComponent.insets = insets;
 		parent.add(component, gbcComponent);
-		
+
 		return label;
 	}
 

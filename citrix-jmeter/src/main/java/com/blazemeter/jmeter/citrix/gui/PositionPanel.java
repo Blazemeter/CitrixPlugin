@@ -17,7 +17,7 @@ public class PositionPanel extends JPanel {
 
 	private static final long serialVersionUID = -4081910650471400803L;
 
-	private boolean editable;
+	private boolean editable = true;
 	private Point position;
 
 	private JTextField tfXPosition;

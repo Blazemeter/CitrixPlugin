@@ -22,7 +22,7 @@ import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 import com.blazemeter.jmeter.citrix.client.events.Modifier;
 
 /**
- * Sampler that contains informations of an interaction saved by a CitrixRecord.
+ * This class provides a sampler that can replay Citrix user interactions
  */
 public class InteractionSampler extends CitrixBaseSampler {
 
@@ -38,10 +38,6 @@ public class InteractionSampler extends CitrixBaseSampler {
 
 	private static final RandomDataGenerator VARIATION_GENERATOR = new RandomDataGenerator();
 
-	public enum SamplerType {
-		TEXT, KEY_SEQUENCE, MOUSE_CLICK, MOUSE_SEQUENCE
-	}
-
 	// + JMX file attributes
 	private static final String SAMPLER_TYPE_PROP = "InteractionSampler.samplerType"; // $NON-NLS-1$
 	private static final String INPUT_TEXT_PROP = "InteractionSampler.inputText"; // $NON-NLS-1$
@@ -55,14 +51,25 @@ public class InteractionSampler extends CitrixBaseSampler {
 	private static final String RELATIVE_PROP = "InteractionSampler.relative"; // $NON-NLS-1$
 	private static final String TIMESTAMP = "InteractionSampler.timestamp"; // $NON-NLS-1$
 
+	// Gets the next duration variation for waiting times between keystrokes
 	private static long getNextVariation() {
 		return VARIATION_GENERATOR.nextLong(-KEYSTROKE_DELAY_VARIATION, KEYSTROKE_DELAY_VARIATION);
 	}
 
+	/**
+	 * Gets the type of interaction to sample
+	 * 
+	 * @return the type of interaction to sample
+	 */
 	public SamplerType getSamplerType() {
 		return Enum.valueOf(SamplerType.class, getPropertyAsString(SAMPLER_TYPE_PROP));
 	}
 
+	/**
+	 * Defines the type of interaction to sample
+	 * 
+	 * @param samplerType the type of interaction to sample
+	 */
 	public void setSamplerType(SamplerType samplerType) {
 		if (samplerType == null) {
 			throw new IllegalArgumentException("samplerType cannot be null.");
@@ -70,14 +77,32 @@ public class InteractionSampler extends CitrixBaseSampler {
 		setProperty(SAMPLER_TYPE_PROP, samplerType.name());
 	}
 
+	/**
+	 * Gets the text whose keystrokes to simulate when the sample type is
+	 * {@link SamplerType#TEXT}
+	 * 
+	 * @return the text to simulate
+	 */
 	public String getInputText() {
 		return getPropertyAsString(INPUT_TEXT_PROP);
 	}
 
+	/**
+	 * Defines the text whose keystrokes to simulate when the sample type is
+	 * {@link SamplerType#TEXT}
+	 * 
+	 * @param text the text to simulate
+	 */
 	public void setInputText(String text) {
 		setProperty(INPUT_TEXT_PROP, text);
 	}
 
+	/**
+	 * Gets the lists of keystrokes to simulate when sample type is
+	 * {@link SamplerType#KEY_SEQUENCE}
+	 * 
+	 * @return the lists of keystrokes to simulate
+	 */
 	@SuppressWarnings("unchecked")
 	public List<KeySequenceItem> getKeySequence() {
 		List<KeySequenceItem> sequence = (List<KeySequenceItem>) getProperty(KEY_SEQUENCE_PROP).getObjectValue();
@@ -88,6 +113,12 @@ public class InteractionSampler extends CitrixBaseSampler {
 		return sequence;
 	}
 
+	/**
+	 * Gets the lists of mouse events to simulate when sample type is
+	 * {@link SamplerType#MOUSE_SEQUENCE}
+	 * 
+	 * @return the lists of mouse events to simulate
+	 */
 	@SuppressWarnings("unchecked")
 	public List<MouseSequenceItem> getMouseSequence() {
 		List<MouseSequenceItem> sequence = (List<MouseSequenceItem>) getProperty(MOUSE_SEQUENCE_PROP).getObjectValue();
@@ -98,6 +129,12 @@ public class InteractionSampler extends CitrixBaseSampler {
 		return sequence;
 	}
 
+	/**
+	 * Gets the modifier keys to simulate when sample type is
+	 * {@link SamplerType#MOUSE_CLICK}
+	 * 
+	 * @return the modifier keys to simulate
+	 */
 	@SuppressWarnings("unchecked")
 	public Set<Modifier> getModifiers() {
 		Set<Modifier> modifiers = (Set<Modifier>) getProperty(MODIFIERS).getObjectValue();
@@ -108,6 +145,12 @@ public class InteractionSampler extends CitrixBaseSampler {
 		return modifiers;
 	}
 
+	/**
+	 * Gets the mouse buttons to simulate when sample type is
+	 * {@link SamplerType#MOUSE_CLICK}
+	 * 
+	 * @return the mouse buttons to simulate
+	 */
 	@SuppressWarnings("unchecked")
 	public Set<MouseButton> getMouseButtons() {
 		Set<MouseButton> buttons = (Set<MouseButton>) getProperty(MOUSE_BUTTONS).getObjectValue();
@@ -118,10 +161,22 @@ public class InteractionSampler extends CitrixBaseSampler {
 		return buttons;
 	}
 
+	/**
+	 * Indicates whether the mouse interaction is a double-click when sampler type
+	 * is {@link SamplerType#MOUSE_CLICK}
+	 * 
+	 * @return true if the mouse interaction is a double-click; false otherwise
+	 */
 	public boolean isDoubleClick() {
 		return getPropertyAsBoolean(DOUBLE_CLICK_PROP);
 	}
 
+	/**
+	 * Defines whether the mouse interaction is a double-click when sampler type is
+	 * {@link SamplerType#MOUSE_CLICK}
+	 * 
+	 * @param doubleClick true to simulate a double click
+	 */
 	public void setDoubleClick(boolean doubleClick) {
 		setProperty(DOUBLE_CLICK_PROP, doubleClick);
 	}
@@ -172,9 +227,18 @@ public class InteractionSampler extends CitrixBaseSampler {
 
 	@Override
 	protected SamplingHandler createHandler() {
-		return new InteractionHandler();
+		return new InteractionHandler(getName());
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.blazemeter.jmeter.citrix.sampler.CitrixBaseSampler#doClientAction(com.
+	 * blazemeter.jmeter.citrix.client.CitrixClient)
+	 * 
+	 * Simulates Citrix user interactions with the specified client
+	 */
 	@Override
 	protected void doClientAction(CitrixClient client) throws CitrixClientException, InterruptedException {
 		switch (getSamplerType()) {
@@ -203,8 +267,9 @@ public class InteractionSampler extends CitrixBaseSampler {
 		final Set<Modifier> modifiers = getModifiers();
 		final boolean relative = isRelative();
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("{} samples click at position X={}, Y={} (relative={}) with buttons={} and modifiers={}",
-					getThreadName(), x, y, relative, buttons, modifiers);
+			LOGGER.debug(
+					"{} on sampler {} samples click at position X={}, Y={} (relative={}) with buttons={} and modifiers={}",
+					getThreadName(), getName(), x, y, relative, buttons, modifiers);
 		}
 		client.sendMouseButtonQuery(false, buttons, x, y, modifiers, relative);
 		client.sendMouseButtonQuery(true, buttons, x, y, modifiers, relative);
@@ -212,8 +277,10 @@ public class InteractionSampler extends CitrixBaseSampler {
 
 	private void sendKeystroke(CitrixClient client, int keyCode, boolean keyUp, boolean withDelay)
 			throws CitrixClientException, InterruptedException {
-		LOGGER.trace("{} sends key stroke keyCode=0x{}({}), keyState={}", getThreadName(), Long.toHexString(keyCode),
-				keyCode, keyUp ? KeyState.KEY_UP : KeyState.KEY_DOWN);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("{} on sampler {} sends key stroke keyCode=0x{}({}), keyState={}", getThreadName(), getName(),
+					Long.toHexString(keyCode), keyCode, keyUp ? KeyState.KEY_UP : KeyState.KEY_DOWN);
+		}
 		client.sendKeyQuery(keyCode, keyUp);
 		if (withDelay) {
 			long delay = KEYSTROKE_DELAY + getNextVariation();
@@ -224,7 +291,9 @@ public class InteractionSampler extends CitrixBaseSampler {
 
 	private void sampleText(CitrixClient client) throws CitrixClientException, InterruptedException {
 		final String inputText = getInputText();
-		LOGGER.debug("{} samples text {}", getThreadName(), inputText);
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("{} on sampler {} samples text {}", getThreadName(), getName(), inputText);
+		}
 
 		final char[] chars = inputText.toCharArray();
 		for (int index = 0; index < chars.length; index++) {
@@ -237,7 +306,10 @@ public class InteractionSampler extends CitrixBaseSampler {
 	private void sampleKeySequence(CitrixClient client) throws CitrixClientException, InterruptedException {
 		final List<KeySequenceItem> keySequence = getKeySequence();
 		if (keySequence != null) {
-			LOGGER.debug("{} samples key sequence with {} items", getThreadName(), keySequence.size());
+		    if(LOGGER.isDebugEnabled()) {
+		        LOGGER.debug("{} on sampler {} samples key sequence with {} items", getThreadName(), getName(),
+					keySequence.size());
+		    }
 			for (KeySequenceItem item : keySequence) {
 				final int keyCode = item.getKeyCode();
 				final KeyState keyState = item.getKeyState();
@@ -251,7 +323,10 @@ public class InteractionSampler extends CitrixBaseSampler {
 	private void sampleMouseSequence(CitrixClient client) throws CitrixClientException, InterruptedException {
 		final List<MouseSequenceItem> mouseSequence = getMouseSequence();
 		if (mouseSequence != null) {
-			LOGGER.debug("{} samples mouse sequence with {} items", getThreadName(), mouseSequence.size());
+		    if(LOGGER.isDebugEnabled()) {
+		        LOGGER.debug("{} on sampler {} samples mouse sequence with {} items", getThreadName(), getName(),
+					mouseSequence.size());
+		    }
 			for (MouseSequenceItem item : mouseSequence) {
 				TimeUnit.MILLISECONDS.sleep(item.getDelay());
 				final int x = item.getX();
@@ -275,7 +350,11 @@ public class InteractionSampler extends CitrixBaseSampler {
 
 	private static class InteractionHandler extends SamplingHandler {
 
-		private final StringBuilder builder = new StringBuilder();
+		protected InteractionHandler(String elementName) {
+            super(elementName);
+        }
+
+        private final StringBuilder builder = new StringBuilder();
 		private int count = 0;
 
 		private String prefix(String msg) {

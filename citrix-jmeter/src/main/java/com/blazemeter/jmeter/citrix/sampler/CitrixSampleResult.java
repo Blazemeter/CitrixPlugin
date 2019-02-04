@@ -103,4 +103,15 @@ public class CitrixSampleResult extends SampleResult {
 	public void setEndClause(Clause endClause) {
 		this.endClause = endClause;
 	}
+
+	/**
+	 * Gets the screenshot stored in the snapshot resulting from the sampling
+	 * 
+	 * @return the screenshot if it exists; null if the screenshot or the snapshot
+	 *         do not exist
+	 */
+	public BufferedImage getScreenshot() {
+		Snapshot snapshot = getSnapshot();
+		return snapshot != null ? snapshot.getScreenshot() : null;
+	}
 }

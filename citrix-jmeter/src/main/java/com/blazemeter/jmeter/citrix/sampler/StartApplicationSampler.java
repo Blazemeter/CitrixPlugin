@@ -45,14 +45,40 @@ public class StartApplicationSampler extends CitrixBaseSampler
 	private final transient Condition userLogged = locker.newCondition();
 	private boolean logged = false;
 
+	/**
+	 * Gets the maximum waiting time before getting the confirmation that the Citrix
+	 * user is logged in.
+	 * <p>
+	 * This time is used to ensure Citrix client is in a right state before checking
+	 * end clause.
+	 * 
+	 * @return the maximum waiting time before getting the confirmation that the
+	 *         Citrix user
+	 */
 	public long getLogOnTimeout() {
 		return getPropertyAsLong(LOGON_TIMEOUT_PROP);
 	}
 
+	/**
+	 * Gets a string that represents the maximum waiting time before getting the
+	 * confirmation that the Citrix user is logged in.
+	 * <p>
+	 * See {@link StartApplicationSampler#getLogOnTimeout()}
+	 * 
+	 * @return a string that represents the maximum waiting time before getting the
+	 *         confirmation that the Citrix user
+	 */
 	public String getLogOnTimeoutAsString() {
 		return getPropertyAsString(LOGON_TIMEOUT_PROP);
 	}
 
+	/**
+	 * Defines the maximum waiting time before getting the confirmation that the
+	 * Citrix user is logged in
+	 * 
+	 * @param timeout the maximum waiting time before getting the confirmation that
+	 *                the Citrix user is logged in
+	 */
 	public void setLogOnTimeout(String timeout) {
 		setProperty(LOGON_TIMEOUT_PROP, timeout);
 	}
@@ -65,12 +91,21 @@ public class StartApplicationSampler extends CitrixBaseSampler
 		setProperty(FILE_PATH_VAR_PROP, filePathVar);
 	}
 
+	/**
+	 * Instantiates a new {@link StartApplicationSampler}.
+	 * <p>
+	 * This sampler requires that no Citrix client is already running
+	 */
 	public StartApplicationSampler() {
 		super(RunningClientPolicy.FORBIDDEN);
 	}
 
 	private boolean waitLogOn(long timeout) throws InterruptedException {
 		boolean expired = false;
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("{} on sampler {} starts to wait for Logon event at {}", getThreadName(), getName(),
+					System.currentTimeMillis());
+		}
 		try {
 			locker.lock();
 			while (!logged && !expired) {
@@ -79,12 +114,14 @@ public class StartApplicationSampler extends CitrixBaseSampler
 		} finally {
 			locker.unlock();
 		}
+		LOGGER.debug("{} stops to wait for Logon event at {}, timeout expired: {}", getThreadName(),
+				System.currentTimeMillis(), expired);
 		return expired;
 	}
 
 	@Override
 	protected SamplingHandler createHandler() {
-		return new SamplingHandler() {
+		return new SamplingHandler(getName()) {
 
 			@Override
 			public String getSamplerData() {
@@ -95,6 +132,7 @@ public class StartApplicationSampler extends CitrixBaseSampler
 			public void handleSessionEvent(SessionEvent sessionEvent) {
 				super.handleSessionEvent(sessionEvent);
 				if (sessionEvent.getEventType() == EventType.LOGON) {
+					LOGGER.debug("{} on sampler {} detects Citrix session logon", getThreadName(), getName());
 					try {
 						locker.lock();
 						logged = true;
@@ -122,6 +160,8 @@ public class StartApplicationSampler extends CitrixBaseSampler
 			timeout = LOGON_TIMEOUT;
 		}
 
+		// Run Citrix client and wait for Logon event
+		LOGGER.debug("{} on sampler {} launches a Citrix session", getThreadName(), getName());
 		client.start(true, GuiPackage.getInstance() != null);
 		boolean expired = waitLogOn(timeout);
 		if (expired) {
@@ -133,7 +173,7 @@ public class StartApplicationSampler extends CitrixBaseSampler
 
 	@Override
 	public void threadStarted() {
-		LOGGER.info("Ensuring OCR is initialized");
+		LOGGER.info("{} on sampler {} ensures OCR is initialized", getThreadName(), getName());
 		long start = System.currentTimeMillis();
 		OcrManagerHolder.getManager();
 		LOGGER.info("OCR initialized in {} millis", System.currentTimeMillis() - start);
@@ -145,7 +185,8 @@ public class StartApplicationSampler extends CitrixBaseSampler
 			try {
 				client.stop();
 			} catch (CitrixClientException e) {
-				LOGGER.error("Unable to stop running Citrix client.", e);
+				LOGGER.error("{} on sampler {} is unable to stop running Citrix client.", getThreadName(), getName(),
+						e);
 			}
 			CitrixSessionHolder.setClient(null);
 			try {
@@ -154,7 +195,7 @@ public class StartApplicationSampler extends CitrixBaseSampler
 			} finally {
 				locker.unlock();
 			}
-			
+
 		}
 	}
 

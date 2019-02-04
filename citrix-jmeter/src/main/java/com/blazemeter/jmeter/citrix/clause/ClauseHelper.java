@@ -151,7 +151,7 @@ public class ClauseHelper {
 	}
 
 	/**
-	 * Gets a predicate to use on clause check result to decide if the clause is
+	 * Builds a predicate to use on clause check result to decide if the clause is
 	 * honored.
 	 * 
 	 * If clause uses regular expression on expected value, the predicate will
@@ -163,7 +163,7 @@ public class ClauseHelper {
 	 * @return a predicate to use on clause check result to decide if the clause is
 	 *         honored.
 	 */
-	public static Predicate<String> getValuePredicate(Clause clause) {
+	public static Predicate<String> buildValuePredicate(Clause clause) {
 		Predicate<String> predicate = null;
 		if (clause.isUsingRegex()) {
 			// Build regex matching predicate
@@ -171,9 +171,13 @@ public class ClauseHelper {
 			Pattern pattern = JMeterUtils.getPatternCache().getPattern(clause.getExpectedValue(),
 					Perl5Compiler.READ_ONLY_MASK);
 			predicate = v -> matcher.matches(v, pattern);
+			LOGGER.debug("Builds regex predicate for clause {} with expected value='{}'", clause.getCheckType(),
+					clause.getExpectedValue());
 		} else {
 			// Build equality predicate
 			predicate = v -> Objects.equals(v, clause.getExpectedValue());
+			LOGGER.debug("Builds equality predicate for clause {} with expected value='{}'", clause.getCheckType(),
+					clause.getExpectedValue());
 		}
 		return predicate;
 	}

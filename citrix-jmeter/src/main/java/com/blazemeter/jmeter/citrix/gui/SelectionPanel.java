@@ -13,7 +13,7 @@ public class SelectionPanel extends JPanel implements SelectionChangedSubject {
 	private static final long serialVersionUID = -4081910650471400803L;
 
 	private final transient SelectionChangedManager selectionChangedManager = new SelectionChangedManager(listenerList);
-	private boolean editable;
+	private boolean editable = true;
 	private Rectangle selection;
 
 	private PositionPanel pnlPosition;

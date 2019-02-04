@@ -17,7 +17,7 @@ public class DimensionPanel extends JPanel {
 
 	private static final long serialVersionUID = -8148435033646222684L;
 
-	private boolean editable;
+	private boolean editable = true;
 	private Dimension dimension;
 
 	private JTextField tfWidth;

@@ -1,5 +1,8 @@
 package com.blazemeter.jmeter.citrix.clause.strategy.check;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.blazemeter.jmeter.citrix.clause.CheckResult;
 import com.blazemeter.jmeter.citrix.clause.ClauseComputationException;
 import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
@@ -9,6 +12,8 @@ import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
  * screen
  */
 public class DirectChecker extends AbstractScreenChecker implements SnapshotChecker {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DirectChecker.class);
 
 	/**
 	 * Instantiates a new {@link DirectChecker}
@@ -22,7 +27,9 @@ public class DirectChecker extends AbstractScreenChecker implements SnapshotChec
 	@Override
 	protected boolean isSuccess(PollingContext context, String resultValue) {
 		// Using value predicate from the polling context
-		return context.getValuePredicate().test(resultValue);
+		final boolean success = context.getValuePredicate().test(resultValue);
+		LOGGER.debug("{} matches the expected value: {}", resultValue, success);
+		return success;
 	}
 
 	@Override
