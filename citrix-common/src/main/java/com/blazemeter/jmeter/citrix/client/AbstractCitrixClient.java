@@ -168,6 +168,8 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 			default:
 				// NOOP
 			}
+
+			LOGGER.debug("Relays {} session event to {} listeners", event.getEventType(), handlers.size());
 			synchronized (handlers) {
 				for (CitrixClientHandler handler : handlers) {
 					handler.handleSessionEvent(event);
@@ -184,6 +186,7 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 	 */
 	protected final void notifyHandlers(WindowEvent event) {
 		if (event != null) {
+			LOGGER.debug("Relays {} window event to {} listeners", event.getWindowState(), handlers.size());
 			synchronized (handlers) {
 				for (CitrixClientHandler handler : handlers) {
 					handler.handleWindowEvent(event);
@@ -223,14 +226,20 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 	@Override
 	public final void addHandler(CitrixClientHandler clientHandler) {
 		synchronized (handlers) {
-			handlers.add(clientHandler);
+			boolean added = handlers.add(clientHandler);
+			if (added) {
+				LOGGER.debug("Adds a listener, Total: {}", handlers.size());
+			}
 		}
 	}
 
 	@Override
 	public final void removeHandler(CitrixClientHandler clientHandler) {
 		synchronized (handlers) {
-			handlers.remove(clientHandler);
+			boolean removed = handlers.remove(clientHandler);
+			if (removed) {
+				LOGGER.debug("Removes a listener, Total: {}", handlers.size());
+			}
 		}
 	}
 
@@ -238,8 +247,11 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 	public final void start(boolean replayMode, boolean visible) throws CitrixClientException {
 		synchronized (running) {
 			if (!running.get()) {
+				LOGGER.debug("Starts a new Citrix session with replayMode={}, visible={}", replayMode, visible);
 				startSession(replayMode, visible);
 				running.set(true);
+			} else {
+				LOGGER.debug("Does not start a new Citrix session : A session is already in progress");
 			}
 		}
 	}
@@ -248,8 +260,11 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 	public final void stop() throws CitrixClientException {
 		synchronized (running) {
 			if (running.get()) {
+				LOGGER.debug("Stops the Citrix session");
 				stopSession();
 				running.set(false);
+			} else {
+				LOGGER.debug("No session to stop");
 			}
 		}
 	}
@@ -257,6 +272,10 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 	@Override
 	public final void sendKeyQuery(int keyCode, boolean keyUp) throws CitrixClientException {
 		doKeyQuery(keyUp, keyCode);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Relays key query with keyCode=0x{} and keyUp={} to {} listeners",
+					Integer.toHexString(keyCode), keyUp, handlers.size());
+		}
 		synchronized (handlers) {
 			handlers.forEach(h -> h.handleKeyQuery(this, keyUp, keyCode));
 		}
@@ -277,6 +296,9 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 		return position;
 	}
 
+	/*
+	 * Gets absolute coordinates when relative is true before send mouse query
+	 */
 	private void sendPositionalQuery(boolean relative, int x, int y, PositionalQueryAction action)
 			throws CitrixClientException {
 		Point origPosition;
@@ -296,6 +318,11 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 			Set<Modifier> modifiers, boolean relative) throws CitrixClientException {
 		sendPositionalQuery(relative, x, y, (pos, origPos) -> {
 			doMouseButtonQuery(buttonUp, buttons, pos.x, pos.y, modifiers);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(
+						"Relays mouse button query with buttonUp={}, position={}, origPosition={}, buttons={} and modifiers={} to {} listeners",
+						buttonUp, pos, origPos, buttons, modifiers, handlers.size());
+			}
 			synchronized (handlers) {
 				handlers.forEach(h -> h.handleMouseButtonQuery(this, buttonUp, buttons, pos, modifiers, origPos));
 			}
@@ -307,6 +334,11 @@ public abstract class AbstractCitrixClient implements CitrixClient {
 			boolean relative) throws CitrixClientException {
 		sendPositionalQuery(relative, x, y, (pos, origPos) -> {
 			doMouseMoveQuery(buttons, pos.x, pos.y, modifiers);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(
+						"Relays mouse move query with position={}, origPosition={}, buttons={} and modifiers={} to {} listeners",
+						pos, origPos, buttons, modifiers, handlers.size());
+			}
 			synchronized (handlers) {
 				handlers.forEach(h -> h.handleMouseMoveQuery(this, buttons, pos, modifiers, origPos));
 			}
