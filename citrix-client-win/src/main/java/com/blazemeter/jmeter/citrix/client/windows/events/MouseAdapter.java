@@ -32,8 +32,8 @@ public class MouseAdapter extends _IMouseEvents {
 
 	@Override
 	public void onMove(int buttonState, int modifierState, int xPos, int yPos) {
-	    if(LOGGER.isDebugEnabled()) {
-	        LOGGER.debug("onMove: buttonState=0b{}, modifierState=0b{}, xPos={}, yPos={}",
+	    if(LOGGER.isTraceEnabled()) {
+	        LOGGER.trace("onMove: buttonState=0b{}, modifierState=0b{}, xPos={}, yPos={}",
 				Integer.toBinaryString(buttonState), Integer.toBinaryString(modifierState), xPos, yPos);
 	    }
 	}

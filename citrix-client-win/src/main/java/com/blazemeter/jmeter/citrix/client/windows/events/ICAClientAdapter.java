@@ -23,11 +23,13 @@ public class ICAClientAdapter extends _IICAClientEvents {
 	}
 
 	private void log(final String format, final Object... arguments) {
-		ISession session = icaClient.session();
-		int size = (arguments != null ? arguments.length : 0) + 1;
-		Object[] args = Arrays.copyOf(arguments, size);
-		args[size - 1] = session != null ? "available" : "unavailable";
-		LOGGER.debug(format + "- session is {}", args);
+		if (LOGGER.isDebugEnabled()) {
+			ISession session = icaClient.session();
+			int size = (arguments != null ? arguments.length : 0) + 1;
+			Object[] args = Arrays.copyOf(arguments, size);
+			args[size - 1] = session != null ? "available" : "unavailable";
+			LOGGER.debug(format + " - session is {}", args);
+		}
 	}
 
 	@Override
