@@ -1,7 +1,5 @@
 package com.blazemeter.jmeter.citrix.client.windows.events;
 
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,61 +19,56 @@ public class WindowAdapter extends _IWindowEvents {
 		this.windowID = windowID;
 	}
 
-	private void log(final String format, final Object... arguments) {
-		int size = (arguments != null ? arguments.length : 0) + 1;
-		Object[] args = Arrays.copyOf(arguments, size);
-		args[size - 1] = Integer.valueOf(windowID);
-		LOGGER.debug("{} for window {}", format, args);
-	}
-
 	@Override
 	public void onActivate() {
-		log("onActivate");
+		LOGGER.debug("onActivate for window {}", windowID);
 	}
 
 	@Override
 	public void onCaptionChange(String caption) {
-		log("onCaptionChange: caption={}", caption);
+		LOGGER.debug("onCaptionChange for window {}: caption={}", windowID, caption);
 	}
 
 	@Override
 	public void onDeactivate() {
-		log("onDeactivate");
+		LOGGER.debug("onDeactivate for window {}", windowID);
 	}
 
 	@Override
 	public void onDestroy() {
-		log("onDestroy");
+		LOGGER.debug("onDestroy for window {}", windowID);
 	}
 
 	@Override
 	public void onLargeIconChange(String largeIconHash) {
-		log("onLargeIconChange: largeIconHash={}", largeIconHash);
+		LOGGER.debug("onLargeIconChange for window {}: largeIconHash={}", windowID, largeIconHash);
 	}
 
 	@Override
 	public void onMinimize() {
-		log("onMinimize");
+		LOGGER.debug("onMinimize for window {}", windowID);
 	}
 
 	@Override
 	public void onMove(int xPos, int yPos) {
-		log("onMove: xPos={}, yPos={}", xPos, yPos);
+		LOGGER.debug("onMove for window {}: xPos={}, yPos={}", windowID, xPos, yPos);
 	}
 
 	@Override
 	public void onSize(int width, int height) {
-		log("onSize: width={}, height={}", width, height);
+		LOGGER.debug("onSize for window {}: width={}, height={}", windowID, width, height);
 	}
 
 	@Override
 	public void onSmallIconChange(String smallIconHash) {
-		log("onSmallIconChange: smallIconHash={}", smallIconHash);
+		LOGGER.debug("onSmallIconChange for window {}: smallIconHash={}", windowID, smallIconHash);
 	}
 
 	@Override
 	public void onStyleChange(int style, int extendedStyle) {
-		log("onStyleChange: style=0x{}, extendedStyle=0x{}", Integer.toHexString(style),
-				Integer.toHexString(extendedStyle));
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("onStyleChange for window {}: style=0x{}, extendedStyle=0x{}", windowID,
+					Integer.toHexString(style), Integer.toHexString(extendedStyle));
+		}
 	}
 }
