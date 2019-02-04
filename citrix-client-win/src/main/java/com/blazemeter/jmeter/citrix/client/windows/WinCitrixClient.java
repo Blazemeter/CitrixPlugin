@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
@@ -62,7 +61,6 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
 	private final ConcurrentHashMap<Integer, WindowInfo> windowInfos = new ConcurrentHashMap<>();
 	private Integer fgKey;
-	private Integer delayedFgKey;
 
 	private IICAClient icaClient;
 
@@ -181,7 +179,8 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
 	@Override
 	public Rectangle getForegroundWindowArea() {
-		return fgKey != null ? new Rectangle(windowInfos.get(fgKey).getArea()) : null;
+		WindowInfo info = fgKey != null ? windowInfos.get(fgKey) : null;
+		return info != null ? new Rectangle(info.getArea()) : null;
 	}
 
 	@Override
@@ -193,6 +192,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
 	protected void startSession(boolean replayMode, boolean visible) throws CitrixClientException {
 		try {
 			icaClient = createICAClient(replayMode, visible);
+			LOGGER.debug("Connects ICA client");
 			icaClient.connect();
 		} catch (Exception e) {
 			final String msg = "Unable to start ICA session.";
@@ -204,9 +204,15 @@ public class WinCitrixClient extends AbstractCitrixClient {
 	@Override
 	protected void stopSession() throws CitrixClientException {
 		try {
+			LOGGER.debug("Log off ICA client");
 			icaClient.logoff();
+
+			LOGGER.debug("Disconnects ICA client");
 			icaClient.disconnect();
+
+			LOGGER.debug("Disposes ICA client");
 			icaClient.dispose();
+
 			icaClient = null;
 		} catch (Exception e) {
 			final String msg = "Unable to stop ICA session.";
@@ -216,8 +222,14 @@ public class WinCitrixClient extends AbstractCitrixClient {
 	}
 
 	private IScreenShot createScreenshot(Rectangle selection) throws CitrixClientException {
+		if (icaClient == null) {
+			throw new CitrixClientException("Unable to create screenshot when ICA client is not running.");
+		}
+		ISession session = icaClient.session();
+		if (session == null) {
+			throw new CitrixClientException("Unable to create screenshot whereas Citrix session is not available.");
+		}
 		try {
-			ISession session = icaClient.session();
 			return selection != null
 					? session.createScreenShot(selection.x, selection.y, selection.width, selection.height)
 					: session.createFullScreenShot();
@@ -249,6 +261,9 @@ public class WinCitrixClient extends AbstractCitrixClient {
 		final File file = filePath.toFile();
 		IScreenShot screenshot = createScreenshot(null);
 		saveScreenshot(screenshot, file);
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Screenshot saved in {}", file.getAbsolutePath());
+		}
 		try {
 			return ImageIO.read(file);
 		} catch (IOException e) {
@@ -260,6 +275,9 @@ public class WinCitrixClient extends AbstractCitrixClient {
 			if (!isKeepingScreenshots) {
 				try {
 					Files.delete(filePath);
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("Deletes screenshot {}", file.getAbsolutePath());
+					}
 				} catch (IOException e) {
 					LOGGER.warn("Unable to delete screenshot {}: {}", file.getAbsolutePath(), e.getMessage(), e);
 				}
@@ -315,30 +333,42 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
 	private void switchForeground(Integer key) {
 		fgKey = key;
-		notifyHandlers(createWindowEvent(WindowState.FOREGROUND, fgKey != null ? windowInfos.get(fgKey) : null));
+		final WindowInfo info = fgKey != null ? windowInfos.get(fgKey) : null;
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Switches foreground to window {} with caption '{}'", key,
+					info != null ? info.getCaption() : null);
+		}
+		notifyHandlers(createWindowEvent(WindowState.FOREGROUND, info));
 	}
 
 	private IICAClient createICAClient(boolean replayMode, boolean visible) {
+		LOGGER.debug("Create a new ICA client with replayMode={} and visible={}", replayMode, visible);
 		IICAClient client = ClassFactory.createICAClient();
 
-		Path path = getICAFilePath();
-		client.icaFile(path != null ? path.toString() : "");
+		final Path path = getICAFilePath();
+		if (path != null) {
+			LOGGER.debug("Sets ICA client ICA file path to {}", path);
+			client.icaFile(path.toString());
+		}
 
 		// Required to launch ActiveX client
 		client.launch(true);
 
-		Integer hRes = getDesiredHRes();
+		final Integer hRes = getDesiredHRes();
 		if (hRes != null) {
+			LOGGER.debug("Sets ICA client desired HRes to {}", hRes);
 			client.desiredHRes(hRes);
 		}
 
-		Integer vRes = getDesiredVRes();
+		final Integer vRes = getDesiredVRes();
 		if (vRes != null) {
+			LOGGER.debug("Sets ICA client desired HRes to {}", vRes);
 			client.desiredVRes(vRes);
 		}
 
 		ICAColorDepth colorDepth = getDesiredColorDepth();
 		if (colorDepth != null) {
+			LOGGER.debug("Sets ICA client desired colorDepth to {}", colorDepth);
 			client.desiredColor(colorDepth);
 		}
 
@@ -360,13 +390,17 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
 				final ISession session = client.session();
 				if (session == null) {
+					LOGGER.debug("ICA session in not available while client connects");
 					notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.ERROR,
 							KnownError.UNAVAILABLE_SESSION.getCode()));
 				} else {
 					// Prevent input when replay
+					LOGGER.debug("Sets ICA client replay mode to {}", replayMode);
 					session.replayMode(replayMode);
 
 					session.advise(_ISessionEvents.class, new SessionAdapter() {
+						private Integer delayedFgKey;
+
 						@Override
 						public void onWindowCreate(IWindow window) {
 							super.onWindowCreate(window);
@@ -377,68 +411,113 @@ public class WinCitrixClient extends AbstractCitrixClient {
 									window.height());
 							String caption = window.caption();
 							windowInfos.put(key, new WindowInfo(newArea, caption));
+							LOGGER.debug("Sets window info:[caption={}, area={}] to window {}", caption, newArea,
+									windowID);
 
+							if (key.equals(delayedFgKey)) {
+								LOGGER.debug("Confirm window {} as foreground.", delayedFgKey);
+								switchForeground(key);
+							}
+							
 							window.advise(_IWindowEvents.class, new WindowAdapter(windowID) {
 
 								@Override
 								public void onMove(int xPos, int yPos) {
 									super.onMove(xPos, yPos);
 									final WindowInfo winInfo = windowInfos.get(key);
-									final Rectangle area = winInfo.getArea();
-									area.setLocation(xPos, yPos);
-									notifyHandlers(createWindowEvent(WindowState.CHANGE_AREA, winInfo));
+									if (winInfo != null) {
+										final Rectangle area = winInfo.getArea();
+										area.setLocation(xPos, yPos);
+										LOGGER.debug("Sets window position={} to window {}", area.getLocation(),
+												windowID);
+										notifyHandlers(createWindowEvent(WindowState.CHANGE_AREA, winInfo));
+									} else {
+										LOGGER.debug("Should not happen : Unable to move the disposed window {}",
+												windowID);
+									}
 								}
 
 								@Override
 								public void onSize(int width, int height) {
 									super.onSize(width, height);
 									final WindowInfo winInfo = windowInfos.get(key);
-									final Rectangle area = winInfo.getArea();
-									area.setSize(width, height);
-									notifyHandlers(createWindowEvent(WindowState.CHANGE_AREA, winInfo));
+									if (winInfo != null) {
+										final Rectangle area = winInfo.getArea();
+										area.setSize(width, height);
+										LOGGER.debug("Sets window dimension={} to window {}", area.getSize(), windowID);
+										notifyHandlers(createWindowEvent(WindowState.CHANGE_AREA, winInfo));
+									} else {
+										LOGGER.debug("Should not happen : Unable to resize the disposed window {}",
+												windowID);
+									}
 								}
 
 								@Override
 								public void onDestroy() {
 									super.onDestroy();
-									final WindowInfo winInfo = windowInfos.remove(key);
-									notifyHandlers(createWindowEvent(WindowState.CLOSED, winInfo));
 									if (key.equals(fgKey)) {
 										switchForeground(null);
 									}
+									final WindowInfo winInfo = windowInfos.remove(key);
+									LOGGER.debug("Removes window info of window {}", windowID);
+									notifyHandlers(createWindowEvent(WindowState.CLOSED, winInfo));
 								}
 
 								@Override
 								public void onCaptionChange(String caption) {
 									super.onCaptionChange(caption);
 									final WindowInfo winInfo = windowInfos.get(key);
-									winInfo.setCaption(caption);
-									notifyHandlers(createWindowEvent(WindowState.CLOSED, winInfo));
+									if (winInfo != null) {
+										winInfo.setCaption(caption);
+										LOGGER.debug("Sets window caption={} to window {}", caption, windowID);
+										notifyHandlers(createWindowEvent(WindowState.CHANGE_CAPTION, winInfo));
+									} else {
+										LOGGER.debug(
+												"Should not happen : Unable to change caption of the disposed window {}",
+												windowID);
+									}
 								}
 
 								@Override
 								public void onActivate() {
 									super.onActivate();
-									notifyHandlers(createWindowEvent(WindowState.ACTIVATED, windowInfos.get(key)));
+									final WindowInfo winInfo = windowInfos.get(key);
+									if (winInfo != null) {
+										LOGGER.debug("Activates window {}", windowID);
+										notifyHandlers(createWindowEvent(WindowState.ACTIVATED, winInfo));
+									} else {
+										LOGGER.debug("Should not happen : Unable to activate the disposed window {}",
+												windowID);
+									}
 								}
 
 								@Override
 								public void onDeactivate() {
 									super.onDeactivate();
-									notifyHandlers(createWindowEvent(WindowState.DEACTIVATED, windowInfos.get(key)));
+									final WindowInfo winInfo = windowInfos.get(key);
+									if (winInfo != null) {
+										LOGGER.debug("Deactivates window {}", windowID);
+										notifyHandlers(createWindowEvent(WindowState.DEACTIVATED, winInfo));
+									} else {
+										LOGGER.debug("Should not happen : Unable to deactivate the disposed window {}",
+												windowID);
+									}
 								}
 
 							});
 
-							if (key.equals(delayedFgKey)) {
-								LOGGER.debug("Confirm window {} as foreground.", delayedFgKey);
-								switchForeground(key);
-							}
 						}
 
+						/*
+						 * Due to asynchronicity, a window can get foreground before its creation. In
+						 * this case we store its ID and we wait its creation to confirm the foreground
+						 * switch
+						 */
 						@Override
 						public void onWindowForeground(int windowID) {
 							super.onWindowForeground(windowID);
+							// POSSIBLE_IMPROVEMENT Handle windowID=0, occurs when a window is minimized
+							// (but not only)
 							if (windowID != 0) {
 								Integer key = Integer.valueOf(windowID);
 								if (windowInfos.containsKey(key)) {
@@ -447,6 +526,8 @@ public class WinCitrixClient extends AbstractCitrixClient {
 									LOGGER.debug("Potential foreground window: {}", key);
 									delayedFgKey = key;
 								}
+							} else {
+								LOGGER.debug("Cannot switch foreground when windowId=0");
 							}
 						}
 
@@ -514,7 +595,6 @@ public class WinCitrixClient extends AbstractCitrixClient {
 			@Override
 			public void onWindowDisplayed(int wndType) {
 				super.onWindowDisplayed(wndType);
-				// client.hideWindow(ICAWindowType.WindowTypeClient);
 				LOGGER.info("Session info: desired dimension={}x{}, desired depth={}", getDesiredHRes(),
 						getDesiredVRes(), getDesiredColorDepth());
 				LOGGER.info("Session info: dimension={}x{}, depth={}bpp", client.getSessionWidth(),
