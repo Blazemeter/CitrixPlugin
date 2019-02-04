@@ -122,3 +122,16 @@ Scope to be completed, ideas:
 
 * #198 The "Relative to" information of the CitrixSampleResultConverter processes is missing
 * #197 Switching between OCR and Hash controls causes the calculation buttons in the dialog box to disappear
+
+# 0.4.2 (DELIVERED ON 30 january 2019)
+
+**Bug fixes:**
+
+* [#9](Sampler Application Launcher fails without taking into account the configured timeout) Sampler Application Launcher fails without taking into account the configured timeout
+
+# 0.4.3 (DELIVERED ON 4 february 2019)
+
+**Bug fixes:**
+
+* [#11](https://github.com/Blazemeter/CitrixPlugin/issues/11) Random NPE under certain when using WINDOW_CLOSED
+* [#10](https://github.com/Blazemeter/CitrixPlugin/issues/10) ListeningStrategy related checks return before screen is rendered
