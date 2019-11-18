@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>com.blazemeter.jmeter</groupId>
 		<artifactId>citrix-parent</artifactId>
-		<version>0.4.3</version>
+		<version>0.5.0</version>
 	</parent>
 
 	<artifactId>citrix-jmeter</artifactId>
