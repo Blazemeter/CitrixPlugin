@@ -14,13 +14,16 @@ import com.blazemeter.jmeter.citrix.clause.strategy.check.DiffChecker;
 import com.blazemeter.jmeter.citrix.clause.strategy.check.DirectChecker;
 import com.blazemeter.jmeter.citrix.clause.strategy.check.ListeningStrategy;
 import com.blazemeter.jmeter.citrix.clause.strategy.check.PollingStrategy;
-import com.blazemeter.jmeter.citrix.clause.strategy.format.FormatStrategy;
-import com.blazemeter.jmeter.citrix.clause.strategy.format.DiffFormatter;
-import com.blazemeter.jmeter.citrix.clause.strategy.format.RegularFormatter;
+import com.blazemeter.jmeter.citrix.clause.strategy.format.AssessmentFormatter;
+import com.blazemeter.jmeter.citrix.clause.strategy.format.ResultFormatter;
+import com.blazemeter.jmeter.citrix.clause.strategy.format.DiffResultFormatter;
+import com.blazemeter.jmeter.citrix.clause.strategy.format.RegularAssessmentFormatter;
+import com.blazemeter.jmeter.citrix.clause.strategy.format.RegularResultFormatter;
+import com.blazemeter.jmeter.citrix.clause.strategy.format.WindowEventAssessmentFormatter;
 import com.blazemeter.jmeter.citrix.client.CitrixClient;
 import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
 import com.blazemeter.jmeter.citrix.client.events.WindowEvent.WindowState;
-import com.blazemeter.jmeter.citrix.clause.strategy.format.WindowEventFormatter;
+import com.blazemeter.jmeter.citrix.clause.strategy.format.WindowEventResultFormatter;
 
 /**
  * Enumerates the types of check used to ensure a {@link Clause} is honored
@@ -31,25 +34,25 @@ public enum CheckType {
 	 * This check uses hash computation on image or screen of the Citrix session to
 	 * get expected result
 	 */
-	HASH(new PollingStrategy(true, new DirectChecker(ClauseHelper::hash)), new RegularFormatter()),
+	HASH(new PollingStrategy(true, new DirectChecker(ClauseHelper::hash)), new RegularResultFormatter()),
 
 	/**
 	 * This check uses text recognition on image/screen of the Citrix session to get
 	 * expected result
 	 */
-	OCR(new PollingStrategy(true, new DirectChecker(ClauseHelper::recognize)), new RegularFormatter()),
+	OCR(new PollingStrategy(true, new DirectChecker(ClauseHelper::recognize)), new RegularResultFormatter()),
 
 	/**
 	 * This check detects changes on image or screen of the Citrix session using
 	 * hash computation
 	 */
-	HASH_CHANGED(new PollingStrategy(false, new DiffChecker(ClauseHelper::hash)), new DiffFormatter()),
+	HASH_CHANGED(new PollingStrategy(false, new DiffChecker(ClauseHelper::hash)), new DiffResultFormatter()),
 
 	/**
 	 * This check detects changes on image or screen of the Citrix session using
 	 * text recognition
 	 */
-	OCR_CHANGED(new PollingStrategy(false, new DiffChecker(ClauseHelper::recognize)), new DiffFormatter()),
+	OCR_CHANGED(new PollingStrategy(false, new DiffChecker(ClauseHelper::recognize)), new DiffResultFormatter()),
 
 	/**
 	 * This check ensures the Citrix session is closed
@@ -100,14 +103,14 @@ public enum CheckType {
 	 * This check ensures a window with compliant caption is closed during waiting
 	 */
 	WINDOW_CLOSED(new ListeningStrategy(e -> e.getWindowState() == WindowState.CLOSED),
-			new WindowEventFormatter(WindowState.CLOSED.name())),
+			new WindowEventResultFormatter(WindowState.CLOSED.name()), new WindowEventAssessmentFormatter()),
 
 	/**
 	 * This check ensures a window with compliant caption gets the foreground during
 	 * waiting
 	 */
 	WINDOW_FOREGROUND(new ListeningStrategy(e -> e.getWindowState() == WindowState.FOREGROUND),
-			new WindowEventFormatter(WindowState.FOREGROUND.name()));
+			new WindowEventResultFormatter(WindowState.FOREGROUND.name()), new WindowEventAssessmentFormatter());
 
 	/**
 	 * Gets the check types that can be used by {@link CitrixAssertion}
@@ -117,7 +120,8 @@ public enum CheckType {
 			.collect(Collectors.toSet());
 
 	private final CheckStrategy checkStrategy;
-	private final FormatStrategy formatStrategy;
+	private final ResultFormatter resultFormatter;
+	private final AssessmentFormatter assessmentFormatter;
 
 	/**
 	 * Indicates whether this check can use area selection on image
@@ -142,18 +146,34 @@ public enum CheckType {
 	/**
 	 * Instantiates a new {@link CheckType}
 	 * 
-	 * @param checkStrategy  the strategy used to check a clause
-	 * @param formatStrategy the strategy used to format check result
+	 * @param checkStrategy        the strategy used to check a clause
+	 * @param resultFormatStrategy the strategy used to format check result
 	 */
-	CheckType(CheckStrategy checkStrategy, FormatStrategy formatStrategy) {
+	CheckType(CheckStrategy checkStrategy, ResultFormatter resultFormatStrategy) {
+		this(checkStrategy, resultFormatStrategy, new RegularAssessmentFormatter());
+	}
+
+	/**
+	 * Instantiates a new {@link CheckType}
+	 * 
+	 * @param checkStrategy       the strategy used to check a clause
+	 * @param resultFormatter     the strategy used to format check result
+	 * @param assessmentFormatter the strategy used to format assessment from check
+	 *                            result
+	 */
+	CheckType(CheckStrategy checkStrategy, ResultFormatter resultFormatter, AssessmentFormatter assessmentFormatter) {
 		if (checkStrategy == null) {
 			throw new IllegalArgumentException("checkStrategy must not be null.");
 		}
-		if (formatStrategy == null) {
-			throw new IllegalArgumentException("formatStrategy must not be null.");
+		if (resultFormatter == null) {
+			throw new IllegalArgumentException("resultFormatter,  must not be null.");
+		}
+		if (assessmentFormatter == null) {
+			throw new IllegalArgumentException("assessmentFormatter  must not be null.");
 		}
 		this.checkStrategy = checkStrategy;
-		this.formatStrategy = formatStrategy;
+		this.resultFormatter = resultFormatter;
+		this.assessmentFormatter = assessmentFormatter;
 	}
 
 	/**
@@ -206,7 +226,11 @@ public enum CheckType {
 	 * @param index    the rank of the check
 	 * @return A formatted message describing the check result
 	 */
-	public String format(CheckResult result, CheckResult previous, Clause clause, int index) {
-		return formatStrategy.execute(result, previous, clause, index);
+	public String formatResult(CheckResult result, CheckResult previous, Clause clause, int index) {
+		return resultFormatter.execute(result, previous, clause, index);
+	}
+
+	public String formatAssessment(Object value) {
+		return assessmentFormatter.execute(value);
 	}
 }

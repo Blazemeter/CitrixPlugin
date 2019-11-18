@@ -7,7 +7,7 @@ import com.blazemeter.jmeter.citrix.clause.Clause;
  * Provides a check result formatter dedicated to displaying the correspondence
  * with the expected value
  */
-public class RegularFormatter implements FormatStrategy {
+public class RegularResultFormatter implements ResultFormatter {
 
 	@Override
 	public String execute(CheckResult result, CheckResult previous, Clause clause, int index) {

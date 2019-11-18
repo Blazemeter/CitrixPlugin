@@ -6,7 +6,7 @@ import com.blazemeter.jmeter.citrix.clause.Clause;
 /**
  * Represents a method used to format a clause check result
  */
-public interface FormatStrategy {
+public interface ResultFormatter {
 
 	/**
 	 * Run the method to format a clause check result

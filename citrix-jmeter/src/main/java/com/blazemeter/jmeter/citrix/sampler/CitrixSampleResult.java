@@ -23,6 +23,7 @@ public class CitrixSampleResult extends SampleResult {
 
 	private transient Snapshot snapshot;
 
+	private String assessment;
 	private Rectangle fgWindowArea;
 	private Clause endClause;
 
@@ -66,6 +67,27 @@ public class CitrixSampleResult extends SampleResult {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Gets the value of the assessment resulting from the verification of the end
+	 * clause
+	 * 
+	 * @return the value of the assessment resulting from the verification of the
+	 *         end clause
+	 */
+	public String getAssessment() {
+		return assessment;
+	}
+
+	/**
+	 * Defines the value of the assessment resulting from the verification of the
+	 * end clause
+	 * 
+	 * @param assessment the value of the assessment
+	 */
+	public void setAssessment(String assessment) {
+		this.assessment = assessment;
 	}
 
 	/**

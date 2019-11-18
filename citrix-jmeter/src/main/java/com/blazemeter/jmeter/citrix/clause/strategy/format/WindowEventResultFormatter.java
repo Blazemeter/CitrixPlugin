@@ -9,11 +9,11 @@ import com.blazemeter.jmeter.citrix.client.events.WindowEvent;
  * Provides a check result formatter dedicated to displaying to displaying
  * window events that have occurred.
  */
-public class WindowEventFormatter implements FormatStrategy {
+public class WindowEventResultFormatter implements ResultFormatter {
 
 	private final String expectedState;
 
-	public WindowEventFormatter(String expectedState) {
+	public WindowEventResultFormatter(String expectedState) {
 		this.expectedState = expectedState;
 	}
 

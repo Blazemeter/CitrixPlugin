@@ -7,7 +7,7 @@ import com.blazemeter.jmeter.citrix.clause.Clause;
  * Provides a check result formatter dedicated to displaying change detection between two screenshots
  *
  */
-public class DiffFormatter implements FormatStrategy {
+public class DiffResultFormatter implements ResultFormatter {
 
 	@Override
 	public String execute(CheckResult result, CheckResult previous, Clause clause, int index) {

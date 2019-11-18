@@ -191,6 +191,7 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 		if (clause != null) {
 			final CheckType checkType = clause.getCheckType();
 			final LinkedList<String> details = new LinkedList<>();
+			final String[] assessment = new String[1];
 			final Snapshot[] lastSnapshot = new Snapshot[1];
 			final boolean[] overflow = new boolean[] { false };
 			final String checkErrorLabel = CitrixUtils.getResString("base_sampler_response_message_check_error", false);
@@ -206,8 +207,13 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 					// Build response message
 					String detail = checkType.name() + " #" + i + ": ";
 					if (checkResult != null) {
-						detail += checkType.format(checkResult, previous, clause, i);
+						detail += checkType.formatResult(checkResult, previous, clause, i);
 						lastSnapshot[0] = checkResult.getSnapshot();
+
+						// Store success assessment if it exists
+						if (checkResult.isSuccessful()) {
+							assessment[0] = checkType.formatAssessment(checkResult.getValue());
+						}
 					} else {
 						detail += checkErrorLabel;
 					}
@@ -250,6 +256,9 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 					}
 				}
 			} finally {
+				// Store success assessment in sample result
+				result.setAssessment(assessment[0]);
+
 				// Store registered results as response message
 				result.setResponseMessage(SamplerHelper.formatResponseMessage(details, overflow[0]));
 

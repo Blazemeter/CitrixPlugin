@@ -32,6 +32,8 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 	private static final String ATT_W = "w";
 	private static final String ATT_H = "h";
 
+	private static final String ATT_ASSESSMENT = "assessment";
+
 	private static final String ATT_CLAUSE_TYPE = "type";
 	private static final String ATT_CLAUSE_EXPECTEDVALUE = "expected_value";
 	private static final String ATT_CLAUSE_TIMEOUT = "timeout";
@@ -88,6 +90,9 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 		super.retrieveAttributes(reader, context, res);
 		CitrixSampleResult citrixSampleResult = (CitrixSampleResult) res;
 
+		// Restore end clause assessment
+		citrixSampleResult.setAssessment(reader.getAttribute(ATT_PFX + ATT_ASSESSMENT));
+
 		// Restore foreground area
 		citrixSampleResult.setFgWindowArea(readRectangle(reader, ATT_PFX));
 
@@ -97,8 +102,8 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 			Rectangle selection = readRectangle(reader, CLAUSE_SELECTION_PFX);
 			boolean useRegex = Boolean.parseBoolean(reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_USE_REGEX));
 			boolean relative = Boolean.parseBoolean(reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_IS_RELATIVE));
-			Clause clause = new Clause(Enum.valueOf(CheckType.class, checkType),
-					reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_EXPECTEDVALUE), useRegex, selection);
+			String expectedValue = reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_EXPECTEDVALUE);
+			Clause clause = new Clause(Enum.valueOf(CheckType.class, checkType), expectedValue, useRegex, selection);
 			clause.setRelative(relative);
 			clause.setTimeout(Long.parseLong(reader.getAttribute(CLAUSE_PFX + ATT_CLAUSE_TIMEOUT)));
 			citrixSampleResult.setEndClause(clause);
@@ -110,6 +115,9 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 			SampleSaveConfiguration save) {
 		CitrixSampleResult citrixSampleResult = (CitrixSampleResult) res;
 		super.setAttributes(writer, context, res, save);
+
+		// Save end clause assessment
+		writer.addAttribute(ATT_PFX + ATT_ASSESSMENT, citrixSampleResult.getAssessment());
 
 		// Save foreground area if it exists
 		writeRectangle(writer, citrixSampleResult.getFgWindowArea(), ATT_PFX);
