@@ -239,6 +239,7 @@ Due to a limitation with the Citrix Receiver handling, the samplers that use the
 
 If you get black screenshots while recording, check you graphical card. 
 **If you have more than one, deactivate one of them.**
+![alt text](images/windows_balck_screen_issue.png "Disable a graphical card")
 
 #### Failed to get session from client
 

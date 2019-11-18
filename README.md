@@ -224,6 +224,18 @@ The configuration of this element is very simple:
 * **ICA file path variable** is the name of the variable that contains the path to the ICA file downloaded for 1 thread. It defaults to **citrix_ica_file**. Note this variable name must be the same as the one defined in the **Citrix Application Launcher** element.
 * **ICA files folder** is the folder where ICA files for all users are downloaded. You should cleanup this folder when starting a test
 
+#### Post Processors
+
+##### Citrix Assessment Extractor
+![Citrix Assessment Extractor](images/citrix_assessment_extractor.png "Citrix Assessment Extractor")
+
+This extractor extracts the value mesured by the **end clause**. The value is set to a variable and if there is no value mesured, a default value can be set.
+
+##### Citrix OCR Extractor
+![Citrix OCR Extractor](images/citrix_ocr_extractor.png "Citrix OCR Extractor")
+
+This one extracts a string from the screenshot with the OCR technology (it reads the text inside the selected zone) and stores it into a variable which is reusable.
+
 #### View Results Tree Renderer
 
 The Citrix plugin provides a renderer **Citrix Interaction** that allows you to view the Citrix screenshot and create required OCR or Hash Assertions.
