@@ -1,4 +1,10 @@
 # JMeter-Citrix-plugin
+=================================
+
+
+[![License](http://img.shields.io/:license-apache-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+[![Build Status](https://travis-ci.org/Blazemeter/CitrixPlugin.svg?branch=master)](https://travis-ci.org/Blazemeter/CitrixPlugin)
+
 
 This JMeter plugin enable load-testing Citrix XenApp exposed applications.
 
