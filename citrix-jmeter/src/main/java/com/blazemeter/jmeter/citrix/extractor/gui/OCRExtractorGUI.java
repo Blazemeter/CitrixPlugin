@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 import org.apache.jmeter.processor.gui.AbstractPostProcessorGui;
 import org.apache.jmeter.testelement.TestElement;
 import com.blazemeter.jmeter.citrix.extractor.OCRExtractor;
+import com.blazemeter.jmeter.citrix.gui.BlazeMeterLabsLogo;
 import com.blazemeter.jmeter.citrix.gui.GuiHelper;
 import com.blazemeter.jmeter.citrix.gui.SelectionPanel;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
@@ -32,6 +33,8 @@ public class OCRExtractorGUI extends AbstractPostProcessorGui {
 	}
 
 	private void init() {
+		BlazeMeterLabsLogo blazeMeterLabsLogo = new BlazeMeterLabsLogo();
+
 		setLayout(new BorderLayout(0, 10));
 		setBorder(makeBorder());
 
@@ -39,6 +42,8 @@ public class OCRExtractorGUI extends AbstractPostProcessorGui {
 		box.add(makeTitlePanel());
 		box.add(Box.createVerticalStrut(10));
 		box.add(createMainPanel());
+		box.add(Box.createVerticalStrut(10));
+		box.add(blazeMeterLabsLogo);
 		add(box, BorderLayout.NORTH);
 	}
 

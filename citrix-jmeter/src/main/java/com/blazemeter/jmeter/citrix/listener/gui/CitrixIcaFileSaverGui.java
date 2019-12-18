@@ -17,6 +17,7 @@ import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.visualizers.gui.AbstractListenerGui;
 import org.apache.jorphan.gui.JLabeledTextField;
 
+import com.blazemeter.jmeter.citrix.gui.BlazeMeterLabsLogo;
 import com.blazemeter.jmeter.citrix.listener.CitrixIcaFileSaver;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 
@@ -102,11 +103,15 @@ public class CitrixIcaFileSaverGui extends AbstractListenerGui implements Cleara
     }
 
     private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
+        BlazeMeterLabsLogo blazeMeterLabsLogo = new BlazeMeterLabsLogo();
+
         setLayout(new BorderLayout());
         setBorder(makeBorder());
         Box box = Box.createVerticalBox();
         box.add(makeTitlePanel());
         box.add(createSavePanel());
+        box.add(Box.createVerticalStrut(10));
+        box.add(blazeMeterLabsLogo);
         add(box, BorderLayout.NORTH);
     }
 

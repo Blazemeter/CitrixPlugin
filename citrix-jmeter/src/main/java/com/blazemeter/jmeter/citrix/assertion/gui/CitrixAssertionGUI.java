@@ -9,6 +9,7 @@ import org.apache.jmeter.testelement.TestElement;
 import com.blazemeter.jmeter.citrix.assertion.CitrixAssertion;
 import com.blazemeter.jmeter.citrix.clause.CheckType;
 import com.blazemeter.jmeter.citrix.clause.gui.ClausePanel;
+import com.blazemeter.jmeter.citrix.gui.BlazeMeterLabsLogo;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 
 /**
@@ -25,6 +26,8 @@ public class CitrixAssertionGUI extends AbstractAssertionGui { // NOSONAR Ignore
 
 	private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or
 							// final)
+		BlazeMeterLabsLogo blazeMeterLabsLogo = new BlazeMeterLabsLogo();
+
 		setLayout(new BorderLayout(0, 10));
 		setBorder(makeBorder());
 
@@ -34,6 +37,8 @@ public class CitrixAssertionGUI extends AbstractAssertionGui { // NOSONAR Ignore
 		pnlClause = new ClausePanel(CheckType.ASSERTION_CHECKS, false);
 		pnlClause.setTimeoutVisible(false);
 		box.add(pnlClause);
+		box.add(Box.createVerticalStrut(10));
+		box.add(blazeMeterLabsLogo);
 		add(box, BorderLayout.NORTH);
 	}
 

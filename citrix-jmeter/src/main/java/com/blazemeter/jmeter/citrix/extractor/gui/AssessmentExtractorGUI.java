@@ -13,6 +13,7 @@ import org.apache.jmeter.processor.gui.AbstractPostProcessorGui;
 import org.apache.jmeter.testelement.TestElement;
 
 import com.blazemeter.jmeter.citrix.extractor.AssessmentExtractor;
+import com.blazemeter.jmeter.citrix.gui.BlazeMeterLabsLogo;
 import com.blazemeter.jmeter.citrix.gui.GuiHelper;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 
@@ -29,6 +30,8 @@ public class AssessmentExtractorGUI extends AbstractPostProcessorGui {
 	}
 
 	private void init() {
+		BlazeMeterLabsLogo blazeMeterLabsLogo = new BlazeMeterLabsLogo();
+
 		setLayout(new BorderLayout(0, 10));
 		setBorder(makeBorder());
 
@@ -36,6 +39,8 @@ public class AssessmentExtractorGUI extends AbstractPostProcessorGui {
 		box.add(makeTitlePanel());
 		box.add(Box.createVerticalStrut(10));
 		box.add(createMainPanel());
+		box.add(Box.createVerticalStrut(10));
+		box.add(blazeMeterLabsLogo);
 		add(box, BorderLayout.NORTH);
 	}
 

@@ -9,6 +9,7 @@ import org.apache.jmeter.samplers.gui.AbstractSamplerGui;
 import org.apache.jmeter.testelement.TestElement;
 
 import com.blazemeter.jmeter.citrix.clause.gui.ClausePanel;
+import com.blazemeter.jmeter.citrix.gui.BlazeMeterLabsLogo;
 import com.blazemeter.jmeter.citrix.sampler.CitrixBaseSampler;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 
@@ -48,15 +49,18 @@ public abstract class CitrixSamplerGUI extends AbstractSamplerGui { // NOSONAR I
 	}
 
 	private void initialize() {
+	    BlazeMeterLabsLogo blazeMeterLabsLogo = new BlazeMeterLabsLogo();
         setLayout(new BorderLayout());
         setBorder(makeBorder());
-        
+
         Box box = Box.createVerticalBox();
         box.add(makeTitlePanel());
         box.add(Box.createVerticalStrut(10));
         box.add(createMainPanel());
         box.add(Box.createVerticalStrut(10));
         box.add(createClausePanel());
+        box.add(Box.createVerticalStrut(10));
+        box.add(blazeMeterLabsLogo);
         add(box, BorderLayout.NORTH);
 	}
 

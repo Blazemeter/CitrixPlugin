@@ -96,6 +96,7 @@ import com.blazemeter.jmeter.citrix.recorder.CitrixRecorder.ClauseType;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 import com.blazemeter.jmeter.citrix.utils.DialogHelper;
 import com.blazemeter.jmeter.citrix.utils.TestPlanHelper;
+import com.blazemeter.jmeter.citrix.gui.BlazeMeterLabsLogo;
 
 /**
  * GUI for CitrixRecorder class.
@@ -195,6 +196,7 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
 	}
 
 	private void init() {
+	    BlazeMeterLabsLogo blazeMeterLabsLogo = new BlazeMeterLabsLogo();
 		setLayout(new BorderLayout());
 		setBorder(makeBorder());
 		JPanel pnlIcaDownloading = createDownloadPanel();
@@ -223,6 +225,7 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
 		box.add(makeTitlePanel());
 		box.add(spContext);
 		box.add(createContentPanel());
+		box.add(blazeMeterLabsLogo);
 
 		add(box, BorderLayout.NORTH);
 	}

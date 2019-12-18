@@ -4,17 +4,18 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
 import org.apache.jmeter.assertions.gui.AbstractAssertionGui;
 import org.apache.jmeter.gui.util.HorizontalPanel;
-import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.testelement.TestElement;
 
 import com.blazemeter.jmeter.citrix.assertion.CitrixSessionAssertion;
 import com.blazemeter.jmeter.citrix.clause.SessionState;
+import com.blazemeter.jmeter.citrix.gui.BlazeMeterLabsLogo;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 
 /**
@@ -92,14 +93,18 @@ public class CitrixSessionAssertionGui extends AbstractAssertionGui { // NOSONAR
     }
 
     private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
+        BlazeMeterLabsLogo blazeMeterLabsLogo = new BlazeMeterLabsLogo();
+
         setLayout(new BorderLayout(0, 10));
         setBorder(makeBorder());
         
-        add(makeTitlePanel(), BorderLayout.NORTH);
-
-        JPanel mainPanel = new VerticalPanel();
-        mainPanel.add(createStatePanel());
-        add(mainPanel, BorderLayout.CENTER);
+        Box box = Box.createVerticalBox();
+        box.add(makeTitlePanel());
+        box.add(Box.createVerticalStrut(10));
+        box.add(createStatePanel());
+        box.add(Box.createVerticalStrut(10));
+        box.add(blazeMeterLabsLogo);
+        add(box, BorderLayout.NORTH);
     }
 
     private Component createStatePanel() {
