@@ -146,8 +146,10 @@ Scope to be completed, ideas:
 
 # 0.5.1 (DELIVERED ON 20 December 2019)
 
+** Enhancement: **
+
+* [#16](https://github.com/Blazemeter/CitrixPlugin/issues/16) Make template portable regarding ICA File saving 
+
 **Bug fixes:**
 
-* Fix NPE when saving custom SampleResult
-* Make template portable regarding ICA File saving 
-
+* [#15](https://github.com/Blazemeter/CitrixPlugin/issues/15) NPE when saving custom SampleResult
