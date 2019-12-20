@@ -98,7 +98,7 @@ Here is the list of configurable properties,  **non bold** properties should be 
 | bzm.citrix.ica_downloading_ignore_timers      | Allows you to ignore timers present in the test plan during ICA download                                      | true                                                          |
 | bzm.citrix.ica_file_path_var                  | Refers to the variable used to retrieve the ICA path by the ICA File Saver                                    | citrix_ica_file_path                                          |
 | **bzm.citrix.ica_recording_folder**               | Default recording folder                                                                                      | <JMeterHome>/citrix_recording                                 |
-| **bzm.citrix.ica_files_folder**                   | Property used to set default value for **ICA File Saver** element. This value will be used as Folder where ICA files are downloaded.                                                                         | <JMeterHome>/ica_files                                        |
+| **bzm.citrix.ica_files_folder**                   | Property used to set default value for **ICA File Saver** element. This value will be used as Folder where ICA files are downloaded. Make sure that user running JMeter is allowed to **read/write** in this folder.                                                                        | <JMeterHome>/ica_files                                        |
 | **bzm.citrix.selection_color**                    | Color of the selection mask expressed as R,G,B                                                           | 0,255,0 which is Green                                        |
 
 

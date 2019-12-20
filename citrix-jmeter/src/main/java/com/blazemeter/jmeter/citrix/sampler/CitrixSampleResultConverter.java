@@ -91,7 +91,10 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 		CitrixSampleResult citrixSampleResult = (CitrixSampleResult) res;
 
 		// Restore end clause assessment
-		citrixSampleResult.setAssessment(reader.getAttribute(ATT_PFX + ATT_ASSESSMENT));
+		String assessment = reader.getAttribute(ATT_PFX + ATT_ASSESSMENT);
+		if(assessment != null) {
+			citrixSampleResult.setAssessment(assessment);		
+		}
 
 		// Restore foreground area
 		citrixSampleResult.setFgWindowArea(readRectangle(reader, ATT_PFX));
@@ -117,7 +120,9 @@ public class CitrixSampleResultConverter extends SampleResultConverter {
 		super.setAttributes(writer, context, res, save);
 
 		// Save end clause assessment
-		writer.addAttribute(ATT_PFX + ATT_ASSESSMENT, citrixSampleResult.getAssessment());
+		if (citrixSampleResult.getAssessment() != null) {
+			writer.addAttribute(ATT_PFX + ATT_ASSESSMENT, citrixSampleResult.getAssessment());			
+		}
 
 		// Save foreground area if it exists
 		writeRectangle(writer, citrixSampleResult.getFgWindowArea(), ATT_PFX);

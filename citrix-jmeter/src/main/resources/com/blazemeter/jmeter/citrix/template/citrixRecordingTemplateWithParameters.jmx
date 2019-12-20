@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.1-SNAPSHOT.20181127">
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.2.1">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan" enabled="true">
       <stringProp name="TestPlan.comments"></stringProp>
@@ -1064,6 +1064,7 @@
               <hashTree/>
               <com.blazemeter.jmeter.citrix.listener.CitrixIcaFileSaver guiclass="com.blazemeter.jmeter.citrix.listener.gui.CitrixIcaFileSaverGui" testclass="com.blazemeter.jmeter.citrix.listener.CitrixIcaFileSaver" testname="ICA File Saver " enabled="true">
                 <stringProp name="CitrixIcaFileSaver.variablename">citrix_ica_file</stringProp>
+                <stringProp name="CitrixIcaFileSaver.outputfolder">${__P(bzm.citrix.ica_files_folder,ica_files)}</stringProp>
               </com.blazemeter.jmeter.citrix.listener.CitrixIcaFileSaver>
               <hashTree/>
               <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HasIcaContentType" enabled="true">
