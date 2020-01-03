@@ -10,6 +10,8 @@
 * Ensure that you are working with supported versions of your Citrix client and server. If you don't have
 yet Citrix receiver, install it from [here](https://www.citrix.com/downloads/citrix-receiver/windows/receiver-for-windows-latest.html) 
 
+* Ensure you follow configuration setup advised in section 6 **Citrix setup for Test Environment**
+
 * Once installed, start JMeter as **as administrator**, see below, it will automatically run required installation steps.
 If you encounter any errors, please check below points manually.
 
@@ -141,7 +143,40 @@ For some actions that might take a long time, ensure you set a big enough timeou
 
 ---
 
-## 6. Important tips on Test environment and setup
+## 6. Citrix setup for Test Environment
+
+#### Disable the desktop toolbar
+The Citrix administrator should disable the desktop toolbar. 
+There are several ways to do this: 
+
+- Add to the default.ica file:
+
+    ConnectionBar=0 
+ 
+- Follow the method described in: 
+
+   -https://support.citrix.com/article/CTX138928. (Relevant only for published desktops, not published applications).
+
+#### Session Disconnect
+
+By default, when a client times out or disconnects from the Citrix server, the session remains open for a defined time period. 
+However, beginning a run in a Citrix session that has an unpredictable state can cause your test to fail.
+Therefore, the Citrix server administrator should configure the Citrix server to end (reset) the client session when a client disconnects for any reason.
+
+#### Multi-Session Support
+
+If you are going to run more than one Citrix Session on JMeter, ensure that the Citrix server is configured to enable multiple sessions per user/client.
+
+#### Run Citrix application in **non-seamless** mode, use **Windowed Mode** instead
+
+See:
+
+- https://docs.citrix.com/en-us/storefront/current-release/user-access/windowed-mode.html
+
+To check this is in place, when you launch the Citrix application manually, the Citrix Window should appear explicitely.
+You can also check that the ica file contains:
+
+    TWIMode=off
 
 #### Ensure consistency between machines
 If you intend to replay the script on another machine which will be the case for Blazemeter, make sure that the following items are consistent between the record and Blazemeter replay machines: 
@@ -167,21 +202,6 @@ Alternatively, you can use the following JMeter parameters to try to set display
 
 Keep in mind that Citrix server settings have precedence on the above parameters.
 
-#### Windows Style
- 
-Record all windows in the "classic" windows style—not the XP style. This is relevant when using Hash. 
-
-To change the Windows style to "classic": 
-
-* Click in the desktop area. 
-* Choose Properties from the right-click menu. 
-* Select the Theme tab
-* Choose Windows Classic from the Theme drop down list. 
-* Click OK. 
-
-#### Avoid production environments if possible
-Try to load test Citrix applications which are restricted to a few Citrix servers in a Citrix development or test environment rather than load testing in a live Citrix production environment.
-
 #### Prevent automatic citrix session start
 
 Close all instances of the **concentr.exe** process for all users. 
@@ -198,27 +218,23 @@ Workaround: To prevent this, configure the registry on the Citrix client machine
 #### Security Software
 If possible, disable anti-malware and other security or antivirus software. Alternatively, add an exception to ignore JMeter process and ICA Client receiver.
 
-#### Disable the desktop toolbar
-The Citrix administrator should disable the desktop toolbar. 
-There are several ways to do this: 
+## Tips on Test environment and setup
 
-- Add to the default.ica file:
-
-    ConnectionBar=0 
+#### Windows Style
  
-- Follow the method described in: 
+Record all windows in the "classic" windows style—not the XP style. This is relevant when using Hash. 
 
-   -https://support.citrix.com/article/CTX138928. (Relevant only for published desktops, not published applications).
+To change the Windows style to "classic": 
 
-#### Session Disconnect
+* Click in the desktop area. 
+* Choose Properties from the right-click menu. 
+* Select the Theme tab
+* Choose Windows Classic from the Theme drop down list. 
+* Click OK. 
 
-By default, when a client times out or disconnects from the Citrix server, the session remains open for a defined time period. 
-However, beginning a run in a Citrix session that has an unpredictable state can cause your test to fail.
-Therefore, the Citrix server administrator should configure the Citrix server to end (reset) the client session when a client disconnects for any reason.
 
-#### Multi-Session Support
-
-If you are going to run more than one Citrix Session on JMeter, ensure that the Citrix server is configured to enable multiple sessions per user/client.
+#### Avoid production environments if possible
+Try to load test Citrix applications which are restricted to a few Citrix servers in a Citrix development or test environment rather than load testing in a live Citrix production environment.
 
 ---
 
