@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
@@ -21,17 +22,17 @@ import org.slf4j.LoggerFactory;
 import com.blazemeter.jmeter.citrix.client.AbstractCitrixClient;
 import com.blazemeter.jmeter.citrix.client.CitrixClientException;
 import com.blazemeter.jmeter.citrix.client.WindowInfo;
-import com.blazemeter.jmeter.citrix.client.events.MouseButton;
+import com.blazemeter.jmeter.citrix.client.events.EventHelper;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent.KeyState;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent.MouseAction;
+import com.blazemeter.jmeter.citrix.client.events.Modifier;
+import com.blazemeter.jmeter.citrix.client.events.MouseButton;
 import com.blazemeter.jmeter.citrix.client.events.SessionEvent;
 import com.blazemeter.jmeter.citrix.client.events.SessionEvent.EventType;
 import com.blazemeter.jmeter.citrix.client.events.SessionEvent.KnownError;
 import com.blazemeter.jmeter.citrix.client.events.WindowEvent;
 import com.blazemeter.jmeter.citrix.client.events.WindowEvent.WindowState;
-import com.blazemeter.jmeter.citrix.client.events.Modifier;
-import com.blazemeter.jmeter.citrix.client.events.EventHelper;
 import com.blazemeter.jmeter.citrix.client.windows.com4j.ClassFactory;
 import com.blazemeter.jmeter.citrix.client.windows.com4j.ICAColorDepth;
 import com.blazemeter.jmeter.citrix.client.windows.com4j.IICAClient;
@@ -192,10 +193,15 @@ public class WinCitrixClient extends AbstractCitrixClient {
 	protected void startSession(boolean replayMode, boolean visible) throws CitrixClientException {
 		try {
 			icaClient = createICAClient(replayMode, visible);
-			LOGGER.debug("Connects ICA client");
+			final Path path = getICAFilePath();
+	        if (path != null && path.toFile().exists() && path.toFile().canRead()) {
+	            LOGGER.debug("Loading ICA file path from {}", path);
+	            icaClient.loadIcaFile(path.toString());
+	        }
+	        LOGGER.debug("Connecting using ICA file {}", path);
 			icaClient.connect();
 		} catch (Exception e) {
-			final String msg = "Unable to start ICA session.";
+			final String msg = "Unable to start ICA session using path:"+getICAFilePath();
 			LOGGER.error(msg, e);
 			throw new CitrixClientException(msg, e);
 		}
@@ -346,11 +352,11 @@ public class WinCitrixClient extends AbstractCitrixClient {
 		IICAClient client = ClassFactory.createICAClient();
 
 		final Path path = getICAFilePath();
-		if (path != null) {
+		if (path != null && path.toFile().exists() && path.toFile().canRead()) {
 			LOGGER.debug("Sets ICA client ICA file path to {}", path);
 			client.icaFile(path.toString());
 		}
-
+		client.cacheICAFile(false);
 		// Required to launch ActiveX client
 		client.launch(true);
 

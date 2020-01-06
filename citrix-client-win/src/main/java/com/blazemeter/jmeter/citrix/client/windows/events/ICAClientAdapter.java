@@ -22,13 +22,30 @@ public class ICAClientAdapter extends _IICAClientEvents {
 		this.icaClient = icaClient;
 	}
 
-	private void log(final String format, final Object... arguments) {
-		if (LOGGER.isDebugEnabled()) {
+    private void log(final String format, final Object... arguments) {
+        log(false, format, arguments);
+    }
+	private void log(boolean isError, final String format, final Object... arguments) {
+		if (!isError && LOGGER.isDebugEnabled()) {
 			ISession session = icaClient.session();
 			int size = (arguments != null ? arguments.length : 0) + 1;
 			Object[] args = Arrays.copyOf(arguments, size);
-			args[size - 1] = session != null ? "available" : "unavailable";
-			LOGGER.debug(format + " - session is {}", args);
+			args[size - 1] = session != null ? "session is available" : "session is unavailable";
+			LOGGER.debug("{} - arguments {}", format, args);
+		}
+		if (isError) {
+		    int lastError = icaClient.getLastError();
+	        String lastErrorMsg = icaClient.getErrorMessage(lastError);
+	        int lastClientError = icaClient.getLastClientError();
+	        String lastClientErrorMsg = icaClient.getClientErrorMessage(lastClientError);
+
+            ISession session = icaClient.session();
+            int size = (arguments != null ? arguments.length : 0) + 3;
+            Object[] args = Arrays.copyOf(arguments, size);
+            args[size - 1] = session != null ? "session is available" : "session is unavailable";
+            args[size - 2] = "Last error:"+ lastError+ "=>"+lastErrorMsg;
+            args[size - 3] = "Last client error:" + lastClientError+ "=>"+ lastClientErrorMsg;
+            LOGGER.error("{} - arguments {}", format, args);
 		}
 	}
 
@@ -84,7 +101,7 @@ public class ICAClientAdapter extends _IICAClientEvents {
 
 	@Override
 	public void onConnectFailed() {
-		log("ConnectFailed");
+		log(true, "ConnectFailed");
 	}
 
 	@Override
@@ -99,7 +116,7 @@ public class ICAClientAdapter extends _IICAClientEvents {
 
 	@Override
 	public void onDisconnectFailed() {
-		log("DisconnectFailed");
+		log(true, "DisconnectFailed");
 	}
 
 	@Override
@@ -109,7 +126,7 @@ public class ICAClientAdapter extends _IICAClientEvents {
 
 	@Override
 	public void onDisconnectSessionsFailed(int hCommand) {
-		log("DisconnectSessionsFailed: hCommand=0x{}", Integer.toHexString(hCommand));
+		log(true, "DisconnectSessionsFailed: hCommand=0x{}", Integer.toHexString(hCommand));
 	}
 
 	@Override
@@ -119,7 +136,7 @@ public class ICAClientAdapter extends _IICAClientEvents {
 
 	@Override
 	public void onICAFileFailed() {
-		log("ICAFileFailed");
+		log(true, "ICAFileFailed");
 	}
 
 	@Override
@@ -134,7 +151,7 @@ public class ICAClientAdapter extends _IICAClientEvents {
 
 	@Override
 	public void onLogoffFailed() {
-		log("LogoffFailed");
+		log(true, "LogoffFailed");
 	}
 
 	@Override
@@ -144,7 +161,7 @@ public class ICAClientAdapter extends _IICAClientEvents {
 
 	@Override
 	public void onLogoffSessionsFailed(int hCommand) {
-		log("LogoffSessionsFailed: hCommand=0x{}", Integer.toHexString(hCommand));
+		log(true, "LogoffSessionsFailed: hCommand=0x{}", Integer.toHexString(hCommand));
 	}
 
 	@Override
@@ -154,7 +171,7 @@ public class ICAClientAdapter extends _IICAClientEvents {
 
 	@Override
 	public void onLogonFailed() {
-		log("LogonFailed");
+		log(true, "LogonFailed");
 	}
 
 	@Override

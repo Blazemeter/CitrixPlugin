@@ -153,3 +153,9 @@ Scope to be completed, ideas:
 **Bug fixes:**
 
 * [#15](https://github.com/Blazemeter/CitrixPlugin/issues/15) NPE when saving custom SampleResult
+
+# 0.5.2 (DELIVERED ON 6 January 2020)
+
+**Bug fixes:**
+
+* [#15](https://github.com/Blazemeter/CitrixPlugin/issues/17) Randomly unable to start more Citrix session with error 64 ICA File not found while file is present
