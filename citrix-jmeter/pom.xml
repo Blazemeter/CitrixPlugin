@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>com.blazemeter.jmeter</groupId>
 		<artifactId>citrix-parent</artifactId>
-		<version>0.5.2</version>
+		<version>0.5.3</version>
 	</parent>
 
 	<artifactId>citrix-jmeter</artifactId>
@@ -56,7 +56,7 @@
 		<dependency>
 			<groupId>net.sourceforge.tess4j</groupId>
 			<artifactId>tess4j</artifactId>
-			<version>4.3.0</version>
+			<version>4.5.1</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_components -->
@@ -185,6 +185,12 @@
 									<include>org.slf4j:jul-to-slf4j</include>
 									<include>net.sourceforge.lept4j:lept4j</include>
 									<include>com.github.jai-imageio:jai-imageio-core</include>
+									<include>org.ghost4j:ghost4j</include>
+									<include>org.apache.pdfbox:jbig2-imageio</include>
+									<include>org.apache.pdfbox:pdfbox-debugger</include>
+									<include>org.apache.pdfbox:pdfbox-tools</include>
+									<include>org.apache.pdfbox:pdfbox</include>
+									<include>org.apache.pdfbox:fontbox</include>
 								</includes>
 							</artifactSet>
 						</configuration>

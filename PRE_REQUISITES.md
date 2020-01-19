@@ -145,6 +145,18 @@ For some actions that might take a long time, ensure you set a big enough timeou
 
 ## 6. Citrix setup for Test Environment
 
+Disable UAC (User Account Control), see:
+
+- https://richardstk.com/2013/12/17/fully-disable-user-account-control-in-windows-server-2012-windows-server-2012-r2/
+
+#### Citrix Receiver versions
+
+Plugin requires:
+
+- Citrix Receiver 4.12 (versions below this version have bugs, plugin does not work correctly)
+- Citrix Workspace 19.7
+
+
 #### Disable the desktop toolbar
 The Citrix administrator should disable the desktop toolbar. 
 There are several ways to do this: 
@@ -217,6 +229,16 @@ Workaround: To prevent this, configure the registry on the Citrix client machine
 
 #### Security Software
 If possible, disable anti-malware and other security or antivirus software. Alternatively, add an exception to ignore JMeter process and ICA Client receiver.
+
+#### Firewall
+
+If a firewall is present between your injector and target citrix platform, ensure you open required firewall ports:
+
+- https://docs.citrix.com/en-us/receiver/windows/current-release/secure-communication/connect-through-firewall.html
+
+#### Antivirus
+
+An antivirus or Windows Defender can parasitize injector load, ensure you add exclusion rules.
 
 ## Tips on Test environment and setup
 

@@ -48,7 +48,11 @@ public class SessionEvent extends ClientEvent {
 		/**
 		 * User is logged out
 		 */
-		LOGOFF;
+		LOGOFF, 
+		/**
+		 * ICA File is ready
+		 */
+		ICAFILE;
 	}
 
 	public enum KnownError {

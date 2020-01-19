@@ -13,6 +13,9 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.imageio.ImageIO;
 
@@ -80,6 +83,10 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
 	private boolean isKeepingScreenshots;
 	private String screenshotDirectory;
+
+    private CountDownLatch icaFileReadyLatch = new CountDownLatch(1);
+    
+    private AtomicBoolean icaFileReady  = new AtomicBoolean(false);
 
 	/**
 	 * Gets the location where temporary screenshots are stored.
@@ -191,49 +198,77 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
 	@Override
 	protected void startSession(boolean replayMode, boolean visible) throws CitrixClientException {
+	    String threadName = Thread.currentThread().getName();
 		try {
 			icaClient = createICAClient(replayMode, visible);
-			final Path path = getICAFilePath();
-	        if (path != null && path.toFile().exists() && path.toFile().canRead()) {
-	            LOGGER.debug("Loading ICA file path from {}", path);
-	            icaClient.loadIcaFile(path.toString());
-	        }
-	        LOGGER.debug("Connecting using ICA file {}", path);
-			icaClient.connect();
+            boolean expired = waitForIcaFile();
+            if(!expired && icaFileReady.get()) {
+                LOGGER.debug("Thread {} is connecting using ICA file {}", threadName, getICAFilePath());
+                icaClient.connect();
+            } else {
+                if (expired) {
+                    throw new CitrixClientException(Thread.currentThread().getName()+" timed out waiting for ICAFile to load from:"+getICAFilePath());
+                } else {
+                    throw new CitrixClientException(Thread.currentThread().getName()+" failed to load ICAFile from:"+getICAFilePath());
+                }
+            }
 		} catch (Exception e) {
-			final String msg = "Unable to start ICA session using path:"+getICAFilePath();
+			final String msg = "Thread " + threadName + " is unable to start ICA session using path:"+getICAFilePath();
 			LOGGER.error(msg, e);
 			throw new CitrixClientException(msg, e);
 		}
 	}
 
-	@Override
+	private boolean waitForIcaFile() throws InterruptedException {
+	    boolean expired = false;
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("{} starts to wait for ICAFile event at {}", Thread.currentThread().getName(), 
+                    System.currentTimeMillis());
+        }
+        if (!icaFileReady.get()) {
+            expired = !icaFileReadyLatch.await(5000, TimeUnit.MILLISECONDS);
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("{} stops to wait for ICAFile event at {}, timeout expired: {}", Thread.currentThread().getName(),
+                System.currentTimeMillis(), expired);
+        }
+        return expired;
+    }
+
+    @Override
 	protected void stopSession() throws CitrixClientException {
+	    String threadName = Thread.currentThread().getName();
+		LOGGER.debug("Logging off ICA client for thread:{}", threadName);
 		try {
-			LOGGER.debug("Log off ICA client");
-			icaClient.logoff();
+            icaClient.logoff();
+        } catch (Exception e) {
+            LOGGER.error("Unable to logoff session for thread:{}", threadName, e);
+        }
 
-			LOGGER.debug("Disconnects ICA client");
-			icaClient.disconnect();
-
-			LOGGER.debug("Disposes ICA client");
-			icaClient.dispose();
-
-			icaClient = null;
+		try {
+		    LOGGER.debug("Disconnecting ICA client for thread:{}", threadName);
+		    icaClient.disconnect();
 		} catch (Exception e) {
-			final String msg = "Unable to stop ICA session.";
-			LOGGER.error(msg, e);
-			throw new CitrixClientException(msg, e);
+            LOGGER.error("Unable to disconnect session for thread:{}", threadName, e);
+        }
+
+		try {
+		    LOGGER.debug("Disposing ICA client for thread:{}", threadName);
+		    icaClient.dispose();
+		} catch (Exception e) {
+            LOGGER.error("Unable to dispose icaClient for thread:{}", threadName);
 		}
+		icaClient = null;
 	}
 
 	private IScreenShot createScreenshot(Rectangle selection) throws CitrixClientException {
+	    String threadName = Thread.currentThread().getName();
 		if (icaClient == null) {
-			throw new CitrixClientException("Unable to create screenshot when ICA client is not running.");
+			throw new CitrixClientException("Thread "+ threadName +" is unable to create screenshot when ICA client is not running.");
 		}
 		ISession session = icaClient.session();
 		if (session == null) {
-			throw new CitrixClientException("Unable to create screenshot whereas Citrix session is not available.");
+			throw new CitrixClientException("Thread "+ threadName +" is unable to create screenshot whereas Citrix session is not available.");
 		}
 		try {
 			return selection != null
@@ -241,8 +276,8 @@ public class WinCitrixClient extends AbstractCitrixClient {
 					: session.createFullScreenShot();
 		} catch (ComException e) {
 			String msg = MessageFormat.format(
-					"Unable to create screenshot whereas Citrix session state is running={0}, connected={1}, visible={2}, userLogged={3} and selection={4}: {5}",
-					isRunning(), isConnected(), isVisible(), isUserLogged(), selection, e.getMessage());
+					"Thread {6} is unable to create screenshot whereas Citrix session state is running={0}, connected={1}, visible={2}, userLogged={3} and selection={4}: {5}",
+					isRunning(), isConnected(), isVisible(), isUserLogged(), selection, e.getMessage(), threadName);
 			LOGGER.warn(msg, e);
 			throw new CitrixClientException(msg);
 		}
@@ -254,8 +289,8 @@ public class WinCitrixClient extends AbstractCitrixClient {
 			screenshot.save();
 		} catch (ComException e) {
 			String msg = MessageFormat.format(
-					"Unable to save screenshot to file {0} whereas Citrix session state is running={1}, connected={2}, visible={3}, userLogged={4}: {5}",
-					file.getAbsolutePath(), isRunning(), isConnected(), isVisible(), isUserLogged(), e.getMessage());
+					"Thread {6} is unable to save screenshot to file {0} whereas Citrix session state is running={1}, connected={2}, visible={3}, userLogged={4}: {5}",
+					file.getAbsolutePath(), isRunning(), isConnected(), isVisible(), isUserLogged(), e.getMessage(), Thread.currentThread().getName());
 			LOGGER.warn(msg, e);
 			throw new CitrixClientException(msg);
 		}
@@ -263,7 +298,17 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
 	@Override
 	protected BufferedImage doScreenshot() throws CitrixClientException {
-		final Path filePath = Paths.get(getScreenshotDirectory(), UUID.randomUUID().toString());
+	    String screenshotDirectory = getScreenshotDirectory();
+	    if(screenshotDirectory == null || screenshotDirectory.length()==0) {
+	        screenshotDirectory = new File(System.getProperty("java.io.tmpdir"),"jm_citrix_screenshots").getAbsolutePath();
+        }
+	    if(!Paths.get(screenshotDirectory).toFile().exists()) {
+            LOGGER.info("Creating screenshot dir {}", screenshotDirectory);
+	        if (!Paths.get(screenshotDirectory).toFile().mkdirs()) {
+	            LOGGER.error("Unable to create screenshot dir {}", screenshotDirectory);
+	        }
+        }
+		final Path filePath = Paths.get(screenshotDirectory, UUID.randomUUID().toString());
 		final File file = filePath.toFile();
 		IScreenShot screenshot = createScreenshot(null);
 		saveScreenshot(screenshot, file);
@@ -273,8 +318,8 @@ public class WinCitrixClient extends AbstractCitrixClient {
 		try {
 			return ImageIO.read(file);
 		} catch (IOException e) {
-			String msg = MessageFormat.format("Unable to read screenshot file {0}: {1}", file.getAbsolutePath(),
-					e.getMessage());
+			String msg = MessageFormat.format("Thread {2} is unable to read screenshot file {0}: {1}", file.getAbsolutePath(),
+					e.getMessage(), Thread.currentThread().getName());
 			LOGGER.warn(msg, e);
 			throw new CitrixClientException(msg);
 		} finally {
@@ -294,7 +339,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
 	/* Ensure keyboard interface is initialized */
 	private IKeyboard ensureKeyboard() throws CitrixClientException {
 		if (keyboard == null) {
-			throw new CitrixClientException("Cannot send key event whereas Citrix session is disconnected");
+			throw new CitrixClientException("Thread "+ Thread.currentThread().getName() +" cannot send key event whereas Citrix session is disconnected");
 		}
 		return keyboard;
 	}
@@ -302,7 +347,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
 	/* Ensure mouse interface is initialized */
 	private IMouse ensureMouse() throws CitrixClientException {
 		if (mouse == null) {
-			throw new CitrixClientException("Cannot send mouse event whereas Citrix session is disconnected");
+			throw new CitrixClientException("Thread "+ Thread.currentThread().getName() +" cannot send mouse event whereas Citrix session is disconnected");
 		}
 		return mouse;
 	}
@@ -348,15 +393,12 @@ public class WinCitrixClient extends AbstractCitrixClient {
 	}
 
 	private IICAClient createICAClient(boolean replayMode, boolean visible) {
-		LOGGER.debug("Create a new ICA client with replayMode={} and visible={}", replayMode, visible);
+	    String threadName = Thread.currentThread().getName();
+	    LOGGER.debug("Create a new ICA client with replayMode={} and visible={}", replayMode, visible);
 		IICAClient client = ClassFactory.createICAClient();
-
-		final Path path = getICAFilePath();
-		if (path != null && path.toFile().exists() && path.toFile().canRead()) {
-			LOGGER.debug("Sets ICA client ICA file path to {}", path);
-			client.icaFile(path.toString());
-		}
+		
 		client.cacheICAFile(false);
+        client.persistentCacheEnabled(false);
 		// Required to launch ActiveX client
 		client.launch(true);
 
@@ -631,8 +673,34 @@ public class WinCitrixClient extends AbstractCitrixClient {
 				notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.DISCONNECT));
 			}
 
+            /* (non-Javadoc)
+             * @see com.blazemeter.jmeter.citrix.client.windows.events.ICAClientAdapter#onICAFile()
+             */
+            @Override
+            public void onICAFile() {
+                super.onICAFile();
+                icaFileReady.compareAndSet(false, true);
+                icaFileReadyLatch.countDown();
+            }
+
+            /* (non-Javadoc)
+             * @see com.blazemeter.jmeter.citrix.client.windows.events.ICAClientAdapter#onICAFileFailed()
+             */
+            @Override
+            public void onICAFileFailed() {
+                super.onICAFileFailed();
+                LOGGER.error("ICAFileFailed");
+                icaFileReadyLatch.countDown();
+            }
 		});
 
+		final Path path = getICAFilePath();
+        if (path != null && path.toFile().exists() && path.toFile().canRead()) {
+            //LOGGER.debug("Sets ICA client ICA file path to {}", path);
+            //client.icaFile(path.toString());
+            LOGGER.debug("Thread {} is loading ICA file path from {}", threadName, path);
+            client.loadIcaFile(path.toString());
+        }
 		return client;
 	}
 }

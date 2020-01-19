@@ -2,10 +2,9 @@ package com.blazemeter.jmeter.citrix.clause.strategy.check;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 import org.slf4j.Logger;
@@ -79,19 +78,17 @@ public class ListeningStrategy implements CheckStrategy {
 				timeout);
 
 		// Wait for the expected event occurs
-		listener.locker.lock();
 		try {
-			while (!listener.happened && !expired) {
-				expired = !listener.eventHappened.await(timeout, TimeUnit.MILLISECONDS);
-			}
+		    if (!listener.happened.get()) {
+		        expired = !listener.countDownLatch.await(timeout, TimeUnit.MILLISECONDS);
+		    }
 		} finally {
-			listener.locker.unlock();
 			client.removeHandler(listener);
 			LOGGER.debug("Stops listening Citrix windows events at {} with expired={}", System.currentTimeMillis(),
 					expired);
 		}
 
-		if (listener.happened) {
+		if (listener.happened.get()) {
 			// Workaround : Wait for the session rendering to reflect the expected event  
 			// See Citrix API simulation (sim_api_specification_programmers_guide.pdf)
 			// Screenshot OnUpdate
@@ -99,7 +96,7 @@ public class ListeningStrategy implements CheckStrategy {
 			Thread.sleep(1000L);
 		}
 		
-		return listener.happened;
+		return listener.happened.get();
 	}
 
 	@Override
@@ -113,12 +110,11 @@ public class ListeningStrategy implements CheckStrategy {
 	}
 
 	private class WindowEventListener extends CitrixClientAdapter {
-		private final Lock locker = new ReentrantLock();
-		private final Condition eventHappened = locker.newCondition();
+	    private final CountDownLatch countDownLatch = new CountDownLatch(1);
 		private final CheckResultCallback onCheck;
 		private final Predicate<WindowEvent> predicate;
 
-		private boolean happened = false;
+		private AtomicBoolean happened = new AtomicBoolean(false);
 		private int index = 1;
 		private CheckResult previous = null;
 
@@ -152,13 +148,8 @@ public class ListeningStrategy implements CheckStrategy {
 
 			if (success) {
 				// Signal the event occurred
-				locker.lock();
-				try {
-					happened = true;
-					eventHappened.signal();
-				} finally {
-					locker.unlock();
-				}
+			    happened.compareAndSet(false, true);
+			    countDownLatch.countDown();
 			}
 		}
 	};

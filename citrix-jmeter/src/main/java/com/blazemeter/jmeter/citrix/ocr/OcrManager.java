@@ -30,6 +30,9 @@ public final class OcrManager {
 	// JMeter property used to localized OCR configuration and language packs
 	private static final String OCR_DATA_PATH = JMeterUtils.getProperty(CitrixUtils.PROPERTIES_PFX + "ocr_data_path");
 
+	   // JMeter property used to localized OCR configuration and language packs
+    private static final String OCR_DEFAULT_DPI = JMeterUtils.getPropDefault(CitrixUtils.PROPERTIES_PFX + "ocr_default_dpi", "70");
+
 	private static final Object EXTRACT_LOCKER = new Object();
 	private static String extractedDataPath;
 
@@ -52,16 +55,18 @@ public final class OcrManager {
 	 * Instantiates a new {@link OcrManager}
 	 */
 	public OcrManager() {
-
 		// Initialize and set up Tesseract instance
 		String dataPath = StringUtils.isBlank(OCR_DATA_PATH) ? getExtractedDataPath() : OCR_DATA_PATH;
 		tessInstance = new Tesseract1();
-
+		
 		LOGGER.debug("OCR manager {} uses language '{}'", this, OCR_LANGUAGE);
 		tessInstance.setLanguage(OCR_LANGUAGE);
 
 		LOGGER.debug("OCR manager {} uses data in {}", this, dataPath);
 		tessInstance.setDatapath(dataPath);
+
+		LOGGER.debug("OCR manager {} setting default dpi to {}", this, OCR_DEFAULT_DPI);
+		tessInstance.setTessVariable("user_defined_dpi", OCR_DEFAULT_DPI);
 	}
 
 	/**
@@ -100,7 +105,11 @@ public final class OcrManager {
 			throw new OcrException(
 					MessageFormat.format("Exception occurred while scanning area {0} of image {1}", area, imageToScan),
 					e);
-		}
+		} catch (Error e) { // NOSONAR : We need to avoid Invalid memory access making threads exit
+            throw new OcrException(
+                    MessageFormat.format("Exception occurred while scanning area {0} of image {1}", area, imageToScan),
+                    e);
+        }
 	}
 
 }

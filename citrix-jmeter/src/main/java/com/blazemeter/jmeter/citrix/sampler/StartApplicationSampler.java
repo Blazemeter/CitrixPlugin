@@ -143,24 +143,32 @@ public class StartApplicationSampler extends CitrixBaseSampler
 	protected void doClientAction(CitrixClient client)
 			throws CitrixClientException, SamplerRunException, InterruptedException {
 		String icaFilePath = getThreadContext().getVariables().get(getICAPathVar());
-		if (icaFilePath == null) {
-			throw new IllegalStateException("ICA file path is null for variable:" + getICAPathVar());
-		}
-		client.setICAFilePath(Paths.get(icaFilePath));
-
-		long timeout = getLogOnTimeout();
-		if (timeout <= 0) {
-			timeout = LOGON_TIMEOUT;
-		}
-
-		// Run Citrix client and wait for Logon event
-		LOGGER.debug("{} on sampler {} launches a Citrix session", Thread.currentThread().getName(), getName());
-		client.start(true, FORCE_NORMAL_MODE ? true : GuiPackage.getInstance() != null);
-		boolean expired = waitLogOn(timeout);
-		if (expired) {
-			throw new SamplerRunException(MessageFormat
-					.format(CitrixUtils.getResString("start_application_sampler_logon_timeout_fmt", false), timeout));
-
+		try {
+    		if (icaFilePath == null) {
+    			throw new IllegalStateException("ICA file path is null for variable:" + getICAPathVar());
+    		}
+    		client.setICAFilePath(Paths.get(icaFilePath));
+    
+    		long timeout = getLogOnTimeout();
+    		if (timeout <= 0) {
+    			timeout = LOGON_TIMEOUT;
+    		}
+    
+    		// Run Citrix client and wait for Logon event
+    		LOGGER.debug("{} on sampler {} launches a Citrix session", Thread.currentThread().getName(), getName());
+    		client.start(true, FORCE_NORMAL_MODE ? true : GuiPackage.getInstance() != null);
+    		boolean expired = waitLogOn(timeout);
+    		if (expired) {
+    			throw new SamplerRunException(MessageFormat
+    					.format(CitrixUtils.getResString("start_application_sampler_logon_timeout_fmt", false), timeout));
+    		}
+    		if(!client.isConnected()) {
+    		    throw new SamplerRunException(CitrixUtils.getResString("start_application_sampler_not_connected", false));
+    		}
+		} finally {
+		    if (icaFilePath != null &&  !Paths.get(icaFilePath).toFile().delete()) {
+		            LOGGER.warn("Cannot delete ica file {}", icaFilePath);
+		    }
 		}
 	}
 

@@ -159,3 +159,18 @@ Scope to be completed, ideas:
 **Bug fixes:**
 
 * [#15](https://github.com/Blazemeter/CitrixPlugin/issues/17) Randomly unable to start more Citrix session with error 64 ICA File not found while file is present
+
+# 0.5.3 (DELIVERED ON 19 January 2020)
+
+**Bug fixes:**
+
+* Replace unclear error code 204 by clear message indicated session is not connected
+* Error 2312 after 40 minutes run: The Citrix Receiver Received a Corrupt ICA File
+* OCR: Exception due to bug in native library tess4j (Invalid memory access) makes thread exit
+* OCR: Warning: Invalid resolution 0 dpi. Using 70 instead.
+* Getting unable to create new native thread due to use of Java implementation
+* Clean ica files as soon as they are no more needed
+
+**Enhancements:**
+
+* Improve windows tracking performances
