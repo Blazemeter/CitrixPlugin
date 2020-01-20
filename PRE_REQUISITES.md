@@ -93,12 +93,7 @@ Here is the list of configurable properties,  **non bold** properties should be 
 |--------------------------------------------   |------------------------------------------------------------------------------------------------------------   |------------------------------------------------------------   |
 | bzm.citrix.client_factory.client_property.horizontal_resolution              | Screen horizontal resolution                                                                      |                                               |
 | bzm.citrix.client_factory.client_property.vertical_resolution              | Screen vertical resolution                                                                      |                                               |
-| bzm.citrix.client_factory.client_property.color_depth              | Color depth, use:
--  Color16 to get 16 colors
-- Use Color256 to get 256 colors
-- Use Color16Bit to get high colors (16bpp)
-- Use Color24Bit to get true colors (24bpp)
-Keep it empty to let the client decide                                                                      
+| bzm.citrix.client_factory.client_property.color_depth              | Color depth, use Color16 to get 16 colors, Color256 to get 256 color, Color16Bit to get high colors (16bpp), Color24Bit to get true colors (24bpp), Keep it empty to let the client decide                                                                      
 |                                               |
 | bzm.citrix.clause_check_interval              | Interval for the timing of clause checks                                                                      | 1000 (in millis)                                              |
 | bzm.citrix.clause_check_interval              | Interval for the timing of clause checks                                                                      | 1000 (in millis)                                              |
