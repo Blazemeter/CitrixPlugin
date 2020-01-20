@@ -142,6 +142,7 @@ Scope to be completed, ideas:
 
 * [#13](https://github.com/Blazemeter/CitrixPlugin/issues/13) New OCR Extractor element
 * [#14](https://github.com/Blazemeter/CitrixPlugin/issues/14) New Element that exposes results of End Clause 
+
 * Add blazemeter labs logo to elements
 
 # 0.5.1 (DELIVERED ON 20 December 2019)
@@ -174,3 +175,9 @@ Scope to be completed, ideas:
 **Enhancements:**
 
 * Improve windows tracking performances
+
+# 0.5.4 (DELIVERED ON 20 January 2020)
+
+**Enhancements:**
+
+* Add ability to configure sockstimeout for ICA Receiver

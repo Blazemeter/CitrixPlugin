@@ -16,7 +16,7 @@ public class WinCitrixClientFactory extends AbstractCitrixClientFactory {
 	private static final String HORIZONTAL_RESOLUTION_PROPERTY = "horizontal_resolution";
 	private static final String VERTICAL_RESOLUTION_PROPERTY = "vertical_resolution";
 	private static final String COLOR_DEPTH_PROPERTY = "color_depth";
-
+	private static final String SOCKET_TIMEOUT = "socket_timeout_ms";
 	@Override
 	public CitrixClient createClient() {
 		WinCitrixClient client = new WinCitrixClient();
@@ -27,6 +27,16 @@ public class WinCitrixClientFactory extends AbstractCitrixClientFactory {
 		client.setScreenshotDirectory(getClientProperty(SCREENSHOT_DIR_PROPERTY));
 		client.setKeepingScreenshots(Boolean.parseBoolean(getClientProperty(KEEP_SCREENSHOTS_PROPERTY)));
 
+		String socketTimeoutInString = getClientProperty(SOCKET_TIMEOUT);
+        if (socketTimeoutInString.length() > 0) {
+            try {
+                client.setSocketTimeoutInMs(Long.valueOf(socketTimeoutInString));
+            } catch (NumberFormatException ex) {
+                LOGGER.warn("Invalid value for property {}, socket timeout will default to: {}",
+                        SOCKET_TIMEOUT, client.getSocketTimeoutInMs(), ex);
+            }
+        }
+        
 		// Horizontal resolution
 		String hResProperty = getClientProperty(HORIZONTAL_RESOLUTION_PROPERTY);
 		if (hResProperty.length() > 0) {

@@ -74,6 +74,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
 	private Integer desiredHRes = null;
 	private Integer desiredVRes = null;
 	private ICAColorDepth desiredColorDepth = null;
+	private Long socketTimeoutInMs = 5000L;
 
 	// POSSIBLE_IMPROVEMENT See onDisconnect handler in createICAClient
 	@SuppressWarnings("unused")
@@ -703,4 +704,18 @@ public class WinCitrixClient extends AbstractCitrixClient {
         }
 		return client;
 	}
+
+    /**
+     * @return the timeout in Millis
+     */
+    public Long getSocketTimeoutInMs() {
+        return socketTimeoutInMs;
+    }
+
+    /**
+     * @param socketTimeoutInMs the timeout in millis to set
+     */
+    public void setSocketTimeoutInMs(Long socketTimeoutInMs) {
+        this.socketTimeoutInMs = socketTimeoutInMs;
+    }
 }

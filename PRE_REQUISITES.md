@@ -94,7 +94,8 @@ Here is the list of configurable properties,  **non bold** properties should be 
 | bzm.citrix.clause_check_interval              | Interval for the timing of clause checks                                                                      | 1000 (in millis)                                              |
 | bzm.citrix.clause_check_timeout               | Default time period (in ms) during which a clause must be validated                                                   | 3000 (in millis)                                              |
 | bzm.citrix.clause_check_max_results           | Maximum number of check results kept in the responseMessage                                                   | 20                                                            |
-| bzm.citrix.connect_timeout                    | Time (in millis) during which a Citrix session must send a CONNECT event (maximum application launch time)    | 5000 (in millis)                                              |
+| bzm.citrix.logon_timeout                    | JMeterProperty that defines the maximum time to receive a Citrix session event of type LOGON when Citrix application starts    | 20000 (in millis)                                              |
+| bzm.citrix.socket_timeout_ms                    | JMeterProperty that defines the socket timeout of Receiver in Milliseconds    | 5000 (in millis)                                              |
 | **bzm.citrix.default_recording_import_path**      | Directory used to decompress during import recording                                                          | <JMeterHome>/citrix-recordings/<folder with date and time>    |
 | bzm.citrix.ica_downloading_ignore_backends    | Allows you to ignore the BackendListeners present in the plan during ICA download                             | true                                                          |
 | bzm.citrix.ica_downloading_ignore_timers      | Allows you to ignore timers present in the test plan during ICA download                                      | true                                                          |
@@ -102,6 +103,15 @@ Here is the list of configurable properties,  **non bold** properties should be 
 | **bzm.citrix.ica_recording_folder**               | Default recording folder                                                                                      | <JMeterHome>/citrix_recording                                 |
 | **bzm.citrix.ica_files_folder**                   | Property used to set default value for **ICA File Saver** element. This value will be used as Folder where ICA files are downloaded. Make sure that user running JMeter is allowed to **read/write** in this folder.                                                                        | <JMeterHome>/ica_files                                        |
 | **bzm.citrix.selection_color**                    | Color of the selection mask expressed as R,G,B                                                           | 0,255,0 which is Green                                        |
+| **bzm.citrix.hightlight_color**                    | Color of the highlight mask expressed as R,G,B                                                           | 255,0,0 which is Green                                        |
+| **bzm.citrix.ocr_language**                    | Language used for text recognition                                                           | eng                                        |
+| **bzm.citrix.ocr_data_path**                    | Folder containing data for OCR recognition                                                           | temp folder                                        |
+| **bzm.citrix.ocr_default_dpi**                    | Images default dpi used by OCR                                                           | 70                                        |
+| **bzm.citrix.capture_max_size**                    | The maximum number of user interactions that can be recorded on the same capture WARNING !!! **A value too high can lead to insufficient memory**                                                           | 500                                        |
+| **bzm.citrix.ica_downloading_ignore_timers**                    | Ignore timers when downloading ICA during recording                                                             | true                                        |
+| **bzm.citrix.ica_downloading_ignore_backends**                    | Ignore timers when downloading ICA during recording                                                             | true                                        |
+| **bzm.citrix.keystroke_delay**                    | Default delay between keystrokes                                                             | 100                                        |
+| **bzm.citrix.keystroke_delay_variation**                    | Default variation added to delay between keystrokes                                                             | 10                                        |
 
 
 ---
@@ -364,3 +374,26 @@ If you get this message at execution of a "Citrix Application launcher" sampler,
 
 This means the **Timeout** of **End Clause** is too short. 
 Then you can increase the **Timeout** setting of **End Clause** (not the **Logon Timeout** of **Citrix Application Launcher**).
+
+##### Error 2312: The Citrix Receiver Received a Corrupt ICA File
+
+Check you're using a version of Citrix Receiver compatible with plugin, see **Citrix Receiver versions** above
+
+
+##### Citrix Receiver not starting and in logs getting "Error 70 cannot connect to server"
+
+This issue can be solved by clearing the citrix client cache and registry.
+
+Step:
+
+- Close all the citrix processes using Task Manager
+- Uninstall Citrix Receiver
+- Run regedit and delete:
+     - Computer > HKEY_CURRENT_USER > Software>Citrix
+     - Computer > HKEY_CURRENT_LOCAL_MACHINE > Software > WOW6432Node >Citrix > ICA Client
+- If any of the below folders have ICAClient and/or Citrix folders, delete ICAClient and/or Citrix located in those folders:
+    - C:\Users\USER RUNNING CITRIX\Application Data
+    - C:\Users\USER RUNNING CITRIX\Local
+    - C:\Users\USER RUNNING CITRIX\Roaming
+- Reboot the machine
+- Reinstall Receiver
