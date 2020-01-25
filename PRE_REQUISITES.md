@@ -170,7 +170,7 @@ Disable UAC (User Account Control), see:
 Plugin requires:
 
 - Citrix Receiver 4.12 (versions below this version have bugs, plugin does not work correctly)
-- Citrix Workspace 19.7
+- Citrix Workspace 19.11
 
 
 #### Disable the desktop toolbar
