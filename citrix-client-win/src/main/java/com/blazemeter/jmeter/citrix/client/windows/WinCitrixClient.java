@@ -411,7 +411,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
 		final Integer vRes = getDesiredVRes();
 		if (vRes != null) {
-			LOGGER.debug("Sets ICA client desired HRes to {}", vRes);
+			LOGGER.debug("Sets ICA client desired VRes to {}", vRes);
 			client.desiredVRes(vRes);
 		}
 
