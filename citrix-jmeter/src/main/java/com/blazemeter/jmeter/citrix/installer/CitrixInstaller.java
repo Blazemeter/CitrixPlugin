@@ -54,7 +54,7 @@ public class CitrixInstaller {
     
     private static final String ADD_DWORD = "REG ADD \"%s\" /v \"%s\" /t REG_DWORD /d \"%s\"";
     
-    private static final String REGISTER_OCX = "regsvr32 C:\\Program Files (x86)\\Citrix\\ICA Client\\wfica.ocx";
+    private static final String REGISTER_OCX = "regsvr32 /s \"C:\\Program Files (x86)\\Citrix\\ICA Client\\wfica.ocx\"";
     
     private static final String SAVESERVICE_EXCERPT = "/com/blazemeter/jmeter/citrix/installer/saveservice-excerpt.properties";
     
@@ -104,6 +104,7 @@ public class CitrixInstaller {
         try (
                 InputStream inputStream = CitrixInstaller.class.getResourceAsStream(SAVESERVICE_EXCERPT)) {
             excerpt = IOUtils.toString(inputStream, StandardCharsets.ISO_8859_1);
+            excerpt = excerpt.replaceAll("\n", "\r\n");
             LOGGER.info("{} contains {}", SAVESERVICE_EXCERPT, excerpt);
         }
         File saveServiceFile = new File(jmeterBinDir, "saveservice.properties");
@@ -286,6 +287,7 @@ public class CitrixInstaller {
     
     private static boolean runCommand(String cmd, List<String> infoMsgs, List<String> errors)
             throws IOException, InterruptedException {
+        LOGGER.info("Running commande line:"+cmd);
         Process process = Runtime.getRuntime().exec(cmd);
         // any output?
         StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream());

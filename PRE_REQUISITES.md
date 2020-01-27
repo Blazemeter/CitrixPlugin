@@ -2,8 +2,17 @@
 
 ## 1. Apache JMeter pre-requisites
 
+### Java version 
 * Install a **JDK 8 Windows x86** (not 64 bits !) in last minor update from [here](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-* Install Apache JMeter from [here](https://jmeter.apache.org/download_jmeter.cgi). Last version is advised (>=5.1)
+* Install Apache JMeter from [here](https://jmeter.apache.org/download_jmeter.cgi). Last version is advised (5.2.1)
+
+### Microsoft Visual C++ Redistributable for Visual Studio 2019
+
+* Install **Microsoft Visual C++ Redistributable for Visual Studio 2019** available from here:
+
+## 1. Apache JMeter pre-requisites
+
+- https://support.microsoft.com/fr-fr/help/2977003/the-latest-supported-visual-c-downloads
 
 ## 2. Citrix pre-requisites
 
@@ -21,7 +30,7 @@ If you encounter any errors, please check below points manually.
 
 * Once Citrix Receiver is installed, register ICA Client COM Object, run **as administrator** : 
 
-    regsvr32 C:\Program Files (x86)\Citrix\ICA Client\wfica.ocx
+    regsvr32 /s "C:\Program Files (x86)\Citrix\ICA Client\wfica.ocx"
    
 * Add registry keys :
     
@@ -97,8 +106,6 @@ Here is the list of configurable properties,  **non bold** properties should be 
 | bzm.citrix.client_factory.socket_timeout_ms                    | JMeterProperty that defines the socket timeout of Receiver in Milliseconds    | 5000 (in millis)                                              |
 |                                               |
 | bzm.citrix.clause_check_interval              | Interval for the timing of clause checks                                                                      | 1000 (in millis)                                              |
-| bzm.citrix.clause_check_interval              | Interval for the timing of clause checks                                                                      | 1000 (in millis)                                              |
-| bzm.citrix.clause_check_interval              | Interval for the timing of clause checks                                                                      | 1000 (in millis)                                              |
 | bzm.citrix.clause_check_timeout               | Default time period (in ms) during which a clause must be validated                                                   | 3000 (in millis)                                              |
 | bzm.citrix.clause_check_max_results           | Maximum number of check results kept in the responseMessage                                                   | 20                                                            |
 | bzm.citrix.logon_timeout                    | JMeterProperty that defines the maximum time to receive a Citrix session event of type LOGON when Citrix application starts    | 20000 (in millis)                                              |
@@ -172,7 +179,6 @@ Plugin requires:
 - Citrix Receiver 4.12 (versions below this version have bugs, plugin does not work correctly)
 - Citrix Workspace 19.11
 
-
 #### Disable the desktop toolbar
 The Citrix administrator should disable the desktop toolbar. 
 There are several ways to do this: 
@@ -209,13 +215,13 @@ You can also check that the ica file contains:
 #### Ensure consistency between machines
 If you intend to replay the script on another machine which will be the case for Blazemeter, make sure that the following items are consistent between the record and Blazemeter replay machines: 
 
-- Window Size (resolution), 
+- Window Size (screen resolution), 
 - Window Colors and color depth, 
 - System Font, 
 - ClearType, 
 - and the other Default Options settings for the Citrix client. 
 
-**These settings affect the hash values**, and **inconsistencies may cause sampling to fail**. 
+**These settings affect the hash values and screen coordinates (for OCR or HASH), and inconsistencies will cause sampling to fail**. 
 
 To view the Citrix client settings, right-click an item from the Citrix program group and select Application Set Settings or Custom Connection Settings. 
 (Note that the remote session on the Citrix server inherits the ClearType settings of the local machine.)

@@ -17,7 +17,11 @@
             </ul>
         ]]></description>
         <parameters>
+            <parameter defaultValue="Citrix Portal is using HTTPS ? (Yes/No)" key="citrixUsingHttps"/>
+            <parameter defaultValue="Citrix Portal scheme ? (http/https)" key="citrixPortalScheme"/>
             <parameter defaultValue="Citrix Portal Hostname" key="citrixPortalHost"/>
+            <parameter defaultValue="Citrix Portal port ? (80/443/???)" key="citrixPortalPort"/>
+            <parameter defaultValue="Citrix Storefront Context Path ? " key="citrixPortalContextPath"/>
             <parameter defaultValue="Citrix Application you want to record" key="citrixApplicationName"/>
             <parameter defaultValue="Citrix Portal Login" key="citrixLogin"/>
             <parameter defaultValue="Citrix Portal Password" key="citrixPassword"/>
