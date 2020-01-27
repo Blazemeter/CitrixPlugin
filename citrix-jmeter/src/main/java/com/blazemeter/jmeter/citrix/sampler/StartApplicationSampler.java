@@ -38,6 +38,7 @@ public class StartApplicationSampler extends CitrixBaseSampler
 			20000); // $NON-NLS-1$
 
 	private static final boolean FORCE_NORMAL_MODE = JMeterUtils.getPropDefault(CitrixUtils.PROPERTIES_PFX + "force_normal_output", false); // $NON-NLS-1$
+	private static final boolean KEEP_ICA_FILES = JMeterUtils.getPropDefault(CitrixUtils.PROPERTIES_PFX + "keep_ica_files", false); // $NON-NLS-1$
 
 	private static final String LOGON_TIMEOUT_PROP = "StartApplicationSampler.logonTimeout";
 	private static final String FILE_PATH_VAR_PROP = "StartApplicationSampler.filePathVar";
@@ -166,8 +167,8 @@ public class StartApplicationSampler extends CitrixBaseSampler
     		    throw new SamplerRunException(CitrixUtils.getResString("start_application_sampler_not_connected", false));
     		}
 		} finally {
-		    if (icaFilePath != null &&  !Paths.get(icaFilePath).toFile().delete()) {
-		            LOGGER.warn("Cannot delete ica file {}", icaFilePath);
+		    if (!KEEP_ICA_FILES && icaFilePath != null &&  !Paths.get(icaFilePath).toFile().delete()) {
+		        LOGGER.warn("Cannot delete ica file {}", icaFilePath);
 		    }
 		}
 	}
