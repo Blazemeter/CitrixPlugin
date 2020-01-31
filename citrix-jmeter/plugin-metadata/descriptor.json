@@ -1,7 +1,7 @@
 {
     "id": "bzm-jmeter-citrix-plugin",
     "name": "Blazemeter JMeter Citrix plugin",
-    "description": "Plugin which provides the ability to load tests Citrix exposed application with Apache JMeter",
+    "description": "Plugin which provides the ability to load tests Citrix exposed applications with Apache JMeter",
     "screenshotUrl": "https://github.com/Blazemeter/CitrixPlugin/raw/master/citrix-jmeter/plugin-metadata/presentationScreenshot.png",
     "helpUrl": "https://github.com/Blazemeter/CitrixPlugin/blob/master/README.md",
     "vendor": "Blazemeter.com",
@@ -22,8 +22,8 @@
 	  "com.blazemeter.jmeter.citrix.sampler.gui.CitrixSamplerGUI"
     ],
     "versions": {
-      "0.5.4": {
-        "downloadUrl": "https://github.com/Blazemeter/CitrixPlugin/releases/download/0.5.4/citrix-jmeter-0.5.4.jar",
+      "0.5.5": {
+        "downloadUrl": "https://github.com/Blazemeter/CitrixPlugin/releases/download/0.5.5/citrix-jmeter-0.5.5.jar",
         "depends":["jmeter-core", "jmeter-components", "jmeter-http"]
       }
     }
