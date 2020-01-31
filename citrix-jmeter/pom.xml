@@ -15,7 +15,7 @@
 
 	<properties>
 		<jmeter.groupId>org.apache.jmeter</jmeter.groupId>
-		<jmeter.version>4.0</jmeter.version>
+		<jmeter.version>5.2.1</jmeter.version>
 	</properties>
 
 	<dependencies>
