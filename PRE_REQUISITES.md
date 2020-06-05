@@ -1,5 +1,26 @@
 # JMeter Citrix Plugin setup
 
+## System requirements and compatibility:
+
+### OS supported
+
+**Windows only**
+  * Windows Vista(1), 7, 8.1, 10
+  * Windows Server 2008 R2(1), 2012 R2, 2016, 2019
+
+   (1) OS Deprecated for Citrix Workspace
+
+### Citrix recommended versions:
+
+**Server**
+  * XenApp and XenDesktop 5.x or later
+  * Citrix Virtual Apps and Desktops 1808 or later
+  * StoreFront 2.1 or later
+        
+**Citrix client**
+  * Citrix Receiver 4.12
+  * Citrix Workspace 19.11 and later
+
 ## 1. Apache JMeter pre-requisites
 
 ### Java version 
@@ -10,14 +31,12 @@
 
 * Install **Microsoft Visual C++ Redistributable for Visual Studio 2019** available from here:
 
-## 1. Apache JMeter pre-requisites
-
 - https://support.microsoft.com/fr-fr/help/2977003/the-latest-supported-visual-c-downloads
 
 ## 2. Citrix pre-requisites
 
-* Ensure that you are working with supported versions of your Citrix client and server. If you don't have
-yet Citrix receiver, install it from [here](https://www.citrix.com/downloads/citrix-receiver/windows/receiver-for-windows-latest.html) 
+* Ensure that you are working with supported versions of your Citrix client and server.
+If you don't have yet Citrix client install it from [Citrix Workspace download page](https://www.citrix.com/downloads/workspace-app/windows/workspace-app-for-windows-latest.html) or [Citrix Receiver download page](https://www.citrix.com/downloads/citrix-receiver/windows/receiver-for-windows-latest.html)
 
 * Ensure you follow configuration setup advised in section 6 **Citrix setup for Test Environment**
 
@@ -177,7 +196,7 @@ Disable UAC (User Account Control), see:
 Plugin requires:
 
 - Citrix Receiver 4.12 (versions below this version have bugs, plugin does not work correctly)
-- Citrix Workspace 19.11
+- Citrix Workspace 19.11 or later
 
 #### Disable the desktop toolbar
 The Citrix administrator should disable the desktop toolbar. 
