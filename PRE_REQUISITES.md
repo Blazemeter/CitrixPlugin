@@ -1,6 +1,6 @@
 # JMeter Citrix Plugin setup
 
-## System requirements and compatibility:
+## System requirements and compatibility
 
 ### OS supported
 
@@ -10,7 +10,7 @@
 
    (1) OS Deprecated for Citrix Workspace
 
-### Citrix recommended versions:
+### Citrix recommended versions
 
 **Server**
   * XenApp and XenDesktop 5.x or later
