@@ -38,13 +38,16 @@ Example:
 
 ## Enable Write results to file on View Results Tree listener
 
-The default Citrix Plugin template provides a View Results Tree listener for the main playback thread group as well as one inside Citrix Recorder.
+The View Results Tree listener by default records all operations and show it on the graphic interface.
+To share the results for debugging using a JTL file, you must previously enable to write `JMeter Text Log (JTL)` file and set the maximum possible verbosity to ensure all data needed inside the file.
 
-In order to provide additional debug information, you must enable write the `JMeter Text Log (JTL)` files in their maximum verbosity and in xml format.
+To enable JTL file saving, in the `filename` field provide the name of the xml file where the log information will be stored.
 
-In the `filename` field provide the name of the xml file where the log information will be stored.
+To ensure maximum verbosity, ** make sure ** that the configuration section contains all activated options. Go to `Configure` and check them all.
 
-**Make sure** the configuration section contains all the options activated. Go to `Configure` and check all options.
+The default Citrix Plugin template provides a View Results Tree listener for the main playback thread group as well as one inside Citrix Recorder. 
+If your test project does not have a View Results Tree listener, you can add one in order to allow saving a JTL file for debugging purpose.
+
 
 ## Save JMeter console output in a log file
 
