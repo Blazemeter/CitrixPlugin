@@ -39,7 +39,7 @@ Example:
 ## Enable Write results to file on View Results Tree listener
 
 The View Results Tree listener by default records all operations and show it on the graphic interface.
-To share the results for debugging using a JTL file, you must previously enable to write `JMeter Text Log (JTL)` file and set the maximum possible verbosity to ensure all data needed inside the file.
+To share the results for debugging using a `JMeter Text Log (JTL)` file, you must previously enable to write JTL file and set the maximum possible verbosity to ensure all data needed inside the file.
 
 To enable JTL file saving, in the `filename` field provide the name of the xml file where the log information will be stored.
 
