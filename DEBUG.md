@@ -20,20 +20,21 @@ In the JMeter default log configuration, it's not possible to associate each lin
 To achieve this, the thread identifier must be incorporated into the log pattern.
 
 In the log4j2.xml file inside the JMeter bin folder.
-Locate and update the text inside the `<pattern>` tag incorporating the thread identifier `%tid` between the values `%d` and `%p`.
+Locate and update the text inside the `<pattern>` tag incorporating the thread name `%t` and thread identifier `%tid` between the values `%d` and `%p`.
 
 Example:
 ```xml
 <File name="jmeter-log" fileName="${sys:jmeter.logfile:-jmeter.log}" append="false">
       <PatternLayout>
-        <pattern>%d %tid %p %c{1.}: %m%n</pattern>
+        <pattern>%d [%t id:%tid] %p %c{1.}: %m%n</pattern>
       </PatternLayout>
     </File>
     <GuiLogEvent name="gui-log-event">
       <PatternLayout>
-        <pattern>%d %tid %p %c{1.}: %m%n</pattern>
+        <pattern>%d [%t id:%tid] %p %c{1.}: %m%n</pattern>
       </PatternLayout>
     </GuiLogEvent>
+    ...
 ```
 
 ## Enable Write results to file on View Results Tree listener
