@@ -40,7 +40,7 @@ You need then to update in **UDV**:
 - citrix_portal_host to the Host name of your portal
 - citrix_app_name to the name of the application you want to test
 
-After that update authentication information in **UDV-Recording** section:
+After that, update authentication information in **UDV-Recording** section:
 
 - citrix_login to the login on portal
 - citrix_password to the password on portal
