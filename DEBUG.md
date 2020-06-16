@@ -44,7 +44,7 @@ To share the results for debugging using a `JMeter Text Log (JTL)` file, you mus
 
 To enable JTL file saving, in the `filename` field provide the name of the xml file where the log information will be stored.
 
-To ensure maximum verbosity, ** make sure ** that the configuration section contains all activated options. Go to `Configure` and check them all.
+To ensure maximum verbosity, **make sure** that the configuration section contains all activated options. Go to `Configure` and check them all.
 
 The default Citrix Plugin template provides a View Results Tree listener for the main playback thread group as well as one inside Citrix Recorder. 
 If your test project does not have a View Results Tree listener, you can add one in order to allow saving a JTL file for debugging purpose.
