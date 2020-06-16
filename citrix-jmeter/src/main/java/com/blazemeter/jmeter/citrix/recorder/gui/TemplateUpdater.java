@@ -41,14 +41,14 @@ public class TemplateUpdater {
     /**
      * Checks if JMX template and description have changed and updates them on disk
      * Register template to TemplateManager 
-     * @param templateName Template Name  ("Blazemeter Citrix Recording")
+     * @param templateName Template Name  ("BlazeMeter Citrix Recording")
      * @param templateJmxFileName JMX Template
      * @param descTemplateFileName File that contains template description
      * @param templatesResourcePath Source folder of templates in jars
      * @throws IOException when writing template to file fails
      */
     public void addTemplate(
-            String templateName, // "Blazemeter Citrix Recording"
+            String templateName, // "BlazeMeter Citrix Recording"
             String templateJmxFileName, // citrixRecordingTemplate.jmx
             String descTemplateFileName, // bzmCitrixTemplate.xml
             String templatesResourcePath // com/blazemeter/jmeter/citrix/template

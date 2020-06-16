@@ -2,7 +2,7 @@
 
 <templates>
 	<template isTestPlan="true">
-		<name>Blazemeter Citrix Recording</name>
+		<name>BlazeMeter Citrix Recording</name>
 		<fileName>/bin/templates/citrixRecordingTemplateWithParameters.jmx</fileName>
 		<description><![CDATA[
         <h1>Template you can use to record a Citrix application called through ICA Client</h1>
