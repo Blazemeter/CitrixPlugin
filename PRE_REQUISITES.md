@@ -232,7 +232,7 @@ You can also check that the ica file contains:
     TWIMode=off
 
 #### Ensure consistency between machines
-If you intend to replay the script on another machine which will be the case for Blazemeter, make sure that the following items are consistent between the record and Blazemeter replay machines: 
+If you intend to replay the script on another machine which will be the case for BlazeMeter, make sure that the following items are consistent between the record and BlazeMeter replay machines: 
 
 - Window Size (screen resolution), 
 - Window Colors and color depth, 

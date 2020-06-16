@@ -25,27 +25,27 @@ At the end of sampling, you can check the results in regular JMeter listeners.
 
 ### Step
 
-#### Use template Blazemeter Citrix Recording
+#### Use template BlazeMeter Citrix Recording
 
 A Citrix Recording Template is available to ease the script creation.
-Click on Files → Templates... and select **Blazemeter Citrix Recording**.
+Click on Files → Templates... and select **BlazeMeter Citrix Recording**.
 
 The template will add below elements:
 
 ![alt text](images/template_test_plan.png "Citrix Template overview")
 
-#### Update portal connection informations in it
+#### Update portal connection information in it
 You need then to update in **UDV**:
 
 - citrix_portal_host to the Host name of your portal
 - citrix_app_name to the name of the application you want to test
 
-And in **UDV-Recording**:
+After that update authentication information in **UDV-Recording** section:
 
 - citrix_login to the login on portal
-- citrix_passord to the password on portal
+- citrix_password to the password on portal
 
-Note that since JMeter 5.1, the new parameterized template will make this step optional as those 4 informations will be required 
+**Note:** Since JMeter 5.1, the new parameterized template will make this step optional as those 4 fields will be required 
 on template creation. 
 
 If you do not want to use the template (this is not advised), you can add a Citrix Recorder by right-clicking on Test Plan → add → Non-Test Elements → Citrix Recorder.
@@ -86,7 +86,7 @@ You will see a screenshot of the Citrix window, and you must then select to make
 From this point, you can use the **Record Text Input** and **Record Mouse Click** buttons :
 
 **Record Text Input** allow you to record every text input on the citrix window while the button is activated. When you are done with the text recording,
-just click again on the button and the associated samplers will be added in the JMeter tree and in the **View Results Tree** under **Citrix Recorder**.
+just click again on the button, and the associated samplers will be added in the JMeter tree and in the **View Results Tree** under **Citrix Recorder**.
 If there are many Interactions, they will be grouped under a **Transaction Controller**. 
 You can also choose to use one of the three following buttons to stop the text input capture : 
 
@@ -100,7 +100,7 @@ You can click again on it to stop the capture or use one of the three others but
 One **Record Mouse Click** sequence will end in **one sampler per click created** on the JMeter test plan and in the **View Results Tree** under **Citrix Recorder**. If you checked the **Include mouse moves** box, plugin will create between each click samplers a sampler with **Mouse move informations**.
 
 When you're done with recording, you can end the recording by clicking on the **Stop Recording** button. It will close your Citrix application **but not the citrix session**. 
-You can also chose to end the recording by closing yourself the Citrix application inside the citrix window or by closing the citrix window itself.
+You can also choose to end the recording by closing yourself the Citrix application inside the citrix window or by closing the citrix window itself.
 
 ![Close Citrix session](images/citrix_close.png "Citrix close")
 
@@ -120,7 +120,7 @@ Please note that if you add one yourself, ensure you click on **Configure** butt
 #### Samplers
 In this section we will cover the 2 samplers this plugin adds to JMeter.
 
-####Citrix Application Launcher####
+####Citrix Application Launcher
 ![Citrix Application Launcher sampler](images/launcher_sampler.png "Citrix Application Launcher sampler")
 
 This sampler is added when you click on the **Application Started** button of the Citrix Recorder.

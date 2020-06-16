@@ -1,10 +1,10 @@
 [{
     "id": "bzm-jmeter-citrix-plugin",
-    "name": "Blazemeter JMeter Citrix plugin",
+    "name": "BlazeMeter JMeter Citrix plugin",
     "description": "Plugin which provides the ability to load tests Citrix exposed application with Apache JMeter",
     "screenshotUrl": "http://localhost:8082/Blazemeter/CitrixPlugin/master/docs/images/presentationScreenshot.png",
     "helpUrl": "http://localhost:8082/Blazemeter/CitrixPlugin/master/docs/README.md",
-    "vendor": "Blazemeter.com",
+    "vendor": "BlazeMeter",
     "markerClass": "com.blazemeter.jmeter.citrix.recorder.gui.CitrixRecorderGUI",
     "componentClasses": [
       "com.blazemeter.jmeter.citrix.assertion.CitrixAssertion",

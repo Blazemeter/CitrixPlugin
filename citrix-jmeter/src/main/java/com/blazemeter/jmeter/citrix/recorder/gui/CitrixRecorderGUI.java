@@ -184,10 +184,10 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
 		TemplateUpdater templateUpdater = new TemplateUpdater(new File(JMeterUtils.getJMeterBinDir(), "templates"));
 		try {
 		    if(TemplateUpdater.hasParameterizedTemplate()) {
-                templateUpdater.addTemplate("Blazemeter Citrix Recording", "citrixRecordingTemplateWithParameters.jmx",
+                templateUpdater.addTemplate("BlazeMeter Citrix Recording", "citrixRecordingTemplateWithParameters.jmx",
                         "bzmCitrixTemplateWithParameters.xml", "/com/blazemeter/jmeter/citrix/template");
 		    } else {
-                templateUpdater.addTemplate("Blazemeter Citrix Recording", "citrixRecordingTemplate.jmx",
+                templateUpdater.addTemplate("BlazeMeter Citrix Recording", "citrixRecordingTemplate.jmx",
                         "bzmCitrixTemplate.xml", "/com/blazemeter/jmeter/citrix/template");
 		    }
 		} catch (IOException ex) {
