@@ -1,7 +1,15 @@
 package com.blazemeter.jmeter.citrix.assertions;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+
+import com.blazemeter.jmeter.citrix.clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.Clause;
+import com.blazemeter.jmeter.citrix.clause.ClauseComputationException;
+import com.blazemeter.jmeter.citrix.clause.ClauseHelper;
+import com.blazemeter.jmeter.citrix.clause.strategy.check.PollingContext;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -9,115 +17,121 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-
 import org.junit.Before;
 import org.junit.Test;
-
-import com.blazemeter.jmeter.citrix.clause.ClauseComputationException;
-import com.blazemeter.jmeter.citrix.clause.ClauseHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Test the HashHelper class
  */
 public class TestAssertionHelper {
-	BufferedImage image1;
-	BufferedImage image2;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClauseHelper.class);
+  BufferedImage image_same_01;
+  BufferedImage image_same_02;
+  BufferedImage image_not_same_01;
+  BufferedImage image_not_same_02;
+  final Class<TestAssertionHelper> helper = TestAssertionHelper.class;
 
-	@Before
-	public void init() {
-		String image1FileName = "/4328_1536568867580.png";
-		String image1Path = TestAssertionHelper.class.getResource(image1FileName).getPath();
+  private BufferedImage loadImageResource(String imagePath) {
+    try {
+      return ImageIO.read(new File(helper.getResource(imagePath).getPath()));
+    } catch (IOException e) {
+      LOGGER.error("Error Loading Resource", e);
+      return null;
+    }
+  }
 
-		String image2FileName = "/4328_1536568879467.png";
-		String image2Path = TestAssertionHelper.class.getResource(image2FileName).getPath();
+  @Before
+  public void init() {
+    image_same_01 = loadImageResource("/hash_same_01.png");
+    image_same_02 = loadImageResource("/hash_same_02.png");
+    image_not_same_01 = loadImageResource("/hash_not_same_01.png");
+    image_not_same_02 = loadImageResource("/hash_not_same_02.png");
+  }
 
-		try {
-			image1 = ImageIO.read(new File(image1Path));
-			image2 = ImageIO.read(new File(image2Path));
-		} catch (IOException e) {
-			// NOOP
-		}
-	}
+  @Test
+  public void testHashRepeatability() throws ClauseComputationException {
+    // The same image generate the same hash any time
+    String hash1 = ClauseHelper.hash(image_same_01, null, null);
+    String hash2 = ClauseHelper.hash(image_same_01, null, null);
+    LOGGER.debug("Test same image if generate same hash: {},{}", hash1, hash2);
+    assertEquals(hash1, hash2);
+  }
 
-	@Test
-	public void testHash() throws ClauseComputationException {
-		// test if the same screenshot with a null rectangle give the same result.
-		String hash1 = ClauseHelper.hash(image1, null);
-		String hash2 = ClauseHelper.hash(image1, null);
-		assertEquals(hash1, hash2);
+  @Test
+  public void testHashDiffPerceptualEqual() throws ClauseComputationException {
+    // The image are the same at perceptual point of view but not a bit level
+    String hash1 = ClauseHelper.hash(image_same_01, null, null);
+    String hash2 = ClauseHelper.hash(image_same_02, null, null);
+    LOGGER.debug("Test same perceptual image with diff hash: {},{}", hash1, hash2);
+    assertNotEquals(hash1, hash2);
+  }
 
-		// test if the same screenshot with the same rectangle give the same result
-		Rectangle rectangle = new Rectangle(new Point(25, 25), new Dimension(50, 50));
-		String hash3 = ClauseHelper.hash(image1, rectangle);
-		String hash4 = ClauseHelper.hash(image2, rectangle);
-		assertEquals(hash3, hash4);
-		// assertNotEquals(hash1, hash3);
+  @Test
+  public void testHashPerceptualHammingDistance() throws ClauseComputationException {
+    String hash1 = ClauseHelper.hash(image_same_01, null, null);
+    String hash2 = ClauseHelper.hash(image_same_02, null, null);
 
-		// test if a different rectangle on the same screenshot give a different result
-		Rectangle rectangle2 = new Rectangle(new Point(150, 150), new Dimension(70, 210));
-		String hash5 = ClauseHelper.hash(image1, rectangle2);
-		assertNotEquals(hash4, hash5);
+    // With different hash, test if the image generate perceptual equality
+    Clause hash1Clause = new Clause(CheckType.HASH, hash1);
+    LOGGER.debug("Test same perceptual image with hamming distance: {},{}", hash1, hash2);
+    assertTrue(ClauseHelper.buildValuePredicate(hash1Clause).test(hash2));
+  }
 
-		// test if a different screenshot with the same rectangle give a different
-		// result
-		String hash6 = ClauseHelper.hash(image2, rectangle2);
-		assertNotEquals(hash5, hash6);
-	}
+  @Test
+  public void testHashColorVariance() throws ClauseComputationException {
+    // Using the old Perceptual hash the hash was the same.
+    // Image are different in the color perspective, the Average hash generate diff hash
+    String hash1 = ClauseHelper.hash(image_not_same_01, null, null);
+    String hash2 = ClauseHelper.hash(image_not_same_02, null, null);
+    LOGGER.debug(
+        "Test diff images with diff hashes (but same image with perceptual algorithm): {},{}",
+        hash1, hash2);
+    assertNotEquals(hash1, hash2);
+  }
 
-	@Test(expected = ClauseComputationException.class)
-	public void testThrownExceptionsOfHash() throws ClauseComputationException {
+  @Test
+  public void testHashColorVarianceHammingDistance() throws ClauseComputationException {
+    // Two different hash with a variance of color perception not are the same image
+    String hash1 = ClauseHelper.hash(image_not_same_01, null, null);
+    String hash2 = ClauseHelper.hash(image_not_same_02, null, null);
+    Clause hash1Clause = new Clause(CheckType.HASH, hash1);
+    LOGGER.debug("Test diff images with with the clause using average algorithm: {},{}", hash1,
+        hash2);
+    assertFalse(ClauseHelper.buildValuePredicate(hash1Clause).test(hash2));
+  }
 
-		Rectangle rectangle2 = new Rectangle(new Point(1, 1), new Dimension(5000, 6000));
-		ClauseHelper.hash(image1, rectangle2);
+  @Test
+  public void testHashLegacyHammingDistance() throws ClauseComputationException {
+    // Test the legacy precision using the new HammingDistance
+    String hash1 = "123840";
+    Clause hash1Clause = new Clause(CheckType.HASH, hash1);
+    PollingContext context = new PollingContext(ClauseHelper.buildValuePredicate(hash1Clause),
+        r -> ClauseHelper
+            .getAbsoluteSelection(hash1Clause.getSelection(), hash1Clause.isRelative(), r),
+        hash1Clause);
+    String hash2 = ClauseHelper.hash(image_same_01, null, context);
+    LOGGER.debug(hash2);
 
-//		try {
-//			byte[] testBuffer = ImageHelper.convertImageToByteArray(image1);
-//			Screenshot screenshot = new Screenshot(testBuffer, image1.getWidth(), image1.getHeight());
-//			Rectangle rectangle = new Rectangle(new Point(1, -1), new Dimension(-3, 3));
-//
-//			// Check the exception thrown when the rectangle has negatives values
-//			try {
-//				HashHelper.hash(screenshot, rectangle);
-//				fail("Hash using rectangle with negatives values has to throw Exception");
-//			} catch (Exception e) {
-//				// NOOP
-//			}
-//
-//			// Check the exception thrown if the rectangle would be out of bonds of the
-//			// screenshot
-//			try {
-//				Rectangle rectangle2 = new Rectangle(new Point(1, 1), new Dimension(5000, 6000));
-//				HashHelper.hash(screenshot, rectangle2);
-//				fail("Hash using rectangle with out of bound dimensions has to throw Exception");
-//			} catch (Exception e) {
-//				// NOOP
-//			}
-//		} catch (IOException e) {
-//			fail("Wrong Exception in testThrownExceptionsOfHash");
-//		}
-	}
+    LOGGER.debug("Test same images using clause and legacy algorithm: {},{}", hash1, hash2);
+    assertTrue(ClauseHelper.buildValuePredicate(hash1Clause).test(hash2));
+  }
 
-//	@Test
-//	public void testHashMD5Type() throws ClauseComputationException {
-//		// test if the hash of an entire screenshot is MD5 type
-//		boolean isMd5 = false;
-//		String hash1 = ClauseHelper.hash(image1, null);
-//		Pattern pattern = Pattern.compile("^[A-f0-9]{32}$");
-//		Matcher matcher = pattern.matcher(hash1);
-//		while (matcher.find()) {
-//			isMd5 = true;
-//		}
-//		assertEquals(true, isMd5);
-//
-//		// test if the hash of a part of a screenshot is MD5 type
-//		isMd5 = false;
-//		Rectangle rectangle = new Rectangle(new Point(1, 1), new Dimension(3, 3));
-//		String hash2 = ClauseHelper.hash(image1, rectangle);
-//		Matcher matcher2 = pattern.matcher(hash2);
-//		while (matcher2.find()) {
-//			isMd5 = true;
-//		}
-//		assertEquals(true, isMd5);
-//	}
+  @Test
+  public void testHashArea() throws ClauseComputationException {
+    // test if the same screenshot with the same rectangle give the same result
+    Rectangle rectangle = new Rectangle(new Point(25, 25), new Dimension(50, 50));
+    String hash3 = ClauseHelper.hash(image_same_01, rectangle, null);
+    String hash4 = ClauseHelper.hash(image_same_02, rectangle, null);
+    assertEquals(hash3, hash4);
+  }
 
+  @Test
+  public void testThrownExceptionsOfHash() throws ClauseComputationException {
+    Rectangle rectangle2 = new Rectangle(new Point(1, 1), new Dimension(5000, 6000));
+    ClauseHelper.hash(image_same_01, rectangle2, null);
+
+  }
 }
+

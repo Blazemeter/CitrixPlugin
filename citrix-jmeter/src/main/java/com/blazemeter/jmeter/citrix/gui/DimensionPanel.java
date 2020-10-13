@@ -1,10 +1,5 @@
 package com.blazemeter.jmeter.citrix.gui;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.text.JTextComponent;
-
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.event.FocusEvent;
@@ -12,134 +7,140 @@ import java.awt.event.FocusListener;
 import java.util.EventListener;
 import java.util.EventObject;
 import java.util.Objects;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.text.JTextComponent;
 
 public class DimensionPanel extends JPanel {
 
-	private static final long serialVersionUID = -8148435033646222684L;
+  private static final long serialVersionUID = -8148435033646222684L;
 
-	private boolean editable = true;
-	private Dimension dimension;
+  private boolean editable = true;
+  private Dimension dimension;
 
-	private JTextField tfWidth;
-	private JTextField tfHeight;
+  private JTextField tfWidth;
+  private JTextField tfHeight;
 
-	private JLabel lblWidth;
-	private JLabel lblHeight;
-	
-	@Override
-	public void setEnabled(boolean enabled) {
-		super.setEnabled(enabled);
-		lblHeight.setEnabled(enabled);
-		lblWidth.setEnabled(enabled);
-	}
-	
-	public boolean isEditable() {
-		return editable;
-	}
+  private JLabel lblWidth;
+  private JLabel lblHeight;
 
-	public void setEditable(boolean editable) {
-		this.editable = editable;
+  public DimensionPanel() {
+    initialize();
+  }
 
-		tfWidth.setEditable(editable);
-		tfWidth.setFocusable(editable);
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    lblHeight.setEnabled(enabled);
+    lblWidth.setEnabled(enabled);
+  }
 
-		tfHeight.setEditable(editable);
-		tfHeight.setFocusable(editable);
-	}
+  public boolean isEditable() {
+    return editable;
+  }
 
-	public Dimension getDimension() {
-		return dimension;
-	}
+  public void setEditable(boolean editable) {
+    this.editable = editable;
 
-	public void setDimension(Dimension dimension) {
-		if (dimension != null) {
-			tfWidth.setText(Integer.toString(dimension.width));
-			tfHeight.setText(Integer.toString(dimension.height));
-		} else {
-			tfWidth.setText("");
-			tfHeight.setText("");
-		}
-		updateDimension();
-	}
+    tfWidth.setEditable(editable);
+    tfWidth.setFocusable(editable);
 
-	public DimensionPanel() {
-		initialize();
-	}
+    tfHeight.setEditable(editable);
+    tfHeight.setFocusable(editable);
+  }
 
-	private void triggerDimensionChanged() {
-		DimensionChangedListener[] listeners = listenerList.getListeners(DimensionChangedListener.class);
-		for (int index = 0; index < listeners.length; index++) {
-			listeners[index].onDimensionChanged(new DimensionChangedEvent(this, dimension));
-		}
-	}
+  public Dimension getDimension() {
+    return dimension;
+  }
 
-	private void updateDimension() {
-		Dimension newDimension;
-		try {
-			newDimension = new Dimension(Integer.parseInt(tfWidth.getText()), Integer.parseInt(tfHeight.getText()));
-		} catch (NumberFormatException ex) {
-			newDimension = null;
-		}
-		if (!Objects.equals(dimension, newDimension)) {
-			dimension = newDimension;
-			triggerDimensionChanged();
-		}
-	}
+  public void setDimension(Dimension dimension) {
+    if (dimension != null) {
+      tfWidth.setText(Integer.toString(dimension.width));
+      tfHeight.setText(Integer.toString(dimension.height));
+    } else {
+      tfWidth.setText("");
+      tfHeight.setText("");
+    }
+    updateDimension();
+  }
 
-	private void initialize() {
-		setLayout(new GridBagLayout());
-		
-		tfWidth = new JTextField(4);
-		tfWidth.addFocusListener(new ChangeHandler());
-		lblWidth = GuiHelper.addLabeledComponent(tfWidth, "dimension_panel_width", this);
+  private void triggerDimensionChanged() {
+    DimensionChangedListener[] listeners =
+        listenerList.getListeners(DimensionChangedListener.class);
+    for (DimensionChangedListener listener : listeners) {
+      listener.onDimensionChanged(new DimensionChangedEvent(this, dimension));
+    }
+  }
 
-		tfHeight = new JTextField(4);
-		tfHeight.addFocusListener(new ChangeHandler());
-		lblHeight = GuiHelper.addLabeledComponent(tfHeight, "dimension_panel_height", this);
-	}
+  private void updateDimension() {
+    Dimension newDimension;
+    try {
+      newDimension =
+          new Dimension(Integer.parseInt(tfWidth.getText()), Integer.parseInt(tfHeight.getText()));
+    } catch (NumberFormatException ex) {
+      newDimension = null;
+    }
+    if (!Objects.equals(dimension, newDimension)) {
+      dimension = newDimension;
+      triggerDimensionChanged();
+    }
+  }
 
-	public void addDimensionChangedListener(DimensionChangedListener listener) {
-		listenerList.add(DimensionChangedListener.class, listener);
-	}
+  private void initialize() {
+    setLayout(new GridBagLayout());
 
-	public void removeDimensionChangedListener(DimensionChangedListener listener) {
-		listenerList.remove(DimensionChangedListener.class, listener);
-	}
+    tfWidth = new JTextField(4);
+    tfWidth.addFocusListener(new ChangeHandler());
+    lblWidth = GuiHelper.addLabeledComponent(tfWidth, "dimension_panel_width", this);
 
-	public static interface DimensionChangedListener extends EventListener {
-		void onDimensionChanged(DimensionChangedEvent event);
-	}
+    tfHeight = new JTextField(4);
+    tfHeight.addFocusListener(new ChangeHandler());
+    lblHeight = GuiHelper.addLabeledComponent(tfHeight, "dimension_panel_height", this);
+  }
 
-	public static class DimensionChangedEvent extends EventObject {
+  public void addDimensionChangedListener(DimensionChangedListener listener) {
+    listenerList.add(DimensionChangedListener.class, listener);
+  }
 
-		private static final long serialVersionUID = 5183476663277223198L;
+  public void removeDimensionChangedListener(DimensionChangedListener listener) {
+    listenerList.remove(DimensionChangedListener.class, listener);
+  }
 
-		private final Dimension dimension;
+  public interface DimensionChangedListener extends EventListener {
+    void onDimensionChanged(DimensionChangedEvent event);
+  }
 
-		public DimensionChangedEvent(Object source, Dimension dimension) {
-			super(source);
-			this.dimension = dimension;
-		}
+  public static class DimensionChangedEvent extends EventObject {
 
-		public Dimension getDimension() {
-			return dimension;
-		}
-	}
+    private static final long serialVersionUID = 5183476663277223198L;
 
-	private class ChangeHandler implements FocusListener {
+    private final Dimension dimension;
 
-		private String oldValue;
+    public DimensionChangedEvent(Object source, Dimension dimension) {
+      super(source);
+      this.dimension = dimension;
+    }
 
-		@Override
-		public void focusLost(FocusEvent e) {
-			if (editable && !oldValue.equals(((JTextComponent) e.getComponent()).getText())) {
-				updateDimension();
-			}
-		}
+    public Dimension getDimension() {
+      return dimension;
+    }
+  }
 
-		@Override
-		public void focusGained(FocusEvent e) {
-			oldValue = ((JTextComponent) e.getComponent()).getText();
-		}
-	}
+  private class ChangeHandler implements FocusListener {
+
+    private String oldValue;
+
+    @Override
+    public void focusLost(FocusEvent e) {
+      if (editable && !oldValue.equals(((JTextComponent) e.getComponent()).getText())) {
+        updateDimension();
+      }
+    }
+
+    @Override
+    public void focusGained(FocusEvent e) {
+      oldValue = ((JTextComponent) e.getComponent()).getText();
+    }
+  }
 }

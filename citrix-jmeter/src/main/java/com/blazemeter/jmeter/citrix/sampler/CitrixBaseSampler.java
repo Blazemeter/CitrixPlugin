@@ -1,5 +1,18 @@
 package com.blazemeter.jmeter.citrix.sampler;
 
+import com.blazemeter.jmeter.citrix.clause.CheckType;
+import com.blazemeter.jmeter.citrix.clause.Clause;
+import com.blazemeter.jmeter.citrix.client.CitrixClient;
+import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
+import com.blazemeter.jmeter.citrix.client.CitrixClientException;
+import com.blazemeter.jmeter.citrix.client.CitrixClientFactoryException;
+import com.blazemeter.jmeter.citrix.client.CitrixClientFactoryHelper;
+import com.blazemeter.jmeter.citrix.client.SessionErrorLogger;
+import com.blazemeter.jmeter.citrix.client.events.SessionEvent;
+import com.blazemeter.jmeter.citrix.client.events.SessionEvent.EventType;
+import com.blazemeter.jmeter.citrix.client.factory.AbstractCitrixClientFactory;
+import com.blazemeter.jmeter.citrix.sampler.SamplerRunException.ErrorCode;
+import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -11,327 +24,315 @@ import org.apache.jmeter.testelement.property.ObjectProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.blazemeter.jmeter.citrix.clause.CheckType;
-import com.blazemeter.jmeter.citrix.clause.Clause;
-import com.blazemeter.jmeter.citrix.client.CitrixClient;
-import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
-import com.blazemeter.jmeter.citrix.client.CitrixClientException;
-import com.blazemeter.jmeter.citrix.client.CitrixClientFactoryException;
-import com.blazemeter.jmeter.citrix.client.CitrixClientFactoryHelper;
-import com.blazemeter.jmeter.citrix.client.SessionErrorLogger;
-import com.blazemeter.jmeter.citrix.client.events.SessionEvent;
-import com.blazemeter.jmeter.citrix.client.events.SessionEvent.EventType;
-import com.blazemeter.jmeter.citrix.client.factory.CitrixClientFactory;
-import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
-
 /**
- * This class provides an abstract base class for all Citrix samplers
+ * This class provides an abstract base class for all Citrix samplers.
  */
 public abstract class CitrixBaseSampler extends AbstractSampler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CitrixBaseSampler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CitrixBaseSampler.class);
 
-	private static final long serialVersionUID = 6412666498360532144L;
+  private static final long serialVersionUID = 6412666498360532144L;
 
-	private static final String END_CLAUSE_PROP = "CitrixBaseSampler.endClause"; // $NON-NLS-1$
+  private static final String END_CLAUSE_PROP = "CitrixBaseSampler.endClause"; // $NON-NLS-1$
 
-	/**
-	 * Lists the Citrix client states required to run the sampler
-	 */
-	protected enum RunningClientPolicy {
-		/**
-		 * Citrix client must not be running
-		 */
-		FORBIDDEN,
+  public AbstractCitrixClientFactory factory;
 
-		/**
-		 * Citrix client must be running
-		 */
-		REQUIRED;
-	}
+  private final RunningClientPolicy policy;
 
-	private final RunningClientPolicy policy;
 
-	/**
-	 * Gets the state of the Citrix client required to run the sampler
-	 * 
-	 * @return the Citrix state policy
-	 */
-	public final RunningClientPolicy getRunningClientPolicy() {
-		return policy;
-	}
+  /**
+   * Instantiates a new {@link CitrixBaseSampler}.
+   *
+   * @param policy the state of the Citrix client required to run the sampler
+   */
+  protected CitrixBaseSampler(RunningClientPolicy policy) {
+    try {
+      factory = (AbstractCitrixClientFactory) CitrixClientFactoryHelper.getInstance();
+    } catch (CitrixClientFactoryException e) {
+      String msg = MessageFormat.format(
+          CitrixUtils.getResString("base_sampler_response_code_error_client_factory", false),
+          e.getMessage());
+      throw new RuntimeException(msg, e);
+    }
+    if (policy == null) {
+      throw new IllegalArgumentException("policy is required.");
+    }
+    this.policy = policy;
+  }
 
-	/**
-	 * Gets the end clause of the current sampler
-	 * 
-	 * @return the end clause if it exists; null otherwise
-	 */
-	public Clause getEndClause() {
-		return (Clause) getProperty(END_CLAUSE_PROP).getObjectValue();
-	}
+  /**
+   * Gets the state of the Citrix client required to run the sampler.
+   *
+   * @return the Citrix state policy
+   */
+  public final RunningClientPolicy getRunningClientPolicy() {
+    return policy;
+  }
 
-	/**
-	 * Defines the end clause used by the sampler to synchronize with Citrix session
-	 * 
-	 * @param clause the end clause to use; if null no synchronization runs
-	 */
-	public void setEndClause(Clause clause) {
-		setProperty(new ObjectProperty(END_CLAUSE_PROP, clause));
-	}
+  /**
+   * Gets the end clause of the current sampler.
+   *
+   * @return the end clause if it exists; null otherwise
+   */
+  public Clause getEndClause() {
+    return (Clause) getProperty(END_CLAUSE_PROP).getObjectValue();
+  }
 
-	/**
-	 * Instantiates a new {@link CitrixBaseSampler}
-	 * 
-	 * @param policy the state of the Citrix client required to run the sampler
-	 */
-	protected CitrixBaseSampler(RunningClientPolicy policy) {
-		if (policy == null) {
-			throw new IllegalArgumentException("policy is required.");
-		}
-		this.policy = policy;
-	}
+  /**
+   * Defines the end clause used by the sampler to synchronize with Citrix session.
+   *
+   * @param clause the end clause to use; if null no synchronization runs
+   */
+  public void setEndClause(Clause clause) {
+    setProperty(new ObjectProperty(END_CLAUSE_PROP, clause));
+  }
 
-	/**
-	 * Creates a Citrix client listener for sampling execution
-	 * 
-	 * @return the Citrix client listener
-	 */
-	protected abstract SamplingHandler createHandler();
+  /**
+   * Creates a Citrix client listener for sampling execution.
+   *
+   * @return the Citrix client listener
+   */
+  protected abstract SamplingHandler createHandler();
 
-	/**
-	 * Runs Citrix client operations while sampling
-	 * 
-	 * @param client the Citrix client used to run operations
-	 * @throws SamplerRunException   when the sampling fails
-	 * @throws CitrixClientException when the client fails to run operations
-	 * @throws InterruptedException  when Citrix client operations are interrupted
-	 */
-	protected abstract void doClientAction(CitrixClient client)
-			throws SamplerRunException, CitrixClientException, InterruptedException;
+  /**
+   * Runs Citrix client operations while sampling.
+   *
+   * @param client the Citrix client used to run operations
+   * @throws SamplerRunException   when the sampling fails
+   * @throws CitrixClientException when the client fails to run operations
+   * @throws InterruptedException  when Citrix client operations are interrupted
+   */
+  protected abstract void doClientAction(CitrixClient client)
+      throws SamplerRunException, CitrixClientException, InterruptedException;
 
-	// Instantiates a Citrix client and place it the session holder
-	private CitrixClient createClient() throws SamplerRunException {
-		try {
-			CitrixClientFactory factory = CitrixClientFactoryHelper.getInstance();
-			CitrixClient client = factory.createClient();
-			CitrixSessionHolder.setClient(client);
-			if (LOGGER.isDebugEnabled()) {
-			    LOGGER.debug("{} on sampler {} has created the required Citrix client", getThreadName(), getName());
-			}
-			return client;
-		} catch (CitrixClientFactoryException e) {
-			String msg = MessageFormat.format(
-					CitrixUtils.getResString("base_sampler_response_code_error_client_factory", false), e.getMessage());
-			throw new SamplerRunException(msg);
-		}
-	}
+  public void initClient(CitrixClient client) {
 
-	// Ensure the Citrix session is connected
-	private void ensureConnected(CitrixClient client) throws SamplerRunException {
-		if (!client.isConnected()) {
-			if (getEndClause() != null) {
-				LOGGER.warn("{}: Cannot check end clause of sampler {} because remote application is terminated.",
-						getThreadName(), getName());
-			}
-			throw new SamplerRunException(SamplerResultHelper.APPLICATION_EXIT_CODE);
-		}
-	}
+  }
 
-	// Throws SamplerRunException if policy is not respected
-	private void ensurePolicyCompliance(CitrixClient client) throws SamplerRunException {
-		final boolean running = client.isRunning();
-		if (LOGGER.isDebugEnabled()) {
-		    LOGGER.debug("For {} on sampler {}, Citrix client is running: {} whereas policy is {}", getThreadName(),
-				getName(), running, policy);
-		}
-		if (policy == RunningClientPolicy.FORBIDDEN && running) {
-			// A client is running whereas none is required
-			throw new SamplerRunException(
-					CitrixUtils.getResString("base_sampler_response_code_error_client_forbidden", false));
-		} else if (policy == RunningClientPolicy.REQUIRED && !running) {
-			// No client is running whereas one is required
-			throw new SamplerRunException(
-					CitrixUtils.getResString("base_sampler_response_code_error_client_required", false));
-		}
-	}
+  // Instantiates a Citrix client and place it the session holder
+  private CitrixClient createClient() throws SamplerRunException {
+    CitrixClient client = factory.createClient();
+    initClient(client);
+    CitrixSessionHolder.setClient(client);
+    LOGGER.debug("On sampler {} has created the required Citrix client", getName());
+    return client;
+  }
 
-	private void handleClientAction(CitrixClient client, CitrixSampleResult result)
-			throws SamplerRunException, InterruptedException {
+  // Ensure the Citrix session is connected
+  private void ensureConnected(CitrixClient client) throws SamplerRunException {
+    if (!client.isConnected()) {
+      if (getEndClause() != null) {
+        LOGGER
+            .warn("Cannot check end clause of sampler {} because remote application is terminated.",
+                getName());
+      }
+      throw new SamplerRunException(ErrorCode.CLAUSE_LOST_CONNECTION,
+          SamplerResultHelper.APPLICATION_EXIT_CODE);
+    }
+  }
 
-		// Listen the Citrix client
-		SamplingHandler handler = createHandler();
-		client.addHandler(handler);
-		if (LOGGER.isDebugEnabled()) {
-		    LOGGER.debug("{} on sampler {} starts listening Citrix client before sampling operations", getThreadName(),
-				getName());
-		}
-		try {
-			doClientAction(client);
-		} catch (CitrixClientException e) {
-			throw new SamplerRunException(
-					CitrixUtils.getResString("base_sampler_response_code_error_client_action", false));
-		} finally {
-			client.removeHandler(handler);
-			if (LOGGER.isDebugEnabled()) {
-			    LOGGER.debug("{} stops listening Citrix client after sampling operations", getThreadName());
-			}
+  // Throws SamplerRunException if policy is not respected
+  private void ensurePolicyCompliance(CitrixClient client) throws SamplerRunException {
+    final boolean running = client.isRunning();
+    LOGGER.debug("On sampler {}, Citrix client is running: {} whereas policy is {}",
+        getName(), running, policy);
 
-			// Store Citrix client listener data in sample result
-			result.setSamplerData(handler.getSamplerData());
-		}
+    if (policy == RunningClientPolicy.FORBIDDEN && running) {
+      // A client is running whereas none is required
+      throw new SamplerRunException(ErrorCode.POLICY_ERROR,
+          CitrixUtils.getResString("base_sampler_response_code_error_client_forbidden", false));
+    } else if (policy == RunningClientPolicy.REQUIRED && !running) {
+      // No client is running whereas one is required
+      throw new SamplerRunException(ErrorCode.POLICY_ERROR,
+          CitrixUtils.getResString("base_sampler_response_code_error_client_required", false));
+    }
+  }
 
-		// Throw exception if listener detects error events from Citrix client
-		if (!handler.errors.isEmpty()) {
-			throw new SamplerRunException(Integer.toString(handler.errors.get(0)));
-		}
-	}
+  private void handleClientAction(CitrixClient client, CitrixSampleResult result)
+      throws SamplerRunException, InterruptedException {
 
-	private void checkClause(final CitrixSampleResult result) throws SamplerRunException, InterruptedException {
-		final Clause clause = getEndClause();
-		if (clause != null) {
-			final CheckType checkType = clause.getCheckType();
-			final LinkedList<String> details = new LinkedList<>();
-			final String[] assessment = new String[1];
-			final Snapshot[] lastSnapshot = new Snapshot[1];
-			final boolean[] overflow = new boolean[] { false };
-			final String checkErrorLabel = CitrixUtils.getResString("base_sampler_response_message_check_error", false);
-			final CitrixClient client = CitrixSessionHolder.getClient();
+    // Listen the Citrix client
+    SamplingHandler handler = createHandler();
+    client.addHandler(handler);
+    LOGGER.debug("On sampler {} starts listening Citrix client before sampling operations",
+        getName());
+    try {
+      doClientAction(client);
+    } catch (CitrixClientException e) {
+      throw new SamplerRunException(e.code(),
+          e.getMessage() + ":" +
+              CitrixUtils.getResString("base_sampler_response_code_error_client_action", false), e);
+    } finally {
+      client.removeHandler(handler);
+      LOGGER.debug("Stops listening Citrix client after sampling operations");
 
-			// Wait for end clause and register intermediate results
-			if (LOGGER.isDebugEnabled()) {
-			    LOGGER.debug("{} on sampler {} waits for end clause using {} strategy", getThreadName(), getName(),
-					checkType);
-			}
-			try {
-				boolean success = checkType.wait(clause, client, (checkResult, previous, i) -> {
-					// Build response message
-					String detail = checkType.name() + " #" + i + ": ";
-					if (checkResult != null) {
-						detail += checkType.formatResult(checkResult, previous, clause, i);
-						lastSnapshot[0] = checkResult.getSnapshot();
+      // Store Citrix client listener data in sample result
+      result.setSamplerData(handler.getSamplerData());
+    }
 
-						// Store success assessment if it exists
-						if (checkResult.isSuccessful()) {
-							assessment[0] = checkType.formatAssessment(checkResult.getValue());
-						}
-					} else {
-						detail += checkErrorLabel;
-					}
+    // Throw exception if listener detects error events from Citrix client
+    if (!handler.errors.isEmpty()) {
+      throw new SamplerRunException(ErrorCode.CLIENT_ERROR,
+          Integer.toString(handler.errors.get(0)));
+    }
+  }
 
-					// Handle too long message : remove first check details
-					if (i > SamplerHelper.MAX_KEPT_CHECKS) {
-						overflow[0] = true;
-						details.remove();
-					}
-					if(LOGGER.isTraceEnabled()) {
-					    LOGGER.trace("{} on sampler {} gets check clause info: {}", getThreadName(), getName(), detail);
-					}
-					details.offer(detail);
-				});
+  private void checkClause(final CitrixSampleResult result)
+      throws SamplerRunException, InterruptedException {
+    final Clause clause = getEndClause();
+    if (clause != null) {
+      final CheckType checkType = clause.getCheckType();
+      final LinkedList<String> details = new LinkedList<>();
+      final String[] assessment = new String[1];
+      final Snapshot[] lastSnapshot = new Snapshot[1];
+      final boolean[] overflow = new boolean[] {false};
+      final String checkErrorLabel =
+          CitrixUtils.getResString("base_sampler_response_message_check_error", false);
+      final CitrixClient client = CitrixSessionHolder.getClient();
 
-				if (!success) {
-					throw new SamplerRunException(CitrixUtils.getResString("base_sampler_clause_timeout", false));
-				} else {
-					if (lastSnapshot[0] == null) {
-					    if (LOGGER.isDebugEnabled()) {
-					        LOGGER.debug("{} on sampler {} didn't get snapshot using strategy {}", getThreadName(),
-								getName(), checkType);
-					    }
-						try {
-							lastSnapshot[0] = client.takeSnapshot();
-							if (LOGGER.isDebugEnabled()) {
-							    LOGGER.debug("{} on sampler {} created a default snapshot", getThreadName(), getName(),
-									checkType);
-							}
-						} catch (CitrixClientException ex) {
-						    if (LOGGER.isInfoEnabled()) {
-						        LOGGER.info("{} on sampler {} is not able to get default snapshot: {}", getThreadName(),
-									getName(), ex.getMessage());
-						    }
-						    if (LOGGER.isDebugEnabled()) {
-						        LOGGER.debug("Default snapshot for {} on sampler {} fail context:", getThreadName(),
-									getName(), ex);
-						    }
-						}
-					}
-				}
-			} finally {
-				// Store success assessment in sample result
-				result.setAssessment(assessment[0]);
+      // Wait for end clause and register intermediate results
+      LOGGER.debug("On sampler {} waits for end clause using {} strategy", getName(), checkType);
 
-				// Store registered results as response message
-				result.setResponseMessage(SamplerHelper.formatResponseMessage(details, overflow[0]));
+      try {
+        boolean success = checkType.wait(clause, client, (checkResult, previous, i) -> {
+          // Build response message
+          String detail = checkType.name() + " #" + i + ": ";
+          if (checkResult != null) {
+            detail += checkType.formatResult(checkResult, previous, clause, i);
+            lastSnapshot[0] = checkResult.getSnapshot();
 
-				// Store the last screenshot as response data
-				result.setSnapshot(lastSnapshot[0]);
-			}
-		} else {
-		    if (LOGGER.isDebugEnabled()) {
-		        LOGGER.debug("{} does not wait for end clause because none is defined", getThreadName());
-		    }
-		}
-	}
+            // Store success assessment if it exists
+            if (checkResult.isSuccessful()) {
+              assessment[0] = checkType.formatAssessment(checkResult.getValue());
+            }
+          } else {
+            detail += checkErrorLabel;
+          }
 
-	@Override
-	public final SampleResult sample(Entry e) {
-		final CitrixSampleResult result = SamplerResultHelper.createResult(this);
-		result.sampleStart();
-		try {
-			// Check the Citrix client state
-			CitrixClient client = CitrixSessionHolder.getClient();
-			if (client == null) {
-				client = createClient();
-			}
-			ensurePolicyCompliance(client);
+          // Handle too long message : remove first check details
+          if (i > SamplerHelper.MAX_KEPT_CHECKS) {
+            overflow[0] = true;
+            details.remove();
+          }
+          LOGGER.trace("On sampler {} gets check clause info: {}", getName(), detail);
+          details.offer(detail);
+        });
 
-			// Do sampling operation on Citrix client
-			handleClientAction(client, result);
+        if (!success) {
+          throw new SamplerRunException(ErrorCode.CLAUSE_TIMEOUT,
+              CitrixUtils.getResString("base_sampler_clause_timeout", false));
+        } else {
+          if (lastSnapshot[0] == null) {
+            LOGGER
+                .debug("On sampler {} didn't get snapshot using strategy {}", getName(), checkType);
+            try {
+              lastSnapshot[0] = client.takeSnapshot();
+              LOGGER.debug("On sampler {} created a default snapshot {}", getName(), checkType);
+            } catch (CitrixClientException ex) {
+              LOGGER.info("On sampler {} is not able to get default snapshot: {}", getName(),
+                  ex.getMessage());
+              LOGGER.debug("Default snapshot on sampler {} fail context:", getName(), ex);
+            }
+          }
+        }
+      } finally {
+        // Store success assessment in sample result
+        result.setAssessment(assessment[0]);
 
-			// Check the Citrix session is open
-			ensureConnected(client);
+        // Store registered results as response message
+        result.setResponseMessage(SamplerHelper.formatResponseMessage(details, overflow[0]));
 
-			// Wait for end clause if it exists
-			checkClause(result);
+        // Store the last screenshot as response data
+        result.setSnapshot(lastSnapshot[0]);
+      }
+    } else {
+      LOGGER.debug("Does not wait for end clause because none is defined");
+    }
+  }
 
-			// No exception so sampling is ok
-			SamplerResultHelper.setResultOk(result);
-		} catch (SamplerRunException ex) {
-			// Store exception message in sample result
-			result.setResponseCode(ex.getMessage());
-		} catch (InterruptedException ex) {
-			Thread.currentThread().interrupt();
-			result.setResponseCode(CitrixUtils.getResString("base_sampler_interrupted", false));
-		} finally {
-			// Stop sample
-			result.sampleEnd();
-		}
-		return result;
-	}
+  @Override
+  public final SampleResult sample(Entry e) {
+    final CitrixSampleResult result = SamplerResultHelper.createResult(this);
+    result.sampleStart();
+    try {
+      // Check the Citrix client state
+      CitrixClient client = CitrixSessionHolder.getClient();
+      if (client == null) {
+        LOGGER.debug("Create Client");
+        client = createClient();
+      } else {
+        LOGGER.debug("Use Client from CitrixSessionHolder");
+      }
 
-	protected abstract static class SamplingHandler extends SessionErrorLogger {
+      ensurePolicyCompliance(client);
 
-		private List<Integer> errors = new ArrayList<>();
-        private String elementName;
+      // Do sampling operation on Citrix client
+      handleClientAction(client, result);
 
-		protected SamplingHandler(String elementName) {
-		    this.elementName = elementName;
-		}
-		public String getSamplerData() {
-			return "";
-		}
+      // Check the Citrix session is open
+      ensureConnected(client);
 
-		@Override
-		public void handleSessionEvent(SessionEvent sessionEvent) {
-			super.handleSessionEvent(sessionEvent);
-			if (EventType.ERROR == sessionEvent.getEventType()) {
-			    if (LOGGER.isDebugEnabled()) {
-			        LOGGER.debug("{} on sampler {} detects Citrix session error with code={}", Thread.currentThread().getName(), elementName,
-						sessionEvent.getErrorCode());
-			    }
-				synchronized (errors) {
-					errors.add(Integer.valueOf(sessionEvent.getErrorCode()));
-				}
-			}
-		}
-	}
+      // Wait for end clause if it exists
+      checkClause(result);
+
+      // No exception so sampling is ok
+      SamplerResultHelper.setResultOk(result);
+    } catch (SamplerRunException ex) {
+      // Store exception message in sample result
+      result.setResponseCode(ex.code());
+      result.setResponseMessage(
+          ex.getMessage() + "\n" +
+              result.getResponseMessage());
+      LOGGER.error(ex.getMessage(), ex);
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      result.setResponseCode(CitrixUtils.getResString("base_sampler_interrupted", false));
+    } finally {
+      // Stop sample
+      result.sampleEnd();
+    }
+    return result;
+  }
+
+  /**
+   * Lists the Citrix client states required to run the sampler.
+   */
+  protected enum RunningClientPolicy {
+    /**
+     * Citrix client must not be running.
+     */
+    FORBIDDEN,
+
+    /**
+     * Citrix client must be running.
+     */
+    REQUIRED
+  }
+
+  protected abstract static class SamplingHandler extends SessionErrorLogger {
+
+    private final List<Integer> errors = new ArrayList<>();
+    private final String elementName;
+
+    protected SamplingHandler(String elementName) {
+      this.elementName = elementName;
+    }
+
+    public String getSamplerData() {
+      return "";
+    }
+
+    @Override
+    public void handleSessionEvent(SessionEvent sessionEvent) {
+      super.handleSessionEvent(sessionEvent);
+      if (EventType.ERROR == sessionEvent.getEventType()) {
+        LOGGER.debug("On sampler {} detects Citrix session error with code={}", elementName,
+            sessionEvent.getErrorCode());
+        synchronized (errors) {
+          errors.add(sessionEvent.getErrorCode());
+        }
+      }
+    }
+  }
 }
+

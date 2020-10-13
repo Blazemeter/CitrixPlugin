@@ -3,138 +3,161 @@ package com.blazemeter.jmeter.citrix.client.events;
 import com.blazemeter.jmeter.citrix.client.CitrixClient;
 
 /**
- * Provides a Citrix session event
- *
+ * Provides a Citrix session event.
  */
 public class SessionEvent extends ClientEvent {
 
-	private static final long serialVersionUID = 2386977824636875968L;
+  private static final long serialVersionUID = 2386943242342345968L;
+  private final EventType eventType;
+  private final int errorCode;
 
-	/**
-	 * Enumerates the different types of session event
-	 * 
-	 */
-	public enum EventType {
-		/**
-		 * ICA session is connected
-		 */
-		CONNECT,
+  /**
+   * Instantiates a new {@link SessionEvent}.
+   *
+   * @param source    the source of the session event
+   * @param eventType the type of event
+   * @param errorCode code used to identify error when eventType is
+   *                  {@link EventType#ERROR}
+   * @throws IllegalArgumentException when eventType is null or eventType is is
+   *                                  {@link EventType#ERROR} and errorCode is
+   *                                  {@link KnownError#NO_ERROR}
+   */
+  public SessionEvent(CitrixClient source, EventType eventType, int errorCode) {
+    super(source);
+    if (eventType == null) {
+      throw new IllegalArgumentException("eventType cannot be null.");
+    }
+    if (eventType == EventType.ERROR && errorCode == KnownError.NO_ERROR.getCode()) {
+      throw new IllegalArgumentException(
+          "Error event type requires an error code different from " +
+              KnownError.NO_ERROR.getCode());
+    }
+    this.eventType = eventType;
+    this.errorCode = eventType == EventType.ERROR ? errorCode : KnownError.NO_ERROR.getCode();
 
-		/**
-		 * ICA session is disconnected
-		 */
-		DISCONNECT,
+  }
 
-		/**
-		 * An error has occurred
-		 */
-		ERROR,
+  /**
+   * <p>
+   * Instantiates a new {@link SessionEvent}
+   * </p>
+   *
+   * <p>
+   * Use {@link #SessionEvent(CitrixClient, EventType, int)} to instantiate error
+   * events instead.
+   * </p>
+   *
+   * @param source    the source of the session event
+   * @param eventType the type of event
+   * @throws IllegalArgumentException See
+   *                                  {@link #SessionEvent(CitrixClient, EventType, int)}
+   */
+  public SessionEvent(CitrixClient source, EventType eventType) {
+    this(source, eventType, KnownError.NO_ERROR.getCode());
+  }
 
-		/**
-		 * Citrix client is visible
-		 */
-		SHOW,
+  /**
+   * Gets the type of this event.
+   *
+   * @return the type of this event
+   */
+  public EventType getEventType() {
+    return eventType;
+  }
 
-		/**
-		 * Citrix client is hidden
-		 */
-		HIDE,
+  public int getErrorCode() {
+    return errorCode;
+  }
 
-		/**
-		 * User is logged
-		 */
-		LOGON,
+  /**
+   * Enumerates the different types of session event.
+   */
+  public enum EventType {
+    /**
+     * ICA session is connected.
+     */
+    CONNECT,
 
-		/**
-		 * User is logged out
-		 */
-		LOGOFF, 
-		/**
-		 * ICA File is ready
-		 */
-		ICAFILE;
-	}
+    /**
+     * ICA session connection failed.
+     */
+    CONNECT_FAIL,
 
-	public enum KnownError {
-		/**
-		 * No error detected
-		 */
-		NO_ERROR(0),
+    /**
+     * ICA session is disconnected.
+     */
+    DISCONNECT,
 
-		/**
-		 * The Citrix session is not available due to misconfiguration in Windows
-		 * regitry (Windows only).
-		 */
-		UNAVAILABLE_SESSION(412);
+    /**
+     * Disconnect session failed.
+     */
+    DISCONNECT_FAIL,
 
-		private final int code;
+    /**
+     * An error has occurred.
+     */
+    ERROR,
 
-		public int getCode() {
-			return code;
-		}
+    /**
+     * Citrix client is visible.
+     */
+    SHOW,
 
-		private KnownError(int code) {
-			this.code = code;
-		}
-	}
+    /**
+     * Citrix client is hidden.
+     */
+    HIDE,
 
-	private final EventType eventType;
-	private final int errorCode;
+    /**
+     * User is logged.
+     */
+    LOGON,
 
-	/**
-	 * Gets the type of this event
-	 * 
-	 * @return the type of this event
-	 */
-	public EventType getEventType() {
-		return eventType;
-	}
+    /**
+     * User logon failed.
+     */
+    LOGON_FAIL,
 
-	public int getErrorCode() {
-		return errorCode;
-	}
+    /**
+     * User is logged out.
+     */
+    LOGOFF,
 
-	/**
-	 * Instantiates a new {@link SessionEvent}
-	 * 
-	 * @param source    the source of the session event
-	 * @param eventType the type of event
-	 * @param errorCode code used to identify error when eventType is
-	 *                  {@link EventType#ERROR}
-	 * @throws IllegalArgumentException when eventType is null or eventType is is
-	 *                                  {@link EventType#ERROR} and errorCode is
-	 *                                  {@link KnownError#NO_ERROR}
-	 */
-	public SessionEvent(CitrixClient source, EventType eventType, int errorCode) {
-		super(source);
-		if (eventType == null) {
-			throw new IllegalArgumentException("eventType cannot be null.");
-		}
-		if (eventType == EventType.ERROR && errorCode == KnownError.NO_ERROR.getCode()) {
-			throw new IllegalArgumentException(
-					"Error event type requires an error code different from " + KnownError.NO_ERROR.getCode());
-		}
-		this.eventType = eventType;
-		this.errorCode = eventType == EventType.ERROR ? errorCode : KnownError.NO_ERROR.getCode();
+    /**
+     * User logoff failed.
+     */
+    LOGOFF_FAIL,
 
-	}
+    /**
+     * ICA File is ready.
+     */
+    ICAFILE,
+    /**
+     * ICA File failed.
+     */
+    ICAFILE_FAIL
+  }
 
-	/**
-	 * <p>
-	 * Instantiates a new {@link SessionEvent}
-	 * </p>
-	 * 
-	 * <p>
-	 * Use {@link #SessionEvent(CitrixClient, EventType, int)} to instantiate error
-	 * events instead.
-	 * </p>
-	 * 
-	 * @param source    the source of the session event
-	 * @param eventType the type of event
-	 * @throws IllegalArgumentException See
-	 *                                  {@link #SessionEvent(CitrixClient, EventType, int)}
-	 */
-	public SessionEvent(CitrixClient source, EventType eventType) {
-		this(source, eventType, KnownError.NO_ERROR.getCode());
-	}
+  public enum KnownError {
+    /**
+     * No error detected.
+     */
+    NO_ERROR(0),
+
+    /**
+     * The Citrix session is not available due to misconfiguration in Windows
+     * regitry (Windows only).
+     */
+    UNAVAILABLE_SESSION(412);
+
+    private final int code;
+
+    KnownError(int code) {
+      this.code = code;
+    }
+
+    public int getCode() {
+      return code;
+    }
+  }
 }

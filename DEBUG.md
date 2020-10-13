@@ -23,7 +23,7 @@ In the log4j2.xml file inside the JMeter bin folder.
 Locate and update the text inside the `<pattern>` tag incorporating the thread name `%t` and thread identifier `%tid` between the values `%d` and `%p`.
 
 Example:
-```xml
+```
 <File name="jmeter-log" fileName="${sys:jmeter.logfile:-jmeter.log}" append="false">
       <PatternLayout>
         <pattern>%d [%t id:%tid] %p %c{1.}: %m%n</pattern>
@@ -44,11 +44,7 @@ To share the results for debugging using a `JMeter Text Log (JTL)` file, you mus
 
 To enable JTL file saving, in the `filename` field provide the name of the xml file where the log information will be stored.
 
-To ensure maximum verbosity, **make sure** that the configuration section contains all activated options. 
-
-Go to `Configure` and check them all.
-
-<img src="images/debug_jtl_configure_detailed.png" width=450 alt="Configue - JMeter Text Log (JTL)">
+To ensure maximum verbosity, **make sure** that the configuration section contains all activated options. Go to `Configure` and check them all.
 
 The default Citrix Plugin template provides a View Results Tree listener for the main playback thread group as well as one inside Citrix Recorder. 
 If your test project does not have a View Results Tree listener, you can add one in order to allow saving a JTL file for debugging purpose.
