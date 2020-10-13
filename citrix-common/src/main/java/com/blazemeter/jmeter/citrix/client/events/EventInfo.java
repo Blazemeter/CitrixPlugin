@@ -7,17 +7,17 @@ import com.blazemeter.jmeter.citrix.client.CitrixClient;
  */
 public interface EventInfo {
 
-	/**
-	 * Gets the source of this event
-	 * 
-	 * @return the source of this event
-	 */
-	CitrixClient getSource();
+  /**
+   * Gets the source of this event.
+   *
+   * @return the source of this event
+   */
+  CitrixClient getSource();
 
-	/**
-	 * Gets the timestamp of this event
-	 * 
-	 * @return the timestamp of this event
-	 */
-	long getTimestamp();
+  /**
+   * Gets the timestamp of this event.
+   *
+   * @return the timestamp of this event
+   */
+  long getTimestamp();
 }

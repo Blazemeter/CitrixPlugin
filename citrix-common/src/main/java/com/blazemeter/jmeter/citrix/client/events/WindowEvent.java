@@ -8,83 +8,82 @@ import com.blazemeter.jmeter.citrix.client.WindowInfo;
  */
 public class WindowEvent extends ClientEvent {
 
-	private static final long serialVersionUID = -1758399947925884485L;
+  private static final long serialVersionUID = -1758399947925884485L;
+  private final WindowState winState;
+  private final WindowInfo winInfo;
 
-	/**
-	 * Enumerates the types of window events.
-	 */
-	public enum WindowState {
-		/**
-		 * The window has just been created
-		 */
-		CREATED,
+  /**
+   * Instantiates a WindowEvent.
+   *
+   * @param source   the source of the event
+   * @param winState the type of foreground window change
+   * @param info     details about the window involved in the event
+   */
+  public WindowEvent(CitrixClient source, WindowState winState, WindowInfo info) {
+    super(source);
+    if (winState == null) {
+      throw new IllegalArgumentException("winState must not be null.");
+    }
+    this.winState = winState;
+    this.winInfo = info;
+  }
 
-		/**
-		 * The window has just been closed
-		 */
-		CLOSED,
+  /**
+   * Gets the type of window change.
+   *
+   * @return the type of window change
+   */
+  public WindowState getWindowState() {
+    return winState;
+  }
 
-		/**
-		 * The windows has just been activated
-		 */
-		ACTIVATED,
+  /**
+   * Gets details about the window involved in the event.
+   *
+   * @return details about the window involved in the event
+   */
+  public WindowInfo getWindowInfo() {
+    return winInfo;
+  }
 
-		/**
-		 * THe window has just been deactivated
-		 */
-		DEACTIVATED,
+  /**
+   * Enumerates the types of window events.
+   */
+  public enum WindowState {
+    /**
+     * The window has just been created.
+     */
+    CREATED,
 
-		/**
-		 * The window area has changed
-		 */
-		CHANGE_AREA,
+    /**
+     * The window has just been closed.
+     */
+    CLOSED,
 
-		/**
-		 * The window caption has changed
-		 */
-		CHANGE_CAPTION,
+    /**
+     * The windows has just been activated.
+     */
+    ACTIVATED,
 
-		/**
-		 * The window gets the foregound
-		 */
-		FOREGROUND;
-	}
+    /**
+     * THe window has just been deactivated.
+     */
+    DEACTIVATED,
 
-	private final WindowState winState;
-	private final WindowInfo winInfo;
+    /**
+     * The window area has changed.
+     */
+    CHANGE_AREA,
 
-	/**
-	 * Instantiates a WindowEvent
-	 * 
-	 * @param source   the source of the event
-	 * @param winState the type of foreground window change
-	 * @param info     details about the window involved in the event
-	 */
-	public WindowEvent(CitrixClient source, WindowState winState, WindowInfo info) {
-		super(source);
-		if (winState == null) {
-			throw new IllegalArgumentException("winState must not be null.");
-		}
-		this.winState = winState;
-		this.winInfo = info;
-	}
+    /**
+     * The window caption has changed.
+     */
+    CHANGE_CAPTION,
 
-	/**
-	 * Gets the type of window change
-	 * 
-	 * @return the type of window change
-	 */
-	public WindowState getWindowState() {
-		return winState;
-	}
-
-	/**
-	 * Gets details about the window involved in the event
-	 * 
-	 * @return details about the window involved in the event
-	 */
-	public WindowInfo getWindowInfo() {
-		return winInfo;
-	}
+    /**
+     * The window gets the foregound.
+     */
+    FOREGROUND
+  }
 
 }

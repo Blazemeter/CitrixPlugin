@@ -1,31 +1,37 @@
-package com.blazemeter.jmeter.citrix.client.windows.com4j  ;
+package com.blazemeter.jmeter.citrix.client.windows.com4j;
 
-import com4j.*;
+import com4j.Com4jObject;
+import com4j.DISPID;
+import com4j.DefaultMethod;
+import com4j.IID;
+import com4j.VTID;
 
 /**
- * IWindows Interface
+ * IWindows Interface.
  */
 @IID("{9B371833-5E4F-4B72-A8F6-CB8E762999F4}")
-public interface IWindows extends Com4jObject,Iterable<Com4jObject> {
+public interface IWindows extends Com4jObject, Iterable<Com4jObject> {
   // Methods:
+
   /**
    * <p>
-   * Getter method for the COM property "Item"
+   * Getter method for the COM property "Item".
    * </p>
+   *
    * @param n Mandatory int parameter.
-   * @return  Returns a value of type com.blazemeter.jmeter.citrix.client.windows.com4j.IWindow
+   * @return Returns a value of type com.blazemeter.jmeter.citrix.client.windows.com4j.IWindow
    */
 
   @DISPID(0) //= 0x0. The runtime will prefer the VTID if present
   @VTID(7)
   @DefaultMethod
   com.blazemeter.jmeter.citrix.client.windows.com4j.IWindow item(
-    int n);
+      int n);
 
 
   /**
    * <p>
-   * Getter method for the COM property "_NewEnum"
+   * Getter method for the COM property "_NewEnum".
    * </p>
    */
 
@@ -35,9 +41,10 @@ public interface IWindows extends Com4jObject,Iterable<Com4jObject> {
 
   /**
    * <p>
-   * Getter method for the COM property "Count"
+   * Getter method for the COM property "Count".
    * </p>
-   * @return  Returns a value of type int
+   *
+   * @return Returns a value of type int
    */
 
   @DISPID(1) //= 0x1. The runtime will prefer the VTID if present

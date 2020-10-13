@@ -85,3 +85,9 @@ fabric.properties
 modules.xml
 .idea/misc.xml
 *.ipr
+.idea/jarRepositories.xml
+.idea/encodings.xml
+.idea/compiler.xml
+.idea/codeStyles/codeStyleConfig.xml
+.idea/checkstyleidea-libs/readme.txt
+.idea/checkstyle-idea.xml

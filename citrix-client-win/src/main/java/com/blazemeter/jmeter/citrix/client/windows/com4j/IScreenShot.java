@@ -1,21 +1,26 @@
-package com.blazemeter.jmeter.citrix.client.windows.com4j  ;
+package com.blazemeter.jmeter.citrix.client.windows.com4j;
 
-import com4j.*;
+import com4j.Com4jObject;
+import com4j.DISPID;
+import com4j.IID;
+import com4j.VTID;
 
 /**
- * IScreenShot Interface
+ * IScreenShot Interface.
  */
 @IID("{8F2D9E63-D224-47E4-8111-32DBB016A4C6}")
 public interface IScreenShot extends Com4jObject {
   // Methods:
+
   /**
    * <p>
-   * property PositionX
+   * property PositionX.
    * </p>
    * <p>
    * Getter method for the COM property "PositionX"
    * </p>
-   * @return  Returns a value of type int
+   *
+   * @return Returns a value of type int
    */
 
   @DISPID(1) //= 0x1. The runtime will prefer the VTID if present
@@ -28,15 +33,16 @@ public interface IScreenShot extends Com4jObject {
    * property PositionX
    * </p>
    * <p>
-   * Setter method for the COM property "PositionX"
+   * Setter method for the COM property "PositionX".
    * </p>
+   *
    * @param pVal Mandatory int parameter.
    */
 
   @DISPID(1) //= 0x1. The runtime will prefer the VTID if present
   @VTID(8)
   void positionX(
-    int pVal);
+      int pVal);
 
 
   /**
@@ -44,9 +50,10 @@ public interface IScreenShot extends Com4jObject {
    * property PositionY
    * </p>
    * <p>
-   * Getter method for the COM property "PositionY"
+   * Getter method for the COM property "PositionY".
    * </p>
-   * @return  Returns a value of type int
+   *
+   * @return Returns a value of type int
    */
 
   @DISPID(2) //= 0x2. The runtime will prefer the VTID if present
@@ -59,15 +66,16 @@ public interface IScreenShot extends Com4jObject {
    * property PositionY
    * </p>
    * <p>
-   * Setter method for the COM property "PositionY"
+   * Setter method for the COM property "PositionY".
    * </p>
+   *
    * @param pVal Mandatory int parameter.
    */
 
   @DISPID(2) //= 0x2. The runtime will prefer the VTID if present
   @VTID(10)
   void positionY(
-    int pVal);
+      int pVal);
 
 
   /**
@@ -75,9 +83,10 @@ public interface IScreenShot extends Com4jObject {
    * property Width
    * </p>
    * <p>
-   * Getter method for the COM property "Width"
+   * Getter method for the COM property "Width".
    * </p>
-   * @return  Returns a value of type int
+   *
+   * @return Returns a value of type int
    */
 
   @DISPID(3) //= 0x3. The runtime will prefer the VTID if present
@@ -90,15 +99,16 @@ public interface IScreenShot extends Com4jObject {
    * property Width
    * </p>
    * <p>
-   * Setter method for the COM property "Width"
+   * Setter method for the COM property "Width".
    * </p>
+   *
    * @param pVal Mandatory int parameter.
    */
 
   @DISPID(3) //= 0x3. The runtime will prefer the VTID if present
   @VTID(12)
   void width(
-    int pVal);
+      int pVal);
 
 
   /**
@@ -106,9 +116,10 @@ public interface IScreenShot extends Com4jObject {
    * property Height
    * </p>
    * <p>
-   * Getter method for the COM property "Height"
+   * Getter method for the COM property "Height".
    * </p>
-   * @return  Returns a value of type int
+   *
+   * @return Returns a value of type int
    */
 
   @DISPID(4) //= 0x4. The runtime will prefer the VTID if present
@@ -121,15 +132,16 @@ public interface IScreenShot extends Com4jObject {
    * property Height
    * </p>
    * <p>
-   * Setter method for the COM property "Height"
+   * Setter method for the COM property "Height".
    * </p>
+   *
    * @param pVal Mandatory int parameter.
    */
 
   @DISPID(4) //= 0x4. The runtime will prefer the VTID if present
   @VTID(14)
   void height(
-    int pVal);
+      int pVal);
 
 
   /**
@@ -137,9 +149,10 @@ public interface IScreenShot extends Com4jObject {
    * property Filename
    * </p>
    * <p>
-   * Getter method for the COM property "Filename"
+   * Getter method for the COM property "Filename".
    * </p>
-   * @return  Returns a value of type java.lang.String
+   *
+   * @return Returns a value of type java.lang.String
    */
 
   @DISPID(5) //= 0x5. The runtime will prefer the VTID if present
@@ -152,15 +165,16 @@ public interface IScreenShot extends Com4jObject {
    * property Filename
    * </p>
    * <p>
-   * Setter method for the COM property "Filename"
+   * Setter method for the COM property "Filename".
    * </p>
+   *
    * @param pVal Mandatory java.lang.String parameter.
    */
 
   @DISPID(5) //= 0x5. The runtime will prefer the VTID if present
   @VTID(16)
   void filename(
-    java.lang.String pVal);
+      java.lang.String pVal);
 
 
   /**
@@ -168,9 +182,10 @@ public interface IScreenShot extends Com4jObject {
    * property BitmapHash
    * </p>
    * <p>
-   * Getter method for the COM property "BitmapHash"
+   * Getter method for the COM property "BitmapHash".
    * </p>
-   * @return  Returns a value of type java.lang.String
+   *
+   * @return Returns a value of type java.lang.String
    */
 
   @DISPID(6) //= 0x6. The runtime will prefer the VTID if present
@@ -180,7 +195,7 @@ public interface IScreenShot extends Com4jObject {
 
   /**
    * <p>
-   * method Save
+   * method Save.
    * </p>
    */
 

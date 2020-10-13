@@ -1,148 +1,158 @@
 package com.blazemeter.jmeter.citrix.client.windows.com4j.events;
 
-import com4j.*;
+import com4j.DISPID;
+import com4j.IID;
 
 /**
- * _IWindowEvents Interface
+ * _IWindowEvents Interface.
  */
+
+@SuppressWarnings("checkstyle:TypeName")
 @IID("{49813E6D-17FF-41A1-9A7B-95C3D5B44185}")
 public abstract class _IWindowEvents {
   // Methods:
+
   /**
    * <p>
-   * method OnMove
+   * method OnMove.
    * </p>
+   *
    * @param xPos Mandatory int parameter.
    * @param yPos Mandatory int parameter.
    */
 
   @DISPID(1)
   public void onMove(
-    int xPos,
-    int yPos) {
-        throw new UnsupportedOperationException();
+      int xPos,
+      int yPos) {
+    throw new UnsupportedOperationException();
   }
 
 
   /**
    * <p>
-   * method OnSize
+   * method OnSize.
    * </p>
-   * @param width Mandatory int parameter.
+   *
+   * @param width  Mandatory int parameter.
    * @param height Mandatory int parameter.
    */
 
   @DISPID(2)
   public void onSize(
-    int width,
-    int height) {
-        throw new UnsupportedOperationException();
+      int width,
+      int height) {
+    throw new UnsupportedOperationException();
   }
 
 
   /**
    * <p>
-   * method OnActivate
+   * method OnActivate.
    * </p>
    */
 
   @DISPID(3)
   public void onActivate() {
-        throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException();
   }
 
 
   /**
    * <p>
-   * method OnDeactivate
+   * method OnDeactivate.
    * </p>
    */
 
   @DISPID(4)
   public void onDeactivate() {
-        throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException();
   }
 
 
   /**
    * <p>
-   * method OnMinimize
+   * method OnMinimize.
    * </p>
    */
 
   @DISPID(5)
   public void onMinimize() {
-        throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException();
   }
 
 
   /**
    * <p>
-   * method OnCaptionChange
+   * method OnCaptionChange.
    * </p>
+   *
    * @param caption Mandatory java.lang.String parameter.
    */
 
   @DISPID(6)
   public void onCaptionChange(
-    java.lang.String caption) {
-        throw new UnsupportedOperationException();
+      java.lang.String caption) {
+    throw new UnsupportedOperationException();
   }
 
 
   /**
    * <p>
-   * method OnStyleChange
+   * method OnStyleChange.
    * </p>
-   * @param style Mandatory int parameter.
+   *
+   * @param style         Mandatory int parameter.
    * @param extendedStyle Mandatory int parameter.
    */
 
   @DISPID(7)
   public void onStyleChange(
-    int style,
-    int extendedStyle) {
-        throw new UnsupportedOperationException();
+      int style,
+      int extendedStyle) {
+    throw new UnsupportedOperationException();
   }
 
 
   /**
    * <p>
-   * method OnSmallIconChange
+   * method OnSmallIconChange.
    * </p>
+   *
    * @param smallIconHash Mandatory java.lang.String parameter.
    */
 
   @DISPID(8)
   public void onSmallIconChange(
-    java.lang.String smallIconHash) {
-        throw new UnsupportedOperationException();
+      java.lang.String smallIconHash) {
+    throw new UnsupportedOperationException();
   }
 
 
   /**
    * <p>
-   * method OnLargeIconChange
+   * method OnLargeIconChange.
    * </p>
+   *
    * @param largeIconHash Mandatory java.lang.String parameter.
    */
 
   @DISPID(9)
   public void onLargeIconChange(
-    java.lang.String largeIconHash) {
-        throw new UnsupportedOperationException();
+      java.lang.String largeIconHash) {
+    throw new UnsupportedOperationException();
   }
 
 
   /**
    * <p>
-   * method OnDestroy
+   * method OnDestroy.
    * </p>
    */
 
   @DISPID(10)
   public void onDestroy() {
-        throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException();
   }
 
 

@@ -1,26 +1,24 @@
-/**
- * 
- */
 package com.blazemeter.jmeter.citrix.ocr;
 
 /**
- * Holds the OCR manager
+ * Holds the OCR manager.
  */
 public class OcrManagerHolder {
-	
-	protected static final ThreadLocal<OcrManager> LOCAL_OCR = ThreadLocal.withInitial(() -> new OcrManager());
 
-	private OcrManagerHolder() {
-		super();
-	}
+  protected static final ThreadLocal<OcrManager> LOCAL_OCR =
+      ThreadLocal.withInitial(OcrManager::new);
 
-	/**
-	 * Gets the held {@link OcrManager}
-	 * 
-	 * @return held {@link OcrManager}
-	 */
-	public static OcrManager getManager() {
-		return LOCAL_OCR.get();
-	}
+  private OcrManagerHolder() {
+    super();
+  }
+
+  /**
+   * Gets the held {@link OcrManager}.
+   *
+   * @return held {@link OcrManager}
+   */
+  public static OcrManager getManager() {
+    return LOCAL_OCR.get();
+  }
 
 }
