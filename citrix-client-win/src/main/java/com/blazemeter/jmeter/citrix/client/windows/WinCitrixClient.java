@@ -324,7 +324,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
       }
 
       if (waitUserLogoff(getLogoffTimeoutInMs())) {
-        LOGGER.error("Timed out waiting for Logoff");
+        LOGGER.warn("Timed out waiting for Logoff");
         sessionCookie = null;
       }
     }
@@ -334,7 +334,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
         LOGGER.debug("Disconnecting ICA client");
         icaClient.disconnect();
         if (waitDisconnect(getDisconnectTimeoutInMs())) {
-          LOGGER.error("Timed out waiting for Disconnect");
+          LOGGER.warn("Timed out waiting for Disconnect");
         }
       }
     } catch (Exception e) {

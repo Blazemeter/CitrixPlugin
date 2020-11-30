@@ -59,15 +59,9 @@ public class SamplerHelper {
     return sampler;
   }
 
-  // POSSIBLE_IMPROVEMENT Handle more characters
-  // This implementation is basic, it is based on matching between ASCII table,
-  // Windows API and AWT symbols.
   private static boolean isInterpretable(final InteractionEvent e) {
     final int keyCode = e.getKeyCode();
-    final boolean result =
-        !DEACTIVATE_INTERPRETATION && (keyCode >= KeyEvent.VK_0 && keyCode <= KeyEvent.VK_9
-            || keyCode >= KeyEvent.VK_A && keyCode <= KeyEvent.VK_Z
-            || keyCode == KeyEvent.VK_SPACE);
+    final boolean result = !DEACTIVATE_INTERPRETATION && (e.getTargetKeyCode() > 0);
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("{} {} (0x{}, {}) is interpretable : {}", e.getKeyState(), keyCode,
           Integer.toHexString(keyCode), (char) keyCode, result);
@@ -82,15 +76,21 @@ public class SamplerHelper {
     KeySamplerType lastType = null;
     KeyCaptureGroup group = null;
     for (CaptureItem capture : items) {
-      final KeySamplerType currentType = isInterpretable(capture.getEvent()) ? KeySamplerType.TEXT
-          : KeySamplerType.SEQUENCE;
-      if (currentType != lastType) {
-        LOGGER.debug("Create {} group while capture item grouping.", currentType);
-        group = new KeyCaptureGroup(currentType);
-        groups.add(group);
-        lastType = currentType;
+      LOGGER.debug("Item KC:{} KS:{} TGC:{} MOD:{}", capture.getEvent().getKeyCode(),
+          capture.getEvent().getKeyState(), capture.getEvent().getTargetKeyCode(),
+          capture.getEvent().getModifiersText());
+
+      if (capture.getEvent().getKeyCode() != KeyEvent.VK_SHIFT) {
+        final KeySamplerType currentType = isInterpretable(capture.getEvent()) ? KeySamplerType.TEXT
+            : KeySamplerType.SEQUENCE;
+        if (currentType != lastType) {
+          LOGGER.debug("Create {} group while capture item grouping.", currentType);
+          group = new KeyCaptureGroup(currentType);
+          groups.add(group);
+          lastType = currentType;
+        }
+        group.items.add(capture);
       }
-      group.items.add(capture);
     }
     return groups;
   }
@@ -132,11 +132,8 @@ public class SamplerHelper {
                 sampler.setSamplerType(SamplerType.TEXT);
 
                 // Converts captures to text
-                StringBuilder builder = new StringBuilder();
-                group.items.stream().map(CaptureItem::getEvent)
-                    .filter(e -> e.getKeyState() == KeyState.KEY_UP)
-                    .forEach(e -> builder.append((char) e.getKeyCode()));
-                String inputText = builder.toString();
+                String inputText = getKeyCaptureGroupText(group);
+
                 LOGGER.debug("Interprets captures as text: {}", inputText);
                 sampler.setInputText(inputText);
                 break;
@@ -175,6 +172,25 @@ public class SamplerHelper {
       }).forEach(samplers::add);
     }
     return samplers;
+  }
+
+  protected static String getKeyCaptureGroupText(KeyCaptureGroup group) {
+    StringBuilder builder = new StringBuilder();
+    group.items.stream().map(CaptureItem::getEvent)
+        .filter(e -> e.getKeyState() == KeyState.KEY_DOWN)
+        .forEach(e -> builder.append(e.getTargetKeyCodeString()));
+    String inputText = builder.toString();
+
+    // Citrix use CR (\r), migrate to LF (\n) used by JMeter
+    inputText = inputText.replace('\r', '\n');
+
+    // Clean invalid unicode character for UTF and XML spec
+    // 0xFFFE: BOM
+    // 0xFFFF: Unknown Unicode character
+    // https://www.w3.org/TR/2008/REC-xml-20081126/#charsets
+    // http://www.unicode.org/faq/private_use.html#sentinel6
+    inputText = inputText.replaceAll("[\\uFFFE-\\uFFFF]", "");
+    return inputText;
   }
 
   private static boolean areClickComponents(CaptureItem down, CaptureItem up) {
@@ -348,7 +364,7 @@ public class SamplerHelper {
   }
 
   // Enumerates kinds of key samplers
-  private enum KeySamplerType {
+  protected enum KeySamplerType {
     // Sampler contains a text to transform to interactions while sampling
     TEXT,
     // Sampler contains directly a list of interaction to sample
@@ -361,9 +377,9 @@ public class SamplerHelper {
   }
 
   // Allows to group captures depending on KeySamplerType logic
-  private static class KeyCaptureGroup {
+  protected static class KeyCaptureGroup {
+    protected final List<CaptureItem> items = new ArrayList<>();
     private final KeySamplerType type;
-    private final List<CaptureItem> items = new ArrayList<>();
 
     KeyCaptureGroup(KeySamplerType type) {
       this.type = type;

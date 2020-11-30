@@ -19,8 +19,9 @@ You need then to update in **UDV**:
 
 After that, update authentication information in **UDV-Recording** section:
 
-- citrix_login to the login on portal
-- citrix_password to the password on portal
+- citrix_login to user login used in Citrix Portal
+- citrix_password to the user's login password
+- citrix_domain to the domain used for the login process
 
 **Note:** Since JMeter 5.1, the new parameterized template will make this step optional as those 4 fields will be required 
 on template creation. 

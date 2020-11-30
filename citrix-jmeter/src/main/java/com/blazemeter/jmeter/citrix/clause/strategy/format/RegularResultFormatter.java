@@ -15,19 +15,19 @@ public class RegularResultFormatter implements ResultFormatter {
     if (result.isSuccessful()) {
       if (clause.isUsingRegex()) {
         value = "'" + result.getValue() + "' matches the expecting regular expression '"
-            + clause.getExpectedValue() + "'";
+            + clause.getExpectedValueParametrized() + "'";
       } else {
         value = "'" + result.getValue() + "' is equals to the expecting value '" +
-            clause.getExpectedValue()
+            clause.getExpectedValueParametrized()
             + "'";
       }
     } else {
       if (clause.isUsingRegex()) {
         value = "'" + result.getValue() + "' does not match the expecting regular expression '"
-            + clause.getExpectedValue() + "'";
+            + clause.getExpectedValueParametrized() + "'";
       } else {
         value = "'" + result.getValue() + "' differs from the expecting value '" +
-            clause.getExpectedValue()
+            clause.getExpectedValueParametrized()
             + "'";
       }
     }

@@ -1,6 +1,7 @@
 package com.blazemeter.jmeter.citrix.client.events;
 
 import com.blazemeter.jmeter.citrix.client.CitrixClient;
+import com.blazemeter.jmeter.citrix.client.Win32Utils;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -88,6 +89,17 @@ public class InteractionEvent extends ClientEvent {
     return keyCode;
   }
 
+  public int getTargetKeyCode() {
+    boolean withShift = modifiers.contains(Modifier.SHIFT);
+    boolean withAlt = modifiers.contains(Modifier.ALT);
+    boolean withCtrl = modifiers.contains(Modifier.CONTROL);
+    return Win32Utils.getVKCharacter(keyCode, withShift, withAlt, withCtrl);
+  }
+
+  public String getTargetKeyCodeString() {
+    return String.valueOf((char) getTargetKeyCode());
+  }
+
   /**
    * Gets the set of key modifiers pressed during this event.
    *
@@ -140,6 +152,10 @@ public class InteractionEvent extends ClientEvent {
    */
   public Set<MouseButton> getButtons() {
     return buttons;
+  }
+
+  public String getModifiersText() {
+    return EventHelper.getModifiersText(getModifiers());
   }
 
   /**

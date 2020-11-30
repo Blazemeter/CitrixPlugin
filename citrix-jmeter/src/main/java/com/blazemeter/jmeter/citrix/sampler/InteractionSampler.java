@@ -2,15 +2,19 @@ package com.blazemeter.jmeter.citrix.sampler;
 
 import com.blazemeter.jmeter.citrix.client.CitrixClient;
 import com.blazemeter.jmeter.citrix.client.CitrixClientException;
+import com.blazemeter.jmeter.citrix.client.Win32Utils;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent.KeyState;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent.MouseAction;
 import com.blazemeter.jmeter.citrix.client.events.Modifier;
 import com.blazemeter.jmeter.citrix.client.events.MouseButton;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 import java.awt.Point;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.math3.random.RandomDataGenerator;
@@ -31,10 +35,12 @@ public class InteractionSampler extends CitrixBaseSampler {
   private static final Logger LOGGER = LoggerFactory.getLogger(InteractionSampler.class);
   private static final long serialVersionUID = 6076968592699324616L;
   private static final RandomDataGenerator VARIATION_GENERATOR = new RandomDataGenerator();
+  private static final String INPUT_TEXT_VERSION = "2.0";
 
   // + JMX file attributes
   private static final String SAMPLER_TYPE_PROP = "InteractionSampler.samplerType"; // $NON-NLS-1$
   private static final String INPUT_TEXT_PROP = "InteractionSampler.inputText"; // $NON-NLS-1$
+  private static final String INPUT_TEXT_VER_PROP = "InteractionSampler.inputTextVersion";
   private static final String KEY_SEQUENCE_PROP = "InteractionSampler.keySequence"; // $NON-NLS-1$
   private static final String DOUBLE_CLICK_PROP = "InteractionSampler.doubleClick"; // $NON-NLS-1$
   private static final String MOUSE_X_PROP = "InteractionSampler.mouseX"; // $NON-NLS-1$
@@ -53,6 +59,10 @@ public class InteractionSampler extends CitrixBaseSampler {
   // Gets the next duration variation for waiting times between keystrokes
   private static long getNextVariation() {
     return VARIATION_GENERATOR.nextLong(-KEYSTROKE_DELAY_VARIATION, KEYSTROKE_DELAY_VARIATION);
+  }
+
+  private boolean isUnVersionedTestElement() {
+    return getInputTextVersion().isEmpty(); // It is versioned from version 0.7.0
   }
 
   /**
@@ -83,6 +93,11 @@ public class InteractionSampler extends CitrixBaseSampler {
    * @return the text to simulate
    */
   public String getInputText() {
+    if (isUnVersionedTestElement()) {
+      // Prior to version 0.7.0, the only text recorded was A-Z in Uppercase.
+      // It is migrated to lowercase for compatibility with the new InputText.
+      setInputText(getPropertyAsString(INPUT_TEXT_PROP).toLowerCase());
+    }
     return getPropertyAsString(INPUT_TEXT_PROP);
   }
 
@@ -93,8 +108,20 @@ public class InteractionSampler extends CitrixBaseSampler {
    * @param text the text to simulate
    */
   public void setInputText(String text) {
+    if (isUnVersionedTestElement()) {
+      setInputTextVersion(INPUT_TEXT_VERSION);
+    }
     setProperty(INPUT_TEXT_PROP, text);
   }
+
+  public String getInputTextVersion() {
+    return getPropertyAsString(INPUT_TEXT_VER_PROP);
+  }
+
+  public void setInputTextVersion(String text) {
+    setProperty(INPUT_TEXT_VER_PROP, text);
+  }
+
 
   /**
    * Gets the lists of keystrokes to simulate when sample type is
@@ -292,17 +319,67 @@ public class InteractionSampler extends CitrixBaseSampler {
   }
 
   private void sampleText(CitrixClient client) throws CitrixClientException, InterruptedException {
-    final String inputText = getInputText();
+    String inputText = getInputText();
+
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("{} on sampler {} samples text {}", getThreadName(), getName(), inputText);
     }
+    List<Keystroke> keystrokes = sampleTextKeystrokes(inputText);
+
+    for (Keystroke keystroke : keystrokes) {
+      sendKeystroke(client, keystroke.keyCode, keystroke.keyUp, keystroke.withDelay);
+    }
+
+  }
+
+  public static List<Keystroke> sampleTextKeystrokes(String inputText) {
+
+    List<Keystroke> keystrokes = new ArrayList<>();
+
+    // JMeter property lost CR (\r), replace LF to CR for Citrix playback.
+    inputText = inputText.replace('\n', '\r');
 
     final char[] chars = inputText.toCharArray();
-    for (int index = 0; index < chars.length; index++) {
-      final char c = chars[index];
-      sendKeystroke(client, c, false, true);
-      sendKeystroke(client, c, true, index < chars.length - 1);
+    for (char aChar : chars) {
+      int vkExtendedCode = Win32Utils.getVirtualKey(aChar);
+      vkExtendedCode = vkExtendedCode == -1 ? Win32Utils.getVirtualKey('?') : vkExtendedCode;
+
+      char vkCode = (char) (vkExtendedCode & 0xFF);
+      int mask = (vkExtendedCode >>> 8) & 0xFF;
+
+      List<Integer> pressKeys = new ArrayList<>();
+      if ((mask & 4) == 4) {
+        pressKeys.add(KeyEvent.VK_ALT);
+      }
+      if ((mask & 2) == 2) {
+        pressKeys.add(KeyEvent.VK_CONTROL);
+      }
+      if ((mask & 1) == 1) {
+        pressKeys.add(KeyEvent.VK_SHIFT);
+      }
+
+      LOGGER.debug("Char:{} OVK:{} OM:{} VK:{} KP:{} ", aChar, vkExtendedCode, mask,
+          (int) vkCode, pressKeys);
+
+      for (int keyDown : pressKeys) {
+        keystrokes.add(new Keystroke(keyDown, false, false));
+      }
+
+      keystrokes.add(new Keystroke(vkCode, false, true));
+      keystrokes.add(new Keystroke(vkCode, true, false));
+
+      Collections.reverse(pressKeys); // Reverse the order to release the key pressed
+      for (int keyUp : pressKeys) {
+        keystrokes.add(new Keystroke(keyUp, true, false));
+      }
     }
+    // Last keystroke always force a delay
+    Keystroke lastKeystroke = keystrokes.get(keystrokes.size() - 1);
+    keystrokes.set(
+        keystrokes.size() - 1,
+        new Keystroke(lastKeystroke.keyCode, lastKeystroke.keyUp, true)
+    );
+    return keystrokes;
   }
 
   private void sampleKeySequence(CitrixClient client)
@@ -403,4 +480,41 @@ public class InteractionSampler extends CitrixBaseSampler {
       builder.append(prefix(msg));
     }
   }
+
+  public static class Keystroke {
+
+    private int keyCode;
+    private boolean keyUp;
+    private boolean withDelay;
+
+    Keystroke(int keyCode, boolean keyUp, boolean withDelay) {
+      this.keyCode = keyCode;
+      this.keyUp = keyUp;
+      this.withDelay = withDelay;
+    }
+
+    public String toString() {
+      return "KC:" + keyCode + " KU:" + keyUp + " D:" + withDelay;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      Keystroke keystroke = (Keystroke) o;
+      return keyCode == keystroke.keyCode &&
+          keyUp == keystroke.keyUp &&
+          withDelay == keystroke.withDelay;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(keyCode, keyUp, withDelay);
+    }
+  }
+
 }

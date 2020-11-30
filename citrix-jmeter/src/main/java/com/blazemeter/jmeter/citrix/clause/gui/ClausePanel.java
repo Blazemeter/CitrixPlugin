@@ -207,6 +207,7 @@ public class ClausePanel extends JPanel {
     pnlExpectedValue.add(chbUseRegex, gbcRelative);
 
     taExpectedValue = JSyntaxTextArea.getInstance(5, 80);
+    taExpectedValue.setLanguage("text");
     taExpectedValue.addFocusListener(new ChangeHandler());
     GridBagConstraints gbcExpectedValue = new GridBagConstraints();
     gbcExpectedValue.anchor = GridBagConstraints.LINE_START;

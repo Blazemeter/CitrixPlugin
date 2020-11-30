@@ -4,6 +4,7 @@ import com.blazemeter.jmeter.citrix.clause.strategy.check.PollingContext;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
+import org.apache.jmeter.engine.util.CompoundVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,6 +100,10 @@ public class Clause implements Serializable {
    */
   public final String getExpectedValue() {
     return expectedValue;
+  }
+
+  public final String getExpectedValueParametrized() {
+    return (new CompoundVariable(getExpectedValue())).execute();
   }
 
   /**
