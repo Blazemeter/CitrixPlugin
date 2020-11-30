@@ -135,19 +135,6 @@ If running JMeter on virtual machines, check that you're dedicating memory and p
 
 *Ensure that you are working with supported versions of your Citrix server.*
 
-#### Disable the desktop toolbar
-
-The Citrix administrator should disable the desktop toolbar. 
-There are several ways to do this: 
-
-- Add to the default.ica file:
-
-    ConnectionBar=0 
- 
-- Follow the method described in: 
-
-   -https://support.citrix.com/article/CTX138928. (Relevant only for published desktops, not published applications).
-
 #### Session Disconnect
 
 By default, when a client times out or disconnects from the Citrix server, the session remains open for a defined time period. 
@@ -157,17 +144,6 @@ Therefore, the Citrix server administrator should configure the Citrix server to
 #### Multi-Session Support
 
 If you are going to run more than one Citrix Session on JMeter, ensure that the Citrix server is configured to enable multiple sessions per user/client.
-
-#### Run Citrix application in **non-seamless** mode, use **Windowed Mode** instead
-
-See:
-
-- https://docs.citrix.com/en-us/storefront/current-release/user-access/windowed-mode.html
-
-To check this is in place, when you launch the Citrix application manually, the Citrix Window should appear explicitely.
-You can also check that the ica file contains:
-
-    TWIMode=off
 
 #### Avoid production environments if possible
 Try to load test Citrix applications which are restricted to a few Citrix servers in a Citrix development or test environment rather than load testing in a live Citrix production environment.
