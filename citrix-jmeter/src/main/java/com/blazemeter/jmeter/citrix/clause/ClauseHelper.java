@@ -173,7 +173,8 @@ public class ClauseHelper {
   }
 
   private static Predicate<String> getRegexPredicate(Clause clause) {
-    Pattern pattern = JMeterUtils.getPatternCache().getPattern(clause.getExpectedValue(),
+    Pattern pattern = JMeterUtils.getPatternCache().getPattern(
+        clause.getExpectedValueParametrized(),
         Perl5Compiler.READ_ONLY_MASK);
     return v -> JMeterUtils.getMatcher().matches(v, pattern);
   }
@@ -183,7 +184,7 @@ public class ClauseHelper {
   }
 
   private static Predicate<String> getHashHammingDistancePredicate(Clause clause) {
-    String expectedValue = clause.getExpectedValue();
+    String expectedValue = clause.getExpectedValueParametrized();
     int hashBitResolution = (isHashLegacy(expectedValue) ? LEGACY_BIT_RESOLUTION : BIT_RESOLUTION);
     return v -> (
         new Hash(
@@ -195,7 +196,7 @@ public class ClauseHelper {
   }
 
   private static Predicate<String> getEqualPredicate(Clause clause) {
-    return v -> Objects.equals(v, clause.getExpectedValue());
+    return v -> Objects.equals(v, clause.getExpectedValueParametrized());
   }
 
   public static boolean isHashClause(Clause clause) {
@@ -217,7 +218,7 @@ public class ClauseHelper {
    */
   public static Predicate<String> buildValuePredicate(Clause clause) {
     LOGGER.debug("Builds predicate for clause {} with expected value='{}'", clause.getCheckType(),
-        clause.getExpectedValue());
+        clause.getExpectedValueParametrized());
     if (clause.isUsingRegex()) {
       return getRegexPredicate(clause);
     }

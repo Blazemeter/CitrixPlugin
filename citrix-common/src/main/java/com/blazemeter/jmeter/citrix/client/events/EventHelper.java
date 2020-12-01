@@ -2,6 +2,7 @@ package com.blazemeter.jmeter.citrix.client.events;
 
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +59,12 @@ public class EventHelper {
           Integer.toBinaryString(copy));
     }
     return result;
+  }
+
+  public static String getModifiersText(final Set<Modifier> modifiers) {
+    return modifiers.stream()
+        .map(Modifier::name)
+        .collect(Collectors.joining("+"));
   }
 
   public static int fromModifiers(Set<Modifier> modifiers) {

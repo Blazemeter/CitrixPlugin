@@ -278,6 +278,7 @@ public class InteractionSamplerGUI extends CitrixSamplerGUI { // NOSONAR
   private JPanel createInputTextTab() {
     JPanel panel = new JPanel(new BorderLayout());
     taInputText = JSyntaxTextArea.getInstance(13, 120);
+    taInputText.setLanguage("text");
     panel.add(JTextScrollPane.getInstance(taInputText, true), BorderLayout.NORTH);
     return panel;
   }

@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>com.blazemeter.jmeter</groupId>
 		<artifactId>citrix-parent</artifactId>
-		<version>0.6.0</version>
+		<version>0.7.0</version>
 	</parent>
 
 	<artifactId>citrix-jmeter</artifactId>
@@ -191,6 +191,10 @@
 									<include>org.apache.pdfbox:pdfbox-tools</include>
 									<include>org.apache.pdfbox:pdfbox</include>
 									<include>org.apache.pdfbox:fontbox</include>
+									<include>com.sun.jna.platform</include>
+									<include>net.java.dev.jna:jna</include>
+									<include>net.java.dev.jna:jna-platform</include>
+									<include>org.ini4j:ini4j</include>
 								</includes>
 							</artifactSet>
 						</configuration>

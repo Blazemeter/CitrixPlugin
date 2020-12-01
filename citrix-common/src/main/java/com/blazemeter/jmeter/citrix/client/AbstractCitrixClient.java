@@ -9,13 +9,17 @@ import com.blazemeter.jmeter.citrix.client.handler.CitrixClientHandler;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.ini4j.Profile;
+import org.ini4j.Wini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,9 +126,34 @@ public abstract class AbstractCitrixClient implements CitrixClient {
     return icaFilePath;
   }
 
+  private Path patchICAFile(Path icaFilePath) {
+    // The idea of this method is to make the necessary changes
+    // to the ICA file that allow a correct execution.
+    try {
+      Wini ini = new Wini(icaFilePath.toFile());
+      boolean icaModified = false;
+      for (Map.Entry<String, Profile.Section> section : ini.entrySet()) {
+        for (Map.Entry<String, String> keyEntry : section.getValue().entrySet()) {
+
+          if ("connectionbar".equals(keyEntry.getKey().toLowerCase())
+              && "1".equals(keyEntry.getValue())) {
+            keyEntry.setValue("0");
+            icaModified = true;
+          }
+        }
+      }
+      if (icaModified) {
+        ini.store();
+      }
+    } catch (IOException e) {
+      LOGGER.warn("ICA file processing error", e);
+    }
+    return icaFilePath;
+  }
+
   @Override
   public final void setICAFilePath(Path icaFilePath) {
-    this.icaFilePath = icaFilePath;
+    this.icaFilePath = patchICAFile(icaFilePath);
   }
 
   /**

@@ -25,6 +25,7 @@
             <parameter defaultValue="Citrix Application you want to record" key="citrixApplicationName"/>
             <parameter defaultValue="Citrix Portal Login" key="citrixLogin"/>
             <parameter defaultValue="Citrix Portal Password" key="citrixPassword"/>
+            <parameter defaultValue="Citrix Portal Login Domain" key="citrixDomain"/>
             <parameter defaultValue="citrix-recording.xml" key="citrixRecordingOutputFile"/>
         </parameters>
 	</template>

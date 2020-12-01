@@ -17,6 +17,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import org.apache.jmeter.threads.JMeterContextService;
+import org.apache.jmeter.threads.JMeterVariables;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -48,6 +50,13 @@ public class TestAssertionHelper {
     image_same_02 = loadImageResource("/hash_same_02.png");
     image_not_same_01 = loadImageResource("/hash_not_same_01.png");
     image_not_same_02 = loadImageResource("/hash_not_same_02.png");
+
+    JMeterVariables vars = new JMeterVariables();
+    vars.put("citrix", "Citrix");
+    vars.put("citrix_regex", "cITRIX");
+
+    JMeterContextService.getContext().setVariables(vars);
+
   }
 
   @Test
@@ -132,6 +141,29 @@ public class TestAssertionHelper {
     Rectangle rectangle2 = new Rectangle(new Point(1, 1), new Dimension(5000, 6000));
     ClauseHelper.hash(image_same_01, rectangle2, null);
 
+  }
+
+  @Test
+  public void testExpectedValueParametrized() {
+    Clause ocrClause = new Clause(CheckType.OCR, "Hello ${citrix}");
+    assertEquals("Hello Citrix", ocrClause.getExpectedValueParametrized());
+  }
+
+  @Test
+  public void testExpectedValueRegexParametrized() {
+    // the first letter of the var is in lowercase, the regex ignore that case
+    String clauseExpectedValue = "(?i)${citrix_regex}";
+
+    boolean useRegex = true;
+    Rectangle selection = new Rectangle(new Point(0, 0), new Dimension(50, 50));
+    Clause ocrClause = new Clause(CheckType.OCR, clauseExpectedValue, useRegex, selection);
+
+    String expectedValueParametrized = ocrClause.getExpectedValueParametrized();
+
+    String value = "CITRIX";
+    LOGGER.debug("Test regex parametrized expected value: {}, {}, {}",
+        clauseExpectedValue, expectedValueParametrized, value);
+    assertTrue(ClauseHelper.buildValuePredicate(ocrClause).test(value));
   }
 }
 

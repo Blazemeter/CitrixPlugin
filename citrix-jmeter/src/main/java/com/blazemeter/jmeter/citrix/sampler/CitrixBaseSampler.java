@@ -13,6 +13,8 @@ import com.blazemeter.jmeter.citrix.client.events.SessionEvent.EventType;
 import com.blazemeter.jmeter.citrix.client.factory.AbstractCitrixClientFactory;
 import com.blazemeter.jmeter.citrix.sampler.SamplerRunException.ErrorCode;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -239,9 +241,6 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
         // Store success assessment in sample result
         result.setAssessment(assessment[0]);
 
-        // Store registered results as response message
-        result.setResponseMessage(SamplerHelper.formatResponseMessage(details, overflow[0]));
-
         // Store the last screenshot as response data
         result.setSnapshot(lastSnapshot[0]);
       }
@@ -280,10 +279,11 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
     } catch (SamplerRunException ex) {
       // Store exception message in sample result
       result.setResponseCode(ex.code());
-      result.setResponseMessage(
-          ex.getMessage() + "\n" +
-              result.getResponseMessage());
-      LOGGER.error(ex.getMessage(), ex);
+      result.setResponseMessage(ex.getMessage());
+      StringWriter sw = new StringWriter();
+      ex.printStackTrace(new PrintWriter(sw));
+      result.setResponseData(sw.toString(), SampleResult.DEFAULT_HTTP_ENCODING);
+      LOGGER.error(sw.toString(), ex);
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       result.setResponseCode(CitrixUtils.getResString("base_sampler_interrupted", false));
