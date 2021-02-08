@@ -107,6 +107,9 @@ public class CitrixClientException extends Exception {
     SCREENSHOT_ERROR,
     KEYBOARD_ERROR,
     MOUSE_ERROR,
+    SESSION_ERROR,
+    SESSION_INTERRUPTED,
+    UNKNOWN_ERROR,
   }
 }
 

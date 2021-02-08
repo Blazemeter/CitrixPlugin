@@ -209,14 +209,19 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
     }
   }
 
+  public boolean clientIsRunning() {
+    return (client != null && client.isConnected());
+  }
+  
   private void stopClient() {
     if (client != null) {
       try {
         client.stop();
-        client = null;
+        client.removeHandler(recordingHandler);
       } catch (Exception ex) {
         LOGGER.error(ex.getMessage(), ex);
       }
+      client = null;
     }
   }
 

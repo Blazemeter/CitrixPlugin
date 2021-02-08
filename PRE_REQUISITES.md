@@ -18,33 +18,30 @@
   * StoreFront 2.1 or later
         
 **Citrix client**
-  * Citrix Receiver 4.12
+  
+  It is recommended to use [Citrix Workspace version 19.12.2000 LTSR Cumulative Update 2](https://www.citrix.com/es-mx/downloads/workspace-app/legacy-workspace-app-for-windows-ltsr/workspace-app-for-windows-1912-ltsr-cu2.html), which is the version with the greatest compatibility between different versions of Citrix Server and Windows client versions.
+  
+  For recording, it is also possible to use one of the following versions.
+  * Citrix Receiver 4.12 and later
   * Citrix Workspace 19.11 and later
+
+  **Disclaimer:** Some versions have some bugs and behave in unexpected ways, use the recommended version 19.12.2000 LTSR Cumulative Update 2 to ensure correct execution.
+  
 
 ## Apache JMeter pre-requisites
 
 ### Java version 
-* Install a **JDK 8 Windows x86** (not 64 bits !) in last minor update from [here](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-* Install Apache JMeter from [here](https://jmeter.apache.org/download_jmeter.cgi). Last version is advised (5.2.1)
+* Install **OpenJDK 8 or higher for x86 architecture or i586 equivalent version** (not 64 bits !)
+  
+  It is recommended to use OpenJDK 11 (LTS) provided by AdoptOpenJDK. [Download from here](https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.10%2B9/OpenJDK11U-jdk_x86-32_windows_hotspot_11.0.10_9.msi).
+  
+* Install Apache JMeter
 
-### Microsoft Visual C++ Redistributable for Visual Studio 2019
+  Install the latest version of JMeter. [Download from here](https://jmeter.apache.org/download_jmeter.cgi).
+  
+  The plugin supports from version 5.2.1 onwards.
 
-* Install **Microsoft Visual C++ Redistributable for Visual Studio 2019** available from here:
-
-- https://support.microsoft.com/fr-fr/help/2977003/the-latest-supported-visual-c-downloads
-
-## Citrix Client Machine (Test Environment)
-
-#### Citrix Client setup
-
-- Citrix Receiver 4.12 (versions below this version have bugs, plugin does not work correctly)
-- Citrix Workspace 19.11 or later
-
-If you don't have yet Citrix client install it from [Citrix Workspace download page](https://www.citrix.com/downloads/workspace-app/windows/workspace-app-for-windows-latest.html) or [Citrix Receiver download page](https://www.citrix.com/downloads/citrix-receiver/windows/receiver-for-windows-latest.html)
-
-#### Disable UAC (User Account Control)
-
-- See: https://richardstk.com/2013/12/17/fully-disable-user-account-control-in-windows-server-2012-windows-server-2012-r2/
+## Test Environment (Citrix Client Machine)
 
 #### Ensure consistency between machines
 

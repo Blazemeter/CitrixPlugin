@@ -42,6 +42,7 @@ public abstract class AbstractCitrixClient implements CitrixClient {
   private final AtomicBoolean connected = new AtomicBoolean(false);
   private final CountDownLatch connectedLatch = new CountDownLatch(1);
   private final CountDownLatch disconnectLatch = new CountDownLatch(1);
+  private final AtomicBoolean waitStopControlled = new AtomicBoolean(false);
   private final AtomicBoolean running = new AtomicBoolean(false);
   private final AtomicBoolean userLogged = new AtomicBoolean(false);
   private final CountDownLatch userLoggedLatch = new CountDownLatch(1);
@@ -54,9 +55,9 @@ public abstract class AbstractCitrixClient implements CitrixClient {
   private Path icaFilePath;
   // Timeouts
   private Long icaFileTimeoutInMs = 10000L;
-  private Long connectTimeoutInMs = 15000L;
-  private Long logonTimeoutInMs = 60000L;
-  private Long activeAppTimeoutInMs = 60000L;
+  private Long connectTimeoutInMs = 90000L;
+  private Long logonTimeoutInMs = 90000L;
+  private Long activeAppTimeoutInMs = 120000L;
   private Long logoffTimeoutInMs = 65000L;
   private Long disconnectTimeoutInMs = 65000L;
   private Long socketTimeoutInMs = 5000L;
@@ -119,6 +120,11 @@ public abstract class AbstractCitrixClient implements CitrixClient {
   @Override
   public boolean isVisible() {
     return visible.get();
+  }
+
+  @Override
+  public boolean wasInterrupted() {
+    return waitStopControlled.get();
   }
 
   @Override
@@ -202,6 +208,16 @@ public abstract class AbstractCitrixClient implements CitrixClient {
                                            Set<Modifier> modifiers)
       throws CitrixClientException;
 
+  private void disconnectClient() {
+    icafile.set(false);
+    icafileLatch.countDown();
+    userLogged.set(false);
+    userLoggedLatch.countDown();
+    connected.set(false);
+    disconnectLatch.countDown();
+    running.set(false);
+  }
+
   /**
    * Notify all subscribers when a user interaction happens.
    *
@@ -227,6 +243,10 @@ public abstract class AbstractCitrixClient implements CitrixClient {
       switch (event.getEventType()) {
         case CONNECT:
           LOGGER.debug("Set connected status to true.");
+          // Control flag, if it disconnects unexpectedly,
+          // the flag will indicate that it was interrupted.
+          // Only is unset when using controlled shutdown (stop).
+          waitStopControlled.set(true);
           connected.set(true);
           connectedLatch.countDown();
           break;
@@ -236,16 +256,7 @@ public abstract class AbstractCitrixClient implements CitrixClient {
           connectedLatch.countDown();
           break;
         case DISCONNECT:
-          LOGGER.debug("Set connected status to false.");
-          // ICAFile status to false
-          icafile.set(false);
-          icafileLatch.countDown();
-          // Session status to false
-          userLogged.set(false);
-          userLoggedLatch.countDown();
-          // Connection status to false
-          connected.set(false);
-          disconnectLatch.countDown();
+          disconnectClient();
           break;
         case DISCONNECT_FAIL:
           LOGGER.debug("Disconnect fail.");
@@ -383,10 +394,10 @@ public abstract class AbstractCitrixClient implements CitrixClient {
   @Override
   public final void stop() throws CitrixClientException {
     synchronized (running) {
-
+      waitStopControlled.set(false);
       LOGGER.debug("Stops the Citrix session");
       stopSession();
-      running.set(false);
+      disconnectClient();
 
     }
   }

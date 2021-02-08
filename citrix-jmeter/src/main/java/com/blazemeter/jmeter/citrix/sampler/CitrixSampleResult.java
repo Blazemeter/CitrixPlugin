@@ -43,6 +43,10 @@ public class CitrixSampleResult extends SampleResult {
     return snapshot;
   }
 
+  public boolean hasSnapshot() {
+    return snapshot != null;
+  }
+
   /**
    * Defines the snapshot of the Citrix client during sample.
    *

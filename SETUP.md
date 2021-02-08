@@ -2,75 +2,16 @@
 
 #### From JMeter-Plugins
 
-* Install plugins-manager from [here](https://jmeter-plugins.org/install/Install/)
-* Start it and search for Citrix then install
+* 1 - Install plugins-manager on JMeter from [here](https://jmeter-plugins.org/install/Install/)
+* 2 - When Plugins Manager was installed run JMeter with Administrator privilege, right click on jmeter.bat and select **Run as administrator**.
+* 3 - On Plugin Manager (Options -> Plugin Manager), select to install the Citrix plugin from the available plugins.
 
-#### Manual install from JMeter-Plugins or Releases
+When Plugin Manager installs the plugin, JMeter will restart. At that time, the Citrix plugin installation process will run.
 
-##### Download Citrix Plugin from JMeter-Plugins #####
-Go to the following [link](https://jmeter-plugins.org/?search=bzm-jmeter-citrix-plugin) and download the plugin zip file
+If the setup shows an error, close JMeter again and run it again with Administrator permissions.
+When the error messages no longer appear, it means that you can now close JMeter and use it with normal user privileges.
 
-* Uncompress bzm-jmeter-citrix-plugin-[version].zip archive to get the jar file
-
-##### Download Citrix Plugin from GitHub Releases #####
-Go to the following [link](https://github.com/Blazemeter/CitrixPlugin/releases) and download the latest plugin jar file
-
-##### Install the Citrix Plugin jar file into JMeter #####
-* Copy citrix-jmeter-[version].jar in JMETER_HOME/lib/ext 
-
-    Since version 1.0, the plugin provides an installer which checks and sets up the next step. If you encounter any errors, please check this point manually.
-
-* Edit jmeter/bin/saveservices.properties and add at the end of file
-```
-        # Add the following line at the end of JMeter saveservice.properties file
-        _com.blazemeter.jmeter.citrix.sampler.CitrixSampleResultConverter=collection
-```
-## Run JMeter 
-
-Once installed, the first time start JMeter as **as administrator**, see below, it will automatically run required installation steps.
-If you encounter any errors, please check below points manually.
-
-### Requisites to check **only if automatic installation fails**:
-
-* **Ensure you run below commands as Administrator**
-
-* Once Citrix Receiver is installed, register ICA Client COM Object, run **as administrator** : 
-```
-    regsvr32 /s "C:\Program Files (x86)\Citrix\ICA Client\wfica.ocx"
-```
-* Add registry keys :
-    
-   You can click on setup/setup-x86.reg or setup/setup-x64.reg to add the below keys:
-
-    * For Windows 32bits: 
-        * Location: HKEY_LOCAL_MACHINE\Software\Citrix\ICA Client\CCM 
-        * Name: AllowSimulationAPI 
-        * Type: REG_DWORD 
-        * Data: 1
-        
-        * Location: HKEY_LOCAL_MACHINE\SOFTWARE\Citrix\ICA Client\ 
-        * Name: VdLoadUnLoadTimeOut
-        * Type: REG_DWORD 
-        * Data: 30
-        
-    * For Windows 64bits:
-        * Location: HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Citrix\ICA Client\CCM
-        * Name: AllowSimulationAPI 
-        * Type: REG_DWORD 
-        * Data: 1
-        
-        * Location: HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432node\Citrix\ICA Client 
-        * Name: VdLoadUnLoadTimeOut
-        * Type: REG_DWORD 
-        * Data: 30 (Value in seconds (Decimal))
-
-   The second key VdLoadUnLoadTimeOut is needed to workaround an issue that manifests as :
-   
-      "You might be having an issue with a Citrix virtual driver (SmartCard). Contact your system administrator for further assistance":
-
-   See
-   
-- https://support.citrix.com/article/CTX133536
+If you find any error and cannot solve it, register a ticket to be attended by support [here](https://github.com/BlazeMeter/CitrixPlugin/issues)
 
 ### Plugin Properties
 
@@ -90,9 +31,10 @@ Here is the list of configurable properties,  **non bold** properties should be 
 | bzm.citrix.clause_hash_bit_resolution | Hash resolution in bits | 128 (in bits) | 
 | bzm.citrix.clause_hash_bit_distance | Hash Hamming Distance in bits | 3 (in bits) |
 | bzm.citrix.client_factory.client_property.icafile_timeout_ms | Maximum wait time for ICAFile connect event at application start | 10000 (in millis) |
-| bzm.citrix.client_factory.client_property.connect_timeout_ms | Maximum wait time for CONNECT session event at application start | 15000 (in millis) |
-| bzm.citrix.client_factory.client_property.logon_timeout_ms   | Maximum wait time for LOGON session event at application start | 60000 (in millis) |
-| bzm.citrix.client_factory.client_property.logoff_timeout_ms  | Maximum wait time for LOGOFF session event at application end | 65000 (in millis) |
+| bzm.citrix.client_factory.client_property.connect_timeout_ms | Maximum wait time for CONNECT session event at application start | 90000 (in millis) |
+| bzm.citrix.client_factory.client_property.logon_timeout_ms | Maximum wait time for LOGON session event at application start | 90000 (in millis) |
+| bzm.citrix.client_factory.client_property.activeapp_timeout_ms | Maximum wait time for application become active | 120000 (in millis) |
+| bzm.citrix.client_factory.client_property.logoff_timeout_ms | Maximum wait time for LOGOFF session event at application end | 65000 (in millis) |
 | bzm.citrix.client_factory.client_property.disconnect_timeout_ms  | Maximum wait time for DISCONNECT session event at application end | 65000 (in millis) |
 | **bzm.citrix.default_recording_import_path** | Directory used to decompress during import recording | <JMeterHome>/citrix-recordings/<folder with date and time> |
 | bzm.citrix.ica_downloading_ignore_backends | Allows you to ignore the BackendListeners present in the plan during ICA download | true |

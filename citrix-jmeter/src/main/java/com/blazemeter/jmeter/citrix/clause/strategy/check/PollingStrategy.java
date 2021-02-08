@@ -85,30 +85,26 @@ public class PollingStrategy implements CheckStrategy {
     int index = 1;
     while (!success && System.currentTimeMillis() <= maxTime) {
 
-      // Check clause
-      CheckResult result = null;
+      CheckResult result;
       try {
         LOGGER.debug("Checking at :{} for {}th time", System.currentTimeMillis(), index);
         result = checker.check(client, context);
         success = result.isSuccessful();
-      } catch (CitrixClientException | ClauseComputationException e) {
-        LOGGER.info("Unable to compute clause value at test #{}: {}", index, e.getMessage());
-        LOGGER.debug("Test #{} fail context:", index, e);
-      }
 
-      // Callback function call
-      if (onCheck != null) {
-        onCheck.apply(result, context.getPrevious(), index);
-      }
+        if (onCheck != null) {
+          onCheck.apply(result, context.getPrevious(), index);
+        }
 
-      if (result != null) {
         context.setPrevious(result);
-      }
 
-      if (!success) {
-        // Wait until the next check
-        LOGGER.debug("Sleeping for {}ms before next check", ClauseHelper.CLAUSE_INTERVAL);
-        TimeUnit.MILLISECONDS.sleep(ClauseHelper.CLAUSE_INTERVAL);
+        if (!success) {
+          LOGGER.debug("Sleeping for {}ms before next check", ClauseHelper.CLAUSE_INTERVAL);
+          TimeUnit.MILLISECONDS.sleep(ClauseHelper.CLAUSE_INTERVAL);
+        }
+
+      } catch (CitrixClientException | ClauseComputationException e) {
+        LOGGER.error("Unable to compute clause value at test #{}: {}", index, e);
+        break;
       }
       index++;
     }

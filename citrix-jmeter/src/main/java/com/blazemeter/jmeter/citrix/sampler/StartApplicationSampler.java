@@ -127,14 +127,17 @@ public class StartApplicationSampler extends CitrixBaseSampler
             Thread.currentThread().getName(), getName(),
             e);
       }
+      client = null;
       CitrixSessionHolder.setClient(null);
+      LOGGER.debug("Reset client finished");
     }
   }
 
   @Override
   public void threadFinished() {
-    LOGGER.debug("Thread Finished");
+    LOGGER.debug("Finishing Thread");
     resetClient();
+    LOGGER.debug("Thread Finished");
   }
 
   /*

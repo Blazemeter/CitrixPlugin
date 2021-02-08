@@ -101,7 +101,7 @@ public class ClauseHelper {
       return hashValue.toString();
     } catch (Exception e) {
       String msg = MessageFormat
-          .format("Unable to hash area {0}: {1} useLegacy={}", area, e.getMessage(), useLegacy);
+          .format("Unable to hash area {0}: {1} useLegacy={2}", area, e.getMessage(), useLegacy);
       throw new ClauseComputationException(msg, e);
     }
 
