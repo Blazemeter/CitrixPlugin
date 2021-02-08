@@ -47,6 +47,8 @@ public interface CitrixClient {
    */
   boolean isVisible();
 
+  boolean wasInterrupted();
+
   /**
    * Gets the path of the ICA file used to initialize the Citrix session.
    *

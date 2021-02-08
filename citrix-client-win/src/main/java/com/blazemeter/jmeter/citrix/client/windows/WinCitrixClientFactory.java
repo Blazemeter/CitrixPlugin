@@ -18,6 +18,7 @@ public class WinCitrixClientFactory extends AbstractCitrixClientFactory {
 
   private static final String ICAFILE_TIMEOUT = "icafile_timeout_ms";
   private static final String CONNECT_TIMEOUT = "connect_timeout_ms";
+  private static final String ACTIVEAPP_TIMEOUT = "activeapp_timeout_ms";
   private static final String LOGON_TIMEOUT = "logon_timeout_ms";
   private static final String LOGOFF_TIMEOUT = "logoff_timeout_ms";
   private static final String DISCONNECT_TIMEOUT = "disconnect_timeout_ms";
@@ -38,6 +39,9 @@ public class WinCitrixClientFactory extends AbstractCitrixClientFactory {
     );
     client.setConnectTimeoutInMs(
         getClientPropertyAsLong(CONNECT_TIMEOUT, client.getConnectTimeoutInMs())
+    );
+    client.setActiveAppTimeoutInMs(
+        getClientPropertyAsLong(ACTIVEAPP_TIMEOUT, client.getActiveAppTimeoutInMs())
     );
     client.setLogonTimeoutInMs(
         getClientPropertyAsLong(LOGON_TIMEOUT, client.getLogonTimeoutInMs())

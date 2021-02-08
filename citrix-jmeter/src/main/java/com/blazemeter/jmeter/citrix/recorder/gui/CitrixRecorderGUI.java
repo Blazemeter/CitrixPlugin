@@ -137,7 +137,7 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
 
   private CitrixRecorder recorder;
   private boolean stoppingRecord = false;
-  private boolean waitForDisconnect = false;
+  private boolean expectedDisconnect = false;
   private boolean configuring = false;
   private boolean clearing = false;
 
@@ -855,6 +855,7 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     if (CMD_TOGGLE_RECORDING.equals(actionCommand)) {
       boolean recording = btnToggleRecording.isSelected();
       btnToggleRecording.setSelected(false);
+      expectedDisconnect = !recording;
       toggleRecording(recording, true);
     } else if (CMD_START_APPLICATION.equals(actionCommand)) {
       // handle the start application button
@@ -992,16 +993,12 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
           // if yes is selected, finish the function
         }
         stoppingRecord = true;
-        try {
-          icaDownloadStatus.append("Stopping recorder\n");
-          recorder.stopRecord();
-          waitForDisconnect = true;
-        } catch (CitrixClientException ex) {
-          LOGGER.error("Unable to stop recording: {}", ex.getMessage(), ex);
-          icaDownloadStatus.append(CitrixUtils.getResString("client_exception", false) + "\n");
-        } finally {
-          stoppingRecord = false;
-        }
+        icaDownloadStatus.append("Stopping recorder\n");
+
+        new StopRecording().execute();
+
+        stoppingRecord = false;
+
       }
     }
   }
@@ -1032,17 +1029,29 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
   @Override
   public void onSessionEvent(SessionEvent e) {
     switch (e.getEventType()) {
+      case CONNECT:
+        icaDownloadStatus.append("Citrix Client connected \n");
+        break;
+      case SHOW:
+        icaDownloadStatus.append("Display Citrix Client \n");
+        break;
+      case LOGON:
+        icaDownloadStatus.append("User logged in \n");
+        break;
       case ERROR:
         icaDownloadStatus.append(CitrixUtils.getResString("recorder_alert_error", false) + "\n");
-        toggleRecording(false, false);
+        break;
+      case LOGOFF:
+        if (!expectedDisconnect) {
+          icaDownloadStatus.append("User logged off \n");
+        }
         break;
       case DISCONNECT:
-        if (!waitForDisconnect) {
+        if (!expectedDisconnect) {
           icaDownloadStatus
               .append(CitrixUtils.getResString("recorder_alert_disconnect", false) + "\n");
         }
-        waitForDisconnect = false;
-        toggleRecording(false, false);
+        expectedDisconnect = false;
         break;
       default:
         // NOOP for other events
@@ -1092,8 +1101,11 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
       // TODO: In the future this will be resolved when the concept of mode is implemented
       //  in the client.
       Thread.currentThread().setName("Citrix Recorder 1-1");
+
       recorder.startRecord(icaPath);
-      return Boolean.TRUE;
+      new MonitorRecording().execute();
+
+      return true;
     }
 
     /*
@@ -1103,20 +1115,83 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
      */
     @Override
     protected void done() {
+      progressBar.setValue(2);
       try {
-        progressBar.setValue(2);
         Boolean result = get();
-        if (Boolean.TRUE.equals(result)) {
+        if (result) {
           progressBar.setString("Recording started");
           icaDownloadStatus.append("Recording started\n");
         } else {
           progressBar.setValue(0);
           icaDownloadStatus.append(CitrixUtils.getResString("client_exception", false) + "\n");
+          expectedDisconnect = true;
+          toggleRecording(false, false);
         }
       } catch (InterruptedException | ExecutionException e) {
         progressBar.setValue(0);
-        LOGGER.error("Error occured starting citrix application {}", e.getMessage(), e);
+        Throwable ex = e.getCause();
+        if (ex instanceof CitrixClientException) {
+          icaDownloadStatus.append(
+              "Recorder Error: " +
+                  ((CitrixClientException) ex).code() + " " + ex.getMessage() + "\n");
+        } else {
+          LOGGER.error("Error occurred starting citrix application {}", e.getMessage(), e);
+          icaDownloadStatus.append(CitrixUtils.getResString("client_exception", false) + "\n");
+        }
+        expectedDisconnect = true;
+        toggleRecording(false, false);
+      }
+    }
+  }
+
+  private class MonitorRecording extends SwingWorker<Boolean, Object> {
+
+    @Override
+    protected Boolean doInBackground() throws Exception {
+      long chunkWaitTime = 1000;
+      // Polling over client waiting the finish state
+      while (recorder.clientIsRunning() && !isCancelled()) {
+        Thread.sleep(chunkWaitTime);
+      }
+      return true;
+    }
+
+    @Override
+    protected void done() {
+      try {
+        get();
+      } catch (InterruptedException | ExecutionException e) {
+        LOGGER.error("Error occurred recording citrix application {}", e.getMessage(), e);
         icaDownloadStatus.append(CitrixUtils.getResString("client_exception", false) + "\n");
+      }
+      if (recorder.isRecording()) {
+        toggleRecording(false, false);
+      }
+    }
+  }
+
+  private class StopRecording extends SwingWorker<Boolean, Object> {
+
+    @Override
+    protected Boolean doInBackground() throws Exception {
+      recorder.stopRecord();
+      return true;
+    }
+
+    @Override
+    protected void done() {
+      try {
+        get();
+      } catch (InterruptedException | ExecutionException e) {
+        Throwable ex = e.getCause();
+        if (ex instanceof CitrixClientException) {
+          icaDownloadStatus.append(
+              "Unable to stop Recorder: " +
+                  ((CitrixClientException) ex).code() + " " + ex.getMessage() + "\n");
+        } else {
+          LOGGER.error("Error occurred stopping citrix recorder {}", e.getMessage(), e);
+          icaDownloadStatus.append(CitrixUtils.getResString("client_exception", false) + "\n");
+        }
       }
     }
   }
@@ -1156,13 +1231,15 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
         if (canRecord) {
           StartRecording startRecorder = new StartRecording(path);
           startRecorder.execute();
+        } else {
+          toggleRecording(false, false);
         }
-
       } catch (InterruptedException | ExecutionException e) {
         progressBar.setValue(0);
         LOGGER.error("ICA file downloading error : {}", e.getMessage(), e);
         icaDownloadStatus
             .append(CitrixUtils.getResString("recorder_ica_downloading_failed", false) + "\n");
+        toggleRecording(false, false);
       }
     }
 

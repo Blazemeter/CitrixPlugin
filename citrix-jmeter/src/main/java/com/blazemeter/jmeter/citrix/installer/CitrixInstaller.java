@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,6 @@ public class CitrixInstaller {
   private static final String ALLOW_SIMULATION_API_64_PATH = WINDOWS_64_PREFIX + "\\CCM";
   private static final String ALLOW_SIMULATION_API_KEY = "AllowSimulationAPI";
   private static final String VD_LOAD_UNLOAD_TIMEOUT_KEY = "VdLoadUnLoadTimeOut";
-  private static final String ADD_DWORD = "REG ADD \"%s\" /v \"%s\" /t REG_DWORD /d \"%s\"";
   private static final String REGISTER_OCX =
       "regsvr32 /s \"C:\\Program Files (x86)\\Citrix\\ICA Client\\wfica.ocx\"";
   private static final String SAVESERVICE_EXCERPT =
@@ -64,11 +64,11 @@ public class CitrixInstaller {
         if (model == Architecture.BIT_32) {
           checkRegKey(ALLOW_SIMULATION_API_32_PATH, ALLOW_SIMULATION_API_KEY, "1", infoMsgs,
               errorMsgs);
-          checkRegKey(WINDOWS_32_PREFIX, VD_LOAD_UNLOAD_TIMEOUT_KEY, "1e", infoMsgs, errorMsgs);
+          checkRegKey(WINDOWS_32_PREFIX, VD_LOAD_UNLOAD_TIMEOUT_KEY, "30", infoMsgs, errorMsgs);
         } else {
           checkRegKey(ALLOW_SIMULATION_API_64_PATH, ALLOW_SIMULATION_API_KEY, "1", infoMsgs,
               errorMsgs);
-          checkRegKey(WINDOWS_64_PREFIX, VD_LOAD_UNLOAD_TIMEOUT_KEY, "1e", infoMsgs, errorMsgs);
+          checkRegKey(WINDOWS_64_PREFIX, VD_LOAD_UNLOAD_TIMEOUT_KEY, "30", infoMsgs, errorMsgs);
         }
       }
       if (!errorMsgs.isEmpty()) {
@@ -86,32 +86,27 @@ public class CitrixInstaller {
    * Update saveservice.properties if needed.
    */
   private static void updateSaveService() throws IOException {
-    File self = new File(
-        CitrixInstaller.class.getProtectionDomain().getCodeSource().getLocation().getFile());
+    File self = new File(URLDecoder.decode(
+        CitrixInstaller.class.getProtectionDomain().getCodeSource().getLocation().getFile(),
+        StandardCharsets.UTF_8.toString()
+    ));
     String home = self.getParentFile().getParentFile().getParent();
     File jmeterBinDir = new File(home, "bin");
 
     String excerpt;
-    LOGGER.info("Reading {}", SAVESERVICE_EXCERPT);
     try (
         InputStream inputStream = CitrixInstaller.class.getResourceAsStream(SAVESERVICE_EXCERPT)) {
       excerpt = IOUtils.toString(inputStream, StandardCharsets.ISO_8859_1);
       excerpt = excerpt.replaceAll("\n", "\r\n");
-      LOGGER.info("{} contains {}", SAVESERVICE_EXCERPT, excerpt);
     }
     File saveServiceFile = new File(jmeterBinDir, "saveservice.properties");
     String saveServiceContent;
     try (FileReader fr = new FileReader(saveServiceFile)) {
-      LOGGER.info("Reading {}", saveServiceFile);
       saveServiceContent = IOUtils.toString(fr);
-      LOGGER.info("Read from {} content:{}", saveServiceFile, saveServiceContent);
     }
     if (!saveServiceContent
         .contains("_com.blazemeter.jmeter.citrix.sampler.CitrixSampleResultConverter=collection")) {
-      LOGGER.info("Will add to {} content:{}", saveServiceFile, excerpt);
       FileUtils.write(saveServiceFile, "\r\n" + excerpt, StandardCharsets.ISO_8859_1.name(), true);
-    } else {
-      LOGGER.info("File {} already contains {}", saveServiceFile, excerpt);
     }
   }
 
@@ -231,7 +226,7 @@ public class CitrixInstaller {
       String versionPath = model == Architecture.BIT_32 ? key32 : key64;
       LOGGER.info("Checking registry key in HKLM path:{}, key:{}", versionPath, "Version");
       String value =
-          WinRegistry.valueForKey(WinRegistry.HKEY_LOCAL_MACHINE, versionPath, "Version");
+          WinRegistry.getValueForKey(WinRegistry.HKEY_LOCAL_MACHINE, versionPath, "Version");
       if (StringUtils.isEmpty(value)) {
         errors.add(
             "No Citrix Client Receiver is installed, install it to be able to use this plugin");
@@ -250,34 +245,32 @@ public class CitrixInstaller {
     }
   }
 
-  private static boolean checkRegKey(String path, String key, String expectedValueAsHex,
+  private static boolean checkRegKey(String path, String key, String expectedValue,
                                      List<String> infoMsgs, List<String> errors) {
     try {
       LOGGER.info("Checking registry key in HKLM path:{}, key:{}", path, key);
-      String value = WinRegistry.valueForKey(WinRegistry.HKEY_LOCAL_MACHINE, path, key);
+      String value = WinRegistry.getValueForKey(WinRegistry.HKEY_LOCAL_MACHINE, path, key);
       LOGGER.info("Got registry key in HKLM path:{}, key:{}, value:{}", path, key, value);
       if (StringUtils.isEmpty(value)) {
-        return createRegKey(path, key, Integer.toString(Integer.parseInt(expectedValueAsHex, 16)),
-            infoMsgs, errors);
-      } else if (!("0x" + expectedValueAsHex).equals(value)) {
+        return createRegKey(path, key, expectedValue, infoMsgs, errors);
+      } else if (!(expectedValue).equals(value)) {
         LOGGER.warn(
             "Found registry key in HKLM path:{}, key:{}, value:{}, expected value should be:{}",
-            path, key, value, expectedValueAsHex);
+            path, key, value, expectedValue);
         errors.add("Found registry key:" + key + " in path:" + path + " with value:" + value +
-            ", but value is not correct, change it to:" + expectedValueAsHex);
+            ", but value is not correct, change it to:" + expectedValue);
         return false;
       } else {
         LOGGER.info("Found registry key in HKLM path:{}, key:{}, value:{} exv:{}", path, key, value,
-            expectedValueAsHex);
+            expectedValue);
         infoMsgs.add("Found registry key:" + key + " in path:" + path + " with value:" + value);
-        return ("0x" + expectedValueAsHex).equals(value);
+        return true;
       }
     } catch (Exception ex) {
       LOGGER.error("Error accessing registry key in HKLM path:{}, key:{}", path, key, ex);
       errors.add("Error reading registry key:" + key + " in path:" + path + " trying to set to:" +
-          expectedValueAsHex + ", error:" + ex.getMessage());
-      return createRegKey(path, key, Integer.toString(Integer.parseInt(expectedValueAsHex, 16)),
-          infoMsgs, errors);
+          expectedValue + ", error:" + ex.getMessage());
+      return createRegKey(path, key, expectedValue, infoMsgs, errors);
     }
   }
 
@@ -286,9 +279,8 @@ public class CitrixInstaller {
     try {
       LOGGER.info("Adding registry key in HKLM path:{}, key:{} to value:{}", path, key,
           expectedValue);
-      // REG ADD \"%s\" /v \"%s\" /t REG_DWORD /d \"%s\"
-      if (runCommand(String.format(ADD_DWORD, "HKEY_LOCAL_MACHINE\\" + path, key, expectedValue),
-          infoMsgs, errors)) {
+      if (WinRegistry.setIntValueForKey(WinRegistry.HKEY_LOCAL_MACHINE, path, key,
+          Integer.parseInt(expectedValue))) {
         infoMsgs
             .add("Updated registry key:" + key + " in path:" + path + " to value:" + expectedValue);
       } else {

@@ -13,8 +13,6 @@ import com.blazemeter.jmeter.citrix.client.events.SessionEvent.EventType;
 import com.blazemeter.jmeter.citrix.client.factory.AbstractCitrixClientFactory;
 import com.blazemeter.jmeter.citrix.sampler.SamplerRunException.ErrorCode;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -161,9 +159,10 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
     try {
       doClientAction(client);
     } catch (CitrixClientException e) {
-      throw new SamplerRunException(e.code(),
-          e.getMessage() + ":" +
-              CitrixUtils.getResString("base_sampler_response_code_error_client_action", false), e);
+      throw new SamplerRunException(e.code(), e.getMessage(), e);
+    } catch (Exception e) {
+      throw new SamplerRunException(CitrixClientException.ErrorCode.UNKNOWN_ERROR.toString(),
+          e.getMessage(), e);
     } finally {
       client.removeHandler(handler);
       LOGGER.debug("Stops listening Citrix client after sampling operations");
@@ -195,8 +194,10 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
       // Wait for end clause and register intermediate results
       LOGGER.debug("On sampler {} waits for end clause using {} strategy", getName(), checkType);
 
+      boolean success = false;
+
       try {
-        boolean success = checkType.wait(clause, client, (checkResult, previous, i) -> {
+        success = checkType.wait(clause, client, (checkResult, previous, i) -> {
           // Build response message
           String detail = checkType.name() + " #" + i + ": ";
           if (checkResult != null) {
@@ -220,21 +221,15 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
           details.offer(detail);
         });
 
-        if (!success) {
-          throw new SamplerRunException(ErrorCode.CLAUSE_TIMEOUT,
-              CitrixUtils.getResString("base_sampler_clause_timeout", false));
-        } else {
-          if (lastSnapshot[0] == null) {
-            LOGGER
-                .debug("On sampler {} didn't get snapshot using strategy {}", getName(), checkType);
-            try {
-              lastSnapshot[0] = client.takeSnapshot();
-              LOGGER.debug("On sampler {} created a default snapshot {}", getName(), checkType);
-            } catch (CitrixClientException ex) {
-              LOGGER.info("On sampler {} is not able to get default snapshot: {}", getName(),
-                  ex.getMessage());
-              LOGGER.debug("Default snapshot on sampler {} fail context:", getName(), ex);
-            }
+        if (lastSnapshot[0] == null) {
+          LOGGER
+              .debug("On sampler {} didn't get snapshot using strategy {}", getName(), checkType);
+          try {
+            lastSnapshot[0] = client.takeSnapshot();
+            LOGGER.debug("On sampler {} created a default snapshot {}", getName(), checkType);
+          } catch (CitrixClientException ex) {
+            LOGGER.warn("On sampler {} is not able to get default snapshot: {}", getName(),
+                ex);
           }
         }
       } finally {
@@ -243,6 +238,10 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 
         // Store the last screenshot as response data
         result.setSnapshot(lastSnapshot[0]);
+      }
+      if (!success) {
+        throw new SamplerRunException(ErrorCode.CLAUSE_TIMEOUT,
+            CitrixUtils.getResString("base_sampler_clause_timeout", false));
       }
     } else {
       LOGGER.debug("Does not wait for end clause because none is defined");
@@ -253,9 +252,9 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
   public final SampleResult sample(Entry e) {
     final CitrixSampleResult result = SamplerResultHelper.createResult(this);
     result.sampleStart();
+    // Check the Citrix client state
+    CitrixClient client = CitrixSessionHolder.getClient();
     try {
-      // Check the Citrix client state
-      CitrixClient client = CitrixSessionHolder.getClient();
       if (client == null) {
         LOGGER.debug("Create Client");
         client = createClient();
@@ -277,17 +276,23 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
       // No exception so sampling is ok
       SamplerResultHelper.setResultOk(result);
     } catch (SamplerRunException ex) {
-      // Store exception message in sample result
       result.setResponseCode(ex.code());
       result.setResponseMessage(ex.getMessage());
-      StringWriter sw = new StringWriter();
-      ex.printStackTrace(new PrintWriter(sw));
-      result.setResponseData(sw.toString(), SampleResult.DEFAULT_HTTP_ENCODING);
-      LOGGER.error(sw.toString(), ex);
+      LOGGER.error("Sample error {}", ex.code(), ex);
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
+      LOGGER.debug("Sample interrupted", ex);
       result.setResponseCode(CitrixUtils.getResString("base_sampler_interrupted", false));
     } finally {
+      if (client != null && !result.hasSnapshot()) {
+        try {
+          result.setSnapshot(client.takeSnapshot());
+        } catch (CitrixClientException ex) {
+          LOGGER.warn("Unable to add snapshot to sampler without one on {}",
+              getName());
+        }
+      }
+
       // Stop sample
       result.sampleEnd();
     }

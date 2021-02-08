@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.imageio.ImageIO;
 import org.slf4j.Logger;
@@ -275,15 +276,22 @@ public class WinCitrixClient extends AbstractCitrixClient {
               "Timed out waiting for OnConnect");
         }
       }
-      if (waitUserLogged(getLogonTimeoutInMs()) || !isUserLogged()) {
-        throw new CitrixClientException(ErrorCode.LOGON_TIMEOUT, "Timed out waiting for Logon"
-        );
-      } else if (waitUserActiveApp(getActiveAppTimeoutInMs()) || !isAppActive()) {
-        throw new CitrixClientException(ErrorCode.ACTIVEAPP_TIMEOUT,
-            "Timed out waiting for Active App");
+      if (waitUserActiveApp(getActiveAppTimeoutInMs()) || !isAppActive()) {
+        if (icaClient.session() != null && icaClient.session().foregroundWindow() == null) {
+          throw new CitrixClientException(ErrorCode.SESSION_ERROR,
+              "The user session was not in the expected state");
+        } else {
+          throw new CitrixClientException(ErrorCode.ACTIVEAPP_TIMEOUT,
+              "Timed out waiting for Active App");
+        }
       }
     } catch (CitrixClientException e) {
-      throw e; // Elevate
+      if (!icaClient.connected() && wasInterrupted()) {
+        throw new CitrixClientException(ErrorCode.SESSION_INTERRUPTED,
+            "The user session was unexpectedly interrupted");
+      } else {
+        throw e;
+      }
     } catch (Exception e) {
       throw new CitrixClientException(
           ErrorCode.START_SESSION_ERROR,
@@ -314,33 +322,26 @@ public class WinCitrixClient extends AbstractCitrixClient {
     mouse = null;
     keyboard = null;
 
-    boolean expired;
-
-    if (icaClient.session() != null) {
-      try {
-        icaClient.logoff();
-      } catch (Exception e) {
-        LOGGER.error("Unable to logoff session", e);
+    Long logoffTimeout = getLogoffTimeoutInMs();
+    long totalLogoffTime = 0L;
+    long chunkLogoffTime = 1000L;
+    doAsyncLogoff();
+    while (isSessionAvailable() && totalLogoffTime < logoffTimeout) {
+      // Force again Logoff, ensure message to the server under heavy load
+      doAsyncLogoff();
+      if (!waitUserLogoff(chunkLogoffTime)) {
+        break;
       }
-
-      if (waitUserLogoff(getLogoffTimeoutInMs())) {
-        LOGGER.warn("Timed out waiting for Logoff");
-        sessionCookie = null;
-      }
+      totalLogoffTime += chunkLogoffTime;
     }
-
-    try {
-      if (icaClient.session() != null) {
-        LOGGER.debug("Disconnecting ICA client");
-        icaClient.disconnect();
-        if (waitDisconnect(getDisconnectTimeoutInMs())) {
-          LOGGER.warn("Timed out waiting for Disconnect");
-        }
-      }
-    } catch (Exception e) {
-      LOGGER.error("Unable to disconnect session", e);
+    if (totalLogoffTime >= logoffTimeout) {
+      LOGGER.warn("Timed out waiting for Logoff");
+      // Logoff generate a disconnection, only when logoff fail force disconnect
+      doAsyncDisconnect();
     }
+    LOGGER.debug("Logoff time:{}", totalLogoffTime);
 
+    sessionCookie = null;
     eventsCookie = null;
     session = null;
 
@@ -351,6 +352,34 @@ public class WinCitrixClient extends AbstractCitrixClient {
       LOGGER.error("Unable to dispose icaClient", e);
     }
     icaClient = null;
+
+    LOGGER.debug("ICA client Disposed");
+  }
+
+  private boolean isSessionAvailable() {
+    // Only when foregroundWindow is null when session unavailable
+    try {
+      return (icaClient.session().foregroundWindow() != null);
+    } catch (Exception e) {
+      // Any type of exception is an indication of a session loss.
+      // Whether the instance does not exist or in its nested methods.
+      // Exception is not logged because it is an expected condition
+      return false;
+    }
+  }
+
+  private void doAsyncLogoff() {
+    // Internally logoff() is asynchronous.
+    // For some reason the method does not return control quickly.
+    // It would go to asynchronous execution since no waiting is required.
+    CompletableFuture.runAsync(() -> icaClient.logoff());
+  }
+
+  private void doAsyncDisconnect() {
+    // Internally disconnect() is asynchronous.
+    // For some reason the method does not return control quickly.
+    // It would go to asynchronous execution since no waiting is required.
+    CompletableFuture.runAsync(() -> icaClient.disconnect());
   }
 
   private IScreenShot createScreenshot(Rectangle selection) throws CitrixClientException {
@@ -379,16 +408,24 @@ public class WinCitrixClient extends AbstractCitrixClient {
   }
 
   private void saveScreenshot(IScreenShot screenshot, File file) throws CitrixClientException {
-    try {
-      screenshot.filename(file.getAbsolutePath());
-      screenshot.save();
-    } catch (ComException e) {
+    int saveAttemptsLimit = 3;
+    screenshot.filename(file.getAbsolutePath());
+    // Save may fail for unknown reasons generating a COM error.
+    // When it is retried it works.
+    // In case it doesn't work, the last exception is raised
+    Exception lastException = null;
+    for (int i = 0; i < saveAttemptsLimit; ++i) {
+      try {
+        screenshot.save();
+        break;
+      } catch (Exception e) {
+        lastException = e;
+      }
+    }
+    if (lastException != null) {
       String msg = MessageFormat.format(
-          "Unable to save screenshot " +
-              "{0} session state is running={1}, connected={2}, visible={3}, userLogged={4}: {5}",
-          file.getAbsolutePath(), isRunning(), isConnected(), isVisible(), isUserLogged(),
-          e.getMessage());
-      throw new CitrixClientException(ErrorCode.SCREENSHOT_ERROR, msg, e);
+          "Unable to save screenshot {0}", lastException.getMessage());
+      throw new CitrixClientException(ErrorCode.SCREENSHOT_ERROR, msg, lastException);
     }
   }
 
@@ -723,7 +760,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
       @Override
       public void onDisconnect() {
         super.onDisconnect();
-        LOGGER.debug("On Disconnect");
+        LOGGER.debug("On Disconnect Interrupted:{}", wasInterrupted());
         if (isUserLogged()) {
           notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.LOGOFF));
         }
