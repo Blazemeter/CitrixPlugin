@@ -356,6 +356,7 @@ public class ClauseBuilderPanel extends JPanel implements ActionListener, DragGe
       String value = checkType.assess(pnlImage.getImage(), pnlImage.getSelection(), null);
       taClauseValue.setText(value);
     } catch (ClauseComputationException ex) {
+      LOGGER.error("Unable to compute expected value : {}", ex.getMessage(), ex);
       DialogHelper.showError(CitrixUtils.getResString("clause_builder_computation_error", false));
       taClauseValue.setText("");
     }

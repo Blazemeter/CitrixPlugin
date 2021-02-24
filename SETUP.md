@@ -45,7 +45,7 @@ Here is the list of configurable properties,  **non bold** properties should be 
 | **bzm.citrix.selection_color** | Color of the selection mask expressed as R,G,B | 0,255,0 which is Green |
 | **bzm.citrix.hightlight_color** | Color of the highlight mask expressed as R,G,B | 255,0,0 which is Green |
 | **bzm.citrix.ocr_language** | Language used for text recognition | eng |
-| **bzm.citrix.ocr_data_path** | Folder containing data for OCR recognition | temp folder |
+| **bzm.citrix.ocr_data_path** | Custom text recognition data folder with language trained data files (Tesseract data format) | user temp folder |
 | **bzm.citrix.ocr_default_dpi** | Images default dpi used by OCR | 70 |
 | **bzm.citrix.capture_max_size** | The maximum number of user interactions that can be recorded on the same capture WARNING !!! **A value too high can lead to insufficient memory** | 500 |
 | **bzm.citrix.ica_downloading_ignore_timers** | Ignore timers when downloading ICA during recording | true |
