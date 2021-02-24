@@ -4,6 +4,9 @@ import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import net.sourceforge.tess4j.Tesseract1;
 import net.sourceforge.tess4j.TesseractException;
@@ -43,7 +46,25 @@ public final class OcrManager {
    */
   public OcrManager() {
     // Initialize and set up Tesseract instance
-    String dataPath = StringUtils.isBlank(OCR_DATA_PATH) ? getExtractedDataPath() : OCR_DATA_PATH;
+    String dataPath = "";
+    if (!StringUtils.isBlank(OCR_DATA_PATH)) {
+      Path tessDataPath = Paths.get(OCR_DATA_PATH);
+      Path tessDataDictionary = Paths.get(tessDataPath.toString(), OCR_LANGUAGE + ".traineddata");
+      if (!Files.isDirectory(tessDataPath)) {
+        LOGGER.error("OCR_DATA_PATH not exists: {}. Value is ignored and default value is used.",
+            OCR_DATA_PATH);
+      } else if (Files.notExists(tessDataDictionary)) {
+        LOGGER.error("OCR_DATA_PATH appears not to be a Tesseract data directory: {} not found. " +
+                "Value is ignored and default value is used.",
+            tessDataDictionary.toAbsolutePath().toString());
+      } else {
+        dataPath = Paths.get(OCR_DATA_PATH).toAbsolutePath().toString();
+      }
+    }
+    if (StringUtils.isBlank(dataPath)) {
+      dataPath = getExtractedDataPath();
+    }
+
     tessInstance = new Tesseract1();
 
     LOGGER.debug("OCR manager {} uses language '{}'", this, OCR_LANGUAGE);
