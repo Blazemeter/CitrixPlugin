@@ -282,18 +282,24 @@ public class CitrixInstaller {
       if (WinRegistry.setIntValueForKey(WinRegistry.HKEY_LOCAL_MACHINE, path, key,
           Integer.parseInt(expectedValue))) {
         infoMsgs
-            .add("Updated registry key:" + key + " in path:" + path + " to value:" + expectedValue);
+            .add("Updated registry key:" + key + " in HKLM path:" + path + " to value:" +
+                expectedValue);
       } else {
-        infoMsgs.add("Could not update registry key:" + key + " in path:" + path + " to value:" +
-            expectedValue + ", check you are running as local Administrator");
+        String msgError =
+            "Could not update registry key:" + key + " in HKLM path:" + path + " to value:" +
+                expectedValue + ", check you are running as local Administrator";
+        LOGGER.error(msgError);
+        errors.add(msgError);
+        return false;
       }
       return true;
     } catch (Exception ex) {
-      errors.add(
-          "Error creating/updating registry key:" + key + " in path:" + path + " with value:" +
+      String msgError =
+          "Error creating/updating registry key:" + key + " in HKLM path:" + path + " with value:" +
               expectedValue
-              + ",check you are running as local Administrator, error:" + ex.getMessage());
-      LOGGER.error("Error modifying registry key in HKLM path:{}, key:{}", path, key, ex);
+              + ",check you are running as local Administrator, error:" + ex.getMessage();
+      LOGGER.error(msgError, ex);
+      errors.add(msgError);
       return false;
     }
   }

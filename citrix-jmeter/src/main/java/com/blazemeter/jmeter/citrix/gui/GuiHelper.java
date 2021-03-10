@@ -5,12 +5,17 @@ import com.blazemeter.jmeter.citrix.clause.Clause;
 import com.blazemeter.jmeter.citrix.clause.gui.ClauseBuilderPanel;
 import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
+import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 public class GuiHelper {
 
@@ -54,6 +59,7 @@ public class GuiHelper {
   }
 
   public static Clause buildClause(Snapshot snapshot, Set<CheckType> checkTypes) {
+
     if (snapshot == null) {
       throw new IllegalArgumentException("snapshot must not be null");
     }
@@ -64,10 +70,30 @@ public class GuiHelper {
     if (checkTypes != null) {
       panel.setCheckTypes(checkTypes);
     }
-    int reponse = JOptionPane.showOptionDialog(null, panel,
+    final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+    panel.addHierarchyListener(e -> {
+      Window window = SwingUtilities.getWindowAncestor(panel);
+      if (window instanceof Dialog) {
+        Dialog dialog = (Dialog) window;
+        Insets bounds =
+            Toolkit.getDefaultToolkit().getScreenInsets(dialog.getGraphicsConfiguration());
+        if (!dialog.isResizable()) {
+          dialog.setResizable(true);
+          panel.setPreferredSize(
+              new Dimension(
+                  (int) ((screenSize.getWidth() - bounds.left - bounds.right) * 0.8),
+                  (int) ((screenSize.getHeight() - bounds.top - bounds.bottom) * 0.8)
+              )
+          );
+        }
+      }
+    });
+
+    int response = JOptionPane.showOptionDialog(null, panel,
         CitrixUtils.getResString("clause_builder_popup_title", false), JOptionPane.DEFAULT_OPTION,
         JOptionPane.PLAIN_MESSAGE, null,
         new String[] {CitrixUtils.getResString("clause_builder_popup_validate", false)}, null);
-    return 0 == reponse ? panel.getClause() : null;
+    return 0 == response ? panel.getClause() : null;
   }
 }
