@@ -860,8 +860,9 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     } else if (CMD_START_APPLICATION.equals(actionCommand)) {
       // handle the start application button
       btnAppStarted.setSelected(false);
-      recorder.createStartApplicationSampler();
-      toggleAppStartedUI(true);
+      if (recorder.createStartApplicationSampler()) {
+        toggleAppStartedUI(true);
+      }
     } else if (CMD_TOGGLE_TEXT_CAPTURE.equals(actionCommand)) {
       // Handle the recording buttons
       boolean selected = btnCaptureText.isSelected();
@@ -925,6 +926,7 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
   }
 
   private void toggleRecordingUI(boolean recording) {
+    btnToggleRecording.setEnabled(true);
     if (recording) {
       btnToggleRecording.setText(getStopRecordingText());
       btnToggleRecording.setIcon(STOP_IMAGE);
@@ -956,6 +958,7 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     if (startRecording) {
       if (!recorder.isRecording() && checkRecordingPrerequisites()) {
         progressBar.setIndeterminate(true);
+        btnToggleRecording.setEnabled(false);
         downloadIcaAndRecord();
       }
     } else {

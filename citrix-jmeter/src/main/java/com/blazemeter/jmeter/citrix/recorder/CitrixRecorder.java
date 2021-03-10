@@ -454,7 +454,7 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
     return new SampleEvent(SamplerResultHelper.buildOkResult(sampler, snapshot), "Citrix Recorder");
   }
 
-  public void createStartApplicationSampler() {
+  public boolean createStartApplicationSampler() {
     if (isRecording()) {
       final String name = CitrixUtils.getResString(StartApplicationSamplerGUI.RSC_TITLE, false);
       StartApplicationSampler sampler = new StartApplicationSampler();
@@ -471,14 +471,15 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
         if (clause != null) {
           clause.setTimeout(clauseTimeout);
           sampler.setEndClause(clause);
+          notifySampleListeners(buildOkEvent(sampler, snapshot));
+          insertSamplersToPlan(Collections.singletonList(sampler));
+          return true;
         }
       } catch (CitrixClientException e) {
         LOGGER.error("Unable to get snapshot at application start", e);
-      } finally {
-        notifySampleListeners(buildOkEvent(sampler, snapshot));
-        insertSamplersToPlan(Collections.singletonList(sampler));
       }
     }
+    return false;
   }
 
   public String getStepName() {

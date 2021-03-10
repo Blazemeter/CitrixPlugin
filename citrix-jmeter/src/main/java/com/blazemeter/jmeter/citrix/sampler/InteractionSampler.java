@@ -373,12 +373,14 @@ public class InteractionSampler extends CitrixBaseSampler {
         keystrokes.add(new Keystroke(keyUp, true, false));
       }
     }
-    // Last keystroke always force a delay
-    Keystroke lastKeystroke = keystrokes.get(keystrokes.size() - 1);
-    keystrokes.set(
-        keystrokes.size() - 1,
-        new Keystroke(lastKeystroke.keyCode, lastKeystroke.keyUp, true)
-    );
+    if (keystrokes.size() > 0) {
+      // Last keystroke always force a delay
+      Keystroke lastKeystroke = keystrokes.get(keystrokes.size() - 1);
+      keystrokes.set(
+          keystrokes.size() - 1,
+          new Keystroke(lastKeystroke.keyCode, lastKeystroke.keyUp, true)
+      );
+    }
     return keystrokes;
   }
 
