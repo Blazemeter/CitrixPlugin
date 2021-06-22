@@ -21,15 +21,19 @@ public class SampleHelperTest {
       super(type);
     }
 
-    protected void  addCaptureKeyEvent(
+    protected void addCaptureKeyEvent(
         CitrixClient client, int keyCode, int modifier) {
       this.items.add(new CaptureItem(
-          new InteractionEvent(client, KeyState.KEY_DOWN, keyCode,
+          new InteractionEvent(client, client.getForegroundWindowID(),
+              client.getForegroundWindowArea(),
+              KeyState.KEY_DOWN, keyCode,
               EventHelper.toModifiers(modifier)
           )
       ));
       this.items.add(new CaptureItem(
-          new InteractionEvent(client, KeyState.KEY_UP, keyCode,
+          new InteractionEvent(client, client.getForegroundWindowID(),
+              client.getForegroundWindowArea(),
+              KeyState.KEY_UP, keyCode,
               EventHelper.toModifiers(0) // Always KeyUp lost the modifier state
           )
       ));

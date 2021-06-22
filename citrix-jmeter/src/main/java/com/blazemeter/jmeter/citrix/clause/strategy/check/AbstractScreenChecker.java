@@ -19,6 +19,8 @@ public abstract class AbstractScreenChecker implements ClientChecker, Screenshot
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractScreenChecker.class);
 
+  private static final int MINIMUM_AREA_PIXELS = 2;
+
   private final ScreenshotAssessor screenshotAssessor;
 
   /**
@@ -81,6 +83,19 @@ public abstract class AbstractScreenChecker implements ClientChecker, Screenshot
   @Override
   public String assess(BufferedImage image, Rectangle selection, PollingContext context)
       throws ClauseComputationException {
+
+    if (image != null && selection != null) {
+      if (selection.x >= image.getWidth() || selection.y >= image.getHeight()) {
+        throw new ClauseComputationException("Selection area outside visible window");
+      }
+      if (selection.height < MINIMUM_AREA_PIXELS) {
+        selection.height = MINIMUM_AREA_PIXELS;
+      }
+      if (selection.width < MINIMUM_AREA_PIXELS) {
+        selection.height = MINIMUM_AREA_PIXELS;
+      }
+    }
+
     return screenshotAssessor.assess(image, selection, context);
   }
 

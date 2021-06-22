@@ -199,6 +199,8 @@ public interface CitrixClient {
 
   void setCheckActiveAppPeriod(int period);
 
+  int getForegroundWindowID();
+
   class Snapshot {
     private final Rectangle fgWindowArea;
     private final BufferedImage screenshot;

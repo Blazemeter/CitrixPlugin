@@ -24,6 +24,7 @@ Here is the list of configurable properties,  **non bold** properties should be 
 | bzm.citrix.client_factory.client_property.horizontal_resolution | Screen horizontal resolution |  |
 | bzm.citrix.client_factory.client_property.vertical_resolution | Screen vertical resolution |  |
 | bzm.citrix.client_factory.client_property.color_depth | Color depth, use Color16 to get 16 colors, Color256 to get 256 color, Color16Bit to get high colors (16bpp), Color24Bit to get true colors (24bpp), Keep it empty to let the client decide | |        
+| bzm.citrix.client_factory.client_property.scaling | Allow resolution scaling on client | false |
 | bzm.citrix.client_factory.client_property.socket_timeout_ms | JMeterProperty that defines the socket timeout of Receiver in Milliseconds | 5000 (in millis) |  |
 | bzm.citrix.clause_check_interval | Interval for the timing of clause checks | 1000 (in millis) |
 | bzm.citrix.clause_check_timeout | Default time period (in ms) during which a clause must be validated | 3000 (in millis) |
@@ -52,5 +53,7 @@ Here is the list of configurable properties,  **non bold** properties should be 
 | **bzm.citrix.ica_downloading_ignore_backends** | Ignore timers when downloading ICA during recording | true |
 | **bzm.citrix.keystroke_delay** | Default delay between keystrokes | 100 |
 | **bzm.citrix.keystroke_delay_variation** | Default variation added to delay between keystrokes | 10                                        |
+| **bzm.citrix.mouse_click_delay** | Default delay between mouse clicks | 1000 |
+| **bzm.citrix.mouse_click_delay_variation** | Default variation added to delay between mouse clicks | 10                                        |
 
 

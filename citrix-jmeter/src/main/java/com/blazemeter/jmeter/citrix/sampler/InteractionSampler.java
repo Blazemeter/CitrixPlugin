@@ -32,6 +32,10 @@ public class InteractionSampler extends CitrixBaseSampler {
       .getPropDefault(CitrixUtils.PROPERTIES_PFX + "keystroke_delay", 100);
   public static final long KEYSTROKE_DELAY_VARIATION = JMeterUtils
       .getPropDefault(CitrixUtils.PROPERTIES_PFX + "keystroke_delay_variation", 10);
+  public static final long MOUSE_CLICK_DELAY = JMeterUtils
+      .getPropDefault(CitrixUtils.PROPERTIES_PFX + "mouse_click_delay", 1000);
+  public static final long MOUSE_CLICK_DELAY_VARIATION = JMeterUtils
+      .getPropDefault(CitrixUtils.PROPERTIES_PFX + "mouse_click_delay_variation", 10);
   private static final Logger LOGGER = LoggerFactory.getLogger(InteractionSampler.class);
   private static final long serialVersionUID = 6076968592699324616L;
   private static final RandomDataGenerator VARIATION_GENERATOR = new RandomDataGenerator();
@@ -57,8 +61,13 @@ public class InteractionSampler extends CitrixBaseSampler {
   }
 
   // Gets the next duration variation for waiting times between keystrokes
-  private static long getNextVariation() {
+  private static long getKeyStrokeNextVariation() {
     return VARIATION_GENERATOR.nextLong(-KEYSTROKE_DELAY_VARIATION, KEYSTROKE_DELAY_VARIATION);
+  }
+
+  // Gets the next duration variation for waiting times between mouse clicks
+  private static long getMouseClickNextVariation() {
+    return VARIATION_GENERATOR.nextLong(-MOUSE_CLICK_DELAY_VARIATION, MOUSE_CLICK_DELAY_VARIATION);
   }
 
   private boolean isUnVersionedTestElement() {
@@ -278,6 +287,7 @@ public class InteractionSampler extends CitrixBaseSampler {
         if (isDoubleClick()) {
           sampleClick(client);
         }
+        delayMouseClick(getSamplerType());
         break;
       case MOUSE_SEQUENCE:
         sampleMouseSequence(client);
@@ -285,6 +295,12 @@ public class InteractionSampler extends CitrixBaseSampler {
       default:
         break;
     }
+  }
+
+  private void delayMouseClick(SamplerType samplerType) throws InterruptedException {
+    long delay = MOUSE_CLICK_DELAY + getMouseClickNextVariation();
+    LOGGER.trace("{} {} waits {}ms before next mouse click", getThreadName(), samplerType, delay);
+    TimeUnit.MILLISECONDS.sleep(delay);
   }
 
   private void sampleClick(CitrixClient client) throws CitrixClientException {
@@ -312,7 +328,7 @@ public class InteractionSampler extends CitrixBaseSampler {
     }
     client.sendKeyQuery(keyCode, keyUp);
     if (withDelay) {
-      long delay = KEYSTROKE_DELAY + getNextVariation();
+      long delay = KEYSTROKE_DELAY + getKeyStrokeNextVariation();
       LOGGER.trace("{} waits {}ms before next key stroke", getThreadName(), delay);
       TimeUnit.MILLISECONDS.sleep(delay);
     }
@@ -413,6 +429,7 @@ public class InteractionSampler extends CitrixBaseSampler {
             mouseSequence.size());
       }
       for (MouseSequenceItem item : mouseSequence) {
+        boolean buttonUP = item.getAction() == MouseAction.BUTTON_UP;
         TimeUnit.MILLISECONDS.sleep(item.getDelay());
         final int x = item.getX();
         final int y = item.getY();
@@ -427,9 +444,12 @@ public class InteractionSampler extends CitrixBaseSampler {
           LOGGER.trace(
               "{} sends mouse buttons change {}: X={}, Y={}, relative={}, buttons={}, modifiers={}",
               getThreadName(), item.getAction(), x, y, relative, buttons, modifiers);
-          client.sendMouseButtonQuery(item.getAction() == MouseAction.BUTTON_UP, buttons, x, y,
+          client.sendMouseButtonQuery(buttonUP, buttons, x, y,
               modifiers,
               relative);
+        }
+        if (buttonUP) {
+          delayMouseClick(getSamplerType());
         }
       }
     }

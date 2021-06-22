@@ -2,6 +2,7 @@ package com.blazemeter.jmeter.citrix.client.events;
 
 import com.blazemeter.jmeter.citrix.client.CitrixClient;
 import com.blazemeter.jmeter.citrix.client.Win32Utils;
+import java.awt.Rectangle;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -10,7 +11,9 @@ import java.util.Set;
  */
 public class InteractionEvent extends ClientEvent {
 
-  private static final long serialVersionUID = 4255880303186322061L;
+  private static final long serialVersionUID = 4255838475686322061L;
+  private final int windowID;
+  private final Rectangle foregroundWindowArea;
   private final InteractionType interactionType;
   private final Set<Modifier> modifiers;
   // Key specific
@@ -30,9 +33,12 @@ public class InteractionEvent extends ClientEvent {
    * @param keyCode   the code of pressed key
    * @param modifiers the set of pressed modifier keys
    */
-  public InteractionEvent(CitrixClient source, KeyState state, int keyCode,
+  public InteractionEvent(CitrixClient source, int windowID, Rectangle foregroundWindowArea,
+                          KeyState state, int keyCode,
                           Set<Modifier> modifiers) {
     super(source);
+    this.windowID = windowID;
+    this.foregroundWindowArea = foregroundWindowArea;
     interactionType = InteractionType.KEY;
     this.modifiers = modifiers != null ? EnumSet.copyOf(modifiers) : EnumSet.noneOf(Modifier.class);
 
@@ -55,10 +61,13 @@ public class InteractionEvent extends ClientEvent {
    * @param buttons     the set of pressed mouse buttons
    * @param modifiers   the set of pressed modifier keys
    */
-  public InteractionEvent(CitrixClient source, MouseAction mouseAction, int x, int y,
+  public InteractionEvent(CitrixClient source, int windowID, Rectangle foregroundWindowArea,
+                          MouseAction mouseAction, int x, int y,
                           Set<MouseButton> buttons,
                           Set<Modifier> modifiers) {
     super(source);
+    this.windowID = windowID;
+    this.foregroundWindowArea = foregroundWindowArea;
     interactionType = InteractionType.MOUSE;
     this.modifiers = modifiers != null ? EnumSet.copyOf(modifiers) : EnumSet.noneOf(Modifier.class);
 
@@ -156,6 +165,14 @@ public class InteractionEvent extends ClientEvent {
 
   public String getModifiersText() {
     return EventHelper.getModifiersText(getModifiers());
+  }
+
+  public int getWindowID() {
+    return this.windowID;
+  }
+
+  public Rectangle getForegroundWindowArea() {
+    return this.foregroundWindowArea;
   }
 
   /**

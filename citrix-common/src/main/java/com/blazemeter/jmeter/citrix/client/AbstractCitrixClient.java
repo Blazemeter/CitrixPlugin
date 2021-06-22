@@ -420,7 +420,7 @@ public abstract class AbstractCitrixClient implements CitrixClient {
       String msg =
           "Unable to define absolute coordinates whereas no foreground window area is set.";
       LOGGER.error(msg);
-      throw new IllegalStateException(msg);
+      return null;
     }
     final Point position = new Point(area.x + relativePosition.x, area.y + relativePosition.y);
     if (LOGGER.isTraceEnabled()) {
@@ -441,12 +441,28 @@ public abstract class AbstractCitrixClient implements CitrixClient {
     if (relative) {
       origPosition = new Point(x, y);
       position = getAbsolutePosition(origPosition);
+      if (position == null) {
+        // Wait for active window
+        try {
+          if (!waitWindowActive()) {
+            throw new CitrixClientException(CitrixClientException.ErrorCode.ACTIVEAPP_TIMEOUT,
+                "Timed out waiting for Active Window");
+          } else {
+            position = getAbsolutePosition(origPosition);
+          }
+        } catch (InterruptedException e) {
+          throw new CitrixClientException(CitrixClientException.ErrorCode.ACTIVEAPP_TIMEOUT,
+              "Wait for Active Window Interrupted");
+        }
+      }
     } else {
       origPosition = null;
       position = new Point(x, y);
     }
     action.accept(position, origPosition);
   }
+
+  protected abstract boolean waitWindowActive() throws InterruptedException;
 
   @Override
   public final void sendMouseButtonQuery(boolean buttonUp, Set<MouseButton> buttons, int x, int y,
