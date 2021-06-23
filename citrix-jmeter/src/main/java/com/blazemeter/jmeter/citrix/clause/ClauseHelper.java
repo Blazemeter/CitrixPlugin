@@ -8,6 +8,7 @@ import com.github.kilianB.hashAlgorithms.PerceptiveHash;
 import com.github.kilianB.matcher.Hash;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.awt.image.RasterFormatException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -84,8 +85,15 @@ public class ClauseHelper {
     if (area != null) {
       Rectangle bounds = new Rectangle(image.getWidth(), image.getHeight());
       Rectangle intersection = bounds.intersection(area);
-      target = image
-          .getSubimage(intersection.x, intersection.y, intersection.width, intersection.height);
+      try {
+        target = image
+            .getSubimage(intersection.x, intersection.y, intersection.width, intersection.height);
+      } catch (RasterFormatException e) {
+        LOGGER.debug("Image Width: {} Height: {} Area: {} Intersection: {} ", image.getWidth(),
+            image.getHeight(), area.toString(), intersection.toString());
+        LOGGER.error("Error in SubImage", e);
+        throw e;
+      }
     }
 
     boolean useLegacy = (context != null && isHashLegacy(context.getClause().getExpectedValue()));

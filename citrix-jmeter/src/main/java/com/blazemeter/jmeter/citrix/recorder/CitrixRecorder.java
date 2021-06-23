@@ -111,6 +111,7 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
   public CitrixRecorder() {
 
     // Initialize recordingHandler
+    LOGGER.debug("Create recordingHandler");
     recordingHandler = new RecordingHandler(this,
         // time-stamp on log on and relay any session events to handler
         e -> {
@@ -302,11 +303,15 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
               s -> notifySampleListeners(buildOkEvent(s, s == lastSampler ? shot : null)));
           insertSamplersToPlan(samplers);
         }
+      } else {
+        LOGGER.debug("Capture without samplers");
       }
 
       if (handler != null) {
         handler.onCaptureChanged(null);
       }
+    } else {
+      LOGGER.debug("No capture for {}", clauseType);
     }
   }
 
@@ -640,6 +645,8 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
         default:
           break;
       }
+    } else {
+      LOGGER.debug("Capture empty");
     }
     return samplers;
   }

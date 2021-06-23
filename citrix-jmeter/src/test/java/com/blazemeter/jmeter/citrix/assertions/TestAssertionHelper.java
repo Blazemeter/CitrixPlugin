@@ -60,6 +60,14 @@ public class TestAssertionHelper {
   }
 
   @Test
+  public void shouldAllowHashWhenAreaIsOutsideVisibleArea() throws ClauseComputationException {
+    // The same image generate the same hash any time
+    Rectangle area = new Rectangle(new Point(400, 300), new Dimension(300, 300));
+
+    String hash1 = ClauseHelper.hash(image_same_01, area, null);
+  }
+
+  @Test
   public void testHashRepeatability() throws ClauseComputationException {
     // The same image generate the same hash any time
     String hash1 = ClauseHelper.hash(image_same_01, null, null);

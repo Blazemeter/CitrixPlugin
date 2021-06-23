@@ -62,12 +62,18 @@ public class RecordingHandler extends SessionErrorLogger {
         CaptureItem item = currentCapture.handleInteractionEvent(event);
         if (item != null) {
           captureManager.onCaptureItemAdded(item);
-          LOGGER.trace("Has captured event {} with label {}", event.getInteractionType(),
+          LOGGER.debug("Has captured event {} with label {}", event.getInteractionType(),
               item.getLabel());
         }
       } catch (CaptureLimitException e) {
         LOGGER.debug("Detects maximum capture size {} is reached", e.getSize());
         captureManager.onCaptureSizeExceeded();
+      } catch (Exception ex) {
+        LOGGER.error("Exception handling interaction event", ex);
+      }
+    } else {
+      if (isCapturing()) {
+        LOGGER.debug("No capture handler for interaction event");
       }
     }
   }

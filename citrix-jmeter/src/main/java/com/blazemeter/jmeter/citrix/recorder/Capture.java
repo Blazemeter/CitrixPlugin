@@ -1,6 +1,5 @@
 package com.blazemeter.jmeter.citrix.recorder;
 
-import com.blazemeter.jmeter.citrix.client.CitrixClient;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent.InteractionType;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent.MouseAction;
@@ -71,7 +70,7 @@ public class Capture {
         && (eventType != InteractionType.MOUSE || event.getMouseAction() != MouseAction.MOVE
         || mouseCaptureOptions.contains(MouseCaptureOption.INCLUDE_MOVES));
     if (LOGGER.isTraceEnabled()) {
-      if (isMatching) {
+      if (!isMatching) {
         LOGGER.trace(
             "Discarding interaction with " +
                 "type={} and mouseAction={} while capture type={} and mouseCaptureOptions={}",
@@ -102,38 +101,48 @@ public class Capture {
         item = new CaptureItem(event);
         addItem(item);
       } else { // InteractionType.MOUSE
-        if (mouseCaptureOptions.contains(MouseCaptureOption.RELATIVE_TO_FOREGROUND)) {
-          Rectangle foreground = null;
-          final CitrixClient client = event.getSource();
-          if (client != null) {
-            foreground = client.getForegroundWindowArea();
-          }
+        if (isRelative()) {
+          Rectangle foreground = event.getForegroundWindowArea();
+          int windowID = event.getWindowID();
           if (foreground == null) {
             String msg =
-                "Unable to get foreground window area from Citrix client " +
-                    "whereas relative capture is in progress.";
-            LOGGER.error(msg);
-            throw new IllegalStateException(msg);
-          }
+                "No active window detected while in relative mode. Using absolute coordinates.";
+            LOGGER.debug(msg);
 
-          final int x = event.getX();
-          final int y = event.getY();
-          if (foreground.contains(x, y)) {
-            final int relX = x - foreground.x;
-            final int relY = y - foreground.y;
-            LOGGER.trace(
-                "Adapting interaction coordinates" +
-                    " (X={}, Y={}) to foreground {} results in new coordinates (X={}, Y={})",
-                x, y, foreground, relX, relY);
-            InteractionEvent mouseEvent =
-                new InteractionEvent(event.getSource(), event.getMouseAction(),
-                    relX, relY, event.getButtons(), event.getModifiers());
-            item = new CaptureItem(mouseEvent);
+            // When relative is not possible, send it in absolute and fix it in post-process
+            item = new CaptureItem(event);
             addItem(item);
-          } else if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(
-                "Discarding mouse interaction not contained in foreground {} with X={}, Y={}",
-                foreground, x, y);
+
+          } else {
+
+            final int x = event.getX();
+            final int y = event.getY();
+            if (foreground.contains(x, y)) {
+              final int relX = x - foreground.x;
+              final int relY = y - foreground.y;
+              LOGGER.debug(
+                  "Adapting interaction coordinates" +
+                      " (X={}, Y={}) to foreground {} results in new coordinates (X={}, Y={})",
+                  x, y, foreground, relX, relY);
+              InteractionEvent mouseEvent =
+                  new InteractionEvent(event.getSource(), windowID, foreground,
+                      event.getMouseAction(),
+                      relX, relY, event.getButtons(), event.getModifiers());
+              item = new CaptureItem(mouseEvent);
+              addItem(item);
+            } else {
+              LOGGER.debug(
+                  "Mouse interaction not contained in foreground, " +
+                      "migrating to absolute {} with X={}, Y={}",
+                  foreground, x, y);
+
+              InteractionEvent mouseEvent =
+                  new InteractionEvent(event.getSource(), 0, null,
+                      event.getMouseAction(),
+                      event.getX(), event.getY(), event.getButtons(), event.getModifiers());
+              item = new CaptureItem(mouseEvent);
+              addItem(item);
+            }
           }
 
         } else {

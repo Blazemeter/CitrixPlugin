@@ -294,3 +294,61 @@ Open regedit.exe and set the following key to disable dpi scaling:
     Location : HKEY_CURRENT_USER\Software\Citrix\ICA Client\DPI
     Name : Enable_DPI
     Data : dword:00000000
+
+---
+
+## OutOfMemoryError: Java heap space error
+
+JMeter has a set of default settings that allow the application to run without memory problems in most cases.
+However, under some circumstances, an `OutOfMemoryError` can occur.
+When the error occurs, this indicates that the configuration should be changed to consider the current memory usage.
+
+
+#### Solution
+
+In general, the `OutOfMemoryError` is due to the design of JMeter components and how they store information in the application memory for display.
+
+One of the main memory consumers are the `listeners`.
+
+#### 1. First, let's allocate as much memory as possible for 32-bit Java.
+
+Locate the directory where `jmeter.bat` is located and edit it with a text editor.
+
+Add after the line `@echo` the following line:
+```
+set HEAP=-Xms1024M -Xmx1024M -XX:MaxMetaspaceSize=256M
+```
+This allocates as much memory as possible to JMeter for the future runs.
+
+**Source:** [JMeter Wiki: JMeter keeps getting "Out of Memory" errors. What can I do?](https://cwiki.apache.org/confluence/display/JMETER/JMeterFAQ#JMeterFAQ-JMeterkeepsgetting%22OutofMemory%22errors.WhatcanIdo?)
+
+#### 2. Set a proper limit for the View Result Tree listener.
+
+Locate `user.properties` file and open them with a text editor.
+
+Add the following line to the configuration:
+```
+view.results.tree.max_results = 80
+``` 
+View Result Tree by default shows the last 500 items on the screen.
+
+This consumes memory and can cause long tests to end up with an `OutOfMemoryError`.
+
+Depending on the type of test you are running, the amount of information that JMeter stores may exceed the available memory.
+
+The recommended setting limits only the last 80 results to remain visible to ensure that all memory is not consumed.
+
+You can try increasing the value until you find the one best suited for the type of test you are running.
+
+**Source:** [JMeter View Results Tree documentation reference](https://jmeter.apache.org/usermanual/component_reference.html#View_Results_Tree)
+
+#### Final notes
+
+With the previous recommendations, in general, most of the problems with memory management in JMeter are solved.
+
+In case they are not enough, there is also a good article available from BlazeMeter that tries to summarize other possible solutions to other possible causes of memory error.
+
+[BlazeMeter: 9 Easy Solutions for a JMeter Load Test “Out of Memory” Failure](https://www.blazemeter.com/blog/9-easy-solutions-jmeter-load-test-%E2%80%9Cout-memory%E2%80%9D-failure)
+
+In case you can't find a solution, don't forget to contact support.
+

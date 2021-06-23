@@ -15,6 +15,7 @@ public class WinCitrixClientFactory extends AbstractCitrixClientFactory {
   private static final String HORIZONTAL_RESOLUTION_PROPERTY = "horizontal_resolution";
   private static final String VERTICAL_RESOLUTION_PROPERTY = "vertical_resolution";
   private static final String COLOR_DEPTH_PROPERTY = "color_depth";
+  private static final String SCALING_PROPERTY = "scaling";
 
   private static final String ICAFILE_TIMEOUT = "icafile_timeout_ms";
   private static final String CONNECT_TIMEOUT = "connect_timeout_ms";
@@ -68,6 +69,12 @@ public class WinCitrixClientFactory extends AbstractCitrixClientFactory {
     if (!getClientProperty(COLOR_DEPTH_PROPERTY).isEmpty()) {
       client.setDesiredColorDepth(
           Enum.valueOf(ICAColorDepth.class, getClientProperty(COLOR_DEPTH_PROPERTY))
+      );
+    }
+
+    if (!getClientProperty(SCALING_PROPERTY).isEmpty()) {
+      client.setScalingEnabled(
+          Boolean.parseBoolean(getClientProperty(SCALING_PROPERTY))
       );
     }
 

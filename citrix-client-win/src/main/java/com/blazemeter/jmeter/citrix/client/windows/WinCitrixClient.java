@@ -18,6 +18,7 @@ import com.blazemeter.jmeter.citrix.client.events.WindowEvent.WindowState;
 import com.blazemeter.jmeter.citrix.client.windows.com4j.ClassFactory;
 import com.blazemeter.jmeter.citrix.client.windows.com4j.ICAColorDepth;
 import com.blazemeter.jmeter.citrix.client.windows.com4j.ICAEvent;
+import com.blazemeter.jmeter.citrix.client.windows.com4j.ICAScalingMode;
 import com.blazemeter.jmeter.citrix.client.windows.com4j.ICAWindowType;
 import com.blazemeter.jmeter.citrix.client.windows.com4j.IICAClient;
 import com.blazemeter.jmeter.citrix.client.windows.com4j.IKeyboard;
@@ -87,6 +88,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
   private boolean replayMode;
   private boolean visibleWindow;
+  private boolean scalingEnabled = false;
 
   @Override
   public void onVisible() {
@@ -104,6 +106,11 @@ public class WinCitrixClient extends AbstractCitrixClient {
       icaClient.setWindowPosition(winType, winPosXY, winPosXY, winAreaRelativeToScreenFlag);
     }
 
+    if (!isScalingEnabled()) {
+      icaClient.scalingMode(ICAScalingMode.ScalingModeDisabled);
+      icaClient.scaleDisable();
+    }
+
     LOGGER.info(
         "Sess: des_dim={}x{}, des_depth={}bpp, dim={}x{}, depth={}bpp, Scr: dim={}x{}, depth={}bpp",
         getDesiredHRes(), getDesiredVRes(), getDesiredColorDepth(), icaClient.getSessionWidth(),
@@ -113,7 +120,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
   }
 
   protected boolean isAppActive() {
-    if (session != null) {
+    if (isSessionSet()) {
       IWindow window = session.foregroundWindow();
       if (window != null) {
         LOGGER.debug("Active Window: c={} id={} w={} h={}", window.caption(), window.windowID(),
@@ -239,10 +246,32 @@ public class WinCitrixClient extends AbstractCitrixClient {
     this.desiredColorDepth = colorDepth;
   }
 
+  public boolean isScalingEnabled() {
+    return this.scalingEnabled;
+  }
+
+  public void setScalingEnabled(boolean scalingEnabled) {
+    this.scalingEnabled = scalingEnabled;
+  }
+
   @Override
   public Rectangle getForegroundWindowArea() {
-    WindowInfo info = fgKey != null ? windowInfos.get(fgKey) : null;
-    return info != null ? new Rectangle(info.getArea()) : null;
+    if (!isSessionSet()) {
+      return null;
+    }
+    IWindow window = session.foregroundWindow();
+    return window != null ? new Rectangle(
+        window.positionX(), window.positionY(), window.width(), window.height()
+    ) : null;
+  }
+
+  @Override
+  public int getForegroundWindowID() {
+    if (!isSessionSet()) {
+      return 0;
+    }
+    IWindow window = session.foregroundWindow();
+    return window != null ? window.windowID() : 0;
   }
 
   @Override
@@ -277,7 +306,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
         }
       }
       if (waitUserActiveApp(getActiveAppTimeoutInMs()) || !isAppActive()) {
-        if (icaClient.session() != null && icaClient.session().foregroundWindow() == null) {
+        if (!isSessionAvailable()) {
           throw new CitrixClientException(ErrorCode.SESSION_ERROR,
               "The user session was not in the expected state");
         } else {
@@ -309,6 +338,10 @@ public class WinCitrixClient extends AbstractCitrixClient {
       totalWaitActiveApp += chunckWaitActiveApp;
     }
     return totalWaitActiveApp >= timeout;
+  }
+
+  public boolean waitWindowActive() throws InterruptedException {
+    return !(waitUserActiveApp(getActiveAppTimeoutInMs()) || !isAppActive());
   }
 
   @Override
@@ -347,7 +380,9 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
     try {
       LOGGER.debug("Disposing ICA client");
-      icaClient.dispose();
+      if (icaClient != null) {
+        icaClient.dispose();
+      }
     } catch (Exception e) {
       LOGGER.error("Unable to dispose icaClient", e);
     }
@@ -359,7 +394,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
   private boolean isSessionAvailable() {
     // Only when foregroundWindow is null when session unavailable
     try {
-      return (icaClient.session().foregroundWindow() != null);
+      return (icaClient.session() != null && icaClient.session().foregroundWindow() != null);
     } catch (Exception e) {
       // Any type of exception is an indication of a session loss.
       // Whether the instance does not exist or in its nested methods.
@@ -389,8 +424,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
           "Unable to create screenshot when ICA client is not running."
       );
     }
-    ISession session = icaClient.session();
-    if (session == null) {
+    if (!isSessionSet()) {
       throw new CitrixClientException(ErrorCode.SCREENSHOT_ERROR,
           "Unable to create screenshot whereas Citrix session is not available.");
     }
@@ -534,6 +568,40 @@ public class WinCitrixClient extends AbstractCitrixClient {
     notifyHandlers(createWindowEvent(WindowState.FOREGROUND, info));
   }
 
+  private void notifyKeyEvent(KeyState state, int keyCode,
+                              int modifiers) {
+    notifyHandlers(new InteractionEvent(WinCitrixClient.this,
+        WinCitrixClient.this.getForegroundWindowID(),
+        WinCitrixClient.this.getForegroundWindowArea(),
+        state, keyCode, EventHelper.toModifiers(modifiers)));
+
+  }
+
+  private void notifyMouseEvent(MouseAction mouseAction, int x, int y,
+                                int buttons,
+                                int modifiers) {
+    notifyHandlers(new InteractionEvent(WinCitrixClient.this,
+        WinCitrixClient.this.getForegroundWindowID(),
+        WinCitrixClient.this.getForegroundWindowArea(),
+        mouseAction, x, y, EventHelper.toButtons(buttons),
+        EventHelper.toModifiers(modifiers)
+    ));
+
+  }
+
+  private void notifySessionEvent(EventType eventType) {
+    notifyHandlers(new SessionEvent(WinCitrixClient.this, eventType));
+  }
+
+  private void notifySessionEvent(EventType eventType, int errorCode) {
+    notifyHandlers(new SessionEvent(WinCitrixClient.this, eventType, errorCode));
+  }
+
+  private void notifyWindowEvent(WindowEvent.WindowState state,
+                                 WindowInfo info) {
+    notifyHandlers(createWindowEvent(state, info));
+  }
+
   private void attachEvents() {
     // Set events handlers
     eventsCookie = icaClient.advise(_IICAClientEvents.class, new ICAClientAdapter(icaClient) {
@@ -587,7 +655,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
         LOGGER.error("On Connect Failed!");
         logLastError();
 
-        notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.CONNECT_FAIL));
+        notifySessionEvent(EventType.CONNECT_FAIL);
       }
 
       @Override
@@ -596,11 +664,10 @@ public class WinCitrixClient extends AbstractCitrixClient {
 
         LOGGER.debug("On Connect");
 
-        session = icaClient.session();
-        if (session == null) {
+        setSession();
+        if (!isSessionSet()) {
           LOGGER.debug("ICA session in not available while client connects");
-          notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.ERROR,
-              KnownError.UNAVAILABLE_SESSION.getCode()));
+          notifySessionEvent(EventType.ERROR, KnownError.UNAVAILABLE_SESSION.getCode());
         } else {
 
           sessionCookie = session.advise(_ISessionEvents.class, new SessionAdapter() {
@@ -673,15 +740,13 @@ public class WinCitrixClient extends AbstractCitrixClient {
             @Override
             public void onKeyDown(int keyId, int modifierState) {
               super.onKeyDown(keyId, modifierState);
-              notifyHandlers(new InteractionEvent(WinCitrixClient.this, KeyState.KEY_DOWN, keyId,
-                  EventHelper.toModifiers(modifierState)));
+              notifyKeyEvent(KeyState.KEY_DOWN, keyId, modifierState);
             }
 
             @Override
             public void onKeyUp(int keyId, int modifierState) {
               super.onKeyUp(keyId, modifierState);
-              notifyHandlers(new InteractionEvent(WinCitrixClient.this, KeyState.KEY_UP, keyId,
-                  EventHelper.toModifiers(modifierState)));
+              notifyKeyEvent(KeyState.KEY_UP, keyId, modifierState);
             }
           });
 
@@ -689,62 +754,58 @@ public class WinCitrixClient extends AbstractCitrixClient {
             @Override
             public void onMouseDown(int buttonState, int modifierState, int xPos, int yPos) {
               super.onMouseDown(buttonState, modifierState, xPos, yPos);
-              notifyHandlers(
-                  new InteractionEvent(WinCitrixClient.this, MouseAction.BUTTON_DOWN, xPos,
-                      yPos, EventHelper.toButtons(buttonState),
-                      EventHelper.toModifiers(modifierState)));
+              notifyMouseEvent(MouseAction.BUTTON_DOWN, xPos, yPos,
+                  buttonState, modifierState);
             }
 
             @Override
             public void onMouseUp(int buttonState, int modifierState, int xPos, int yPos) {
               super.onMouseUp(buttonState, modifierState, xPos, yPos);
-              notifyHandlers(
-                  new InteractionEvent(WinCitrixClient.this, MouseAction.BUTTON_UP, xPos, yPos,
-                      EventHelper.toButtons(buttonState), EventHelper.toModifiers(modifierState)));
+              notifyMouseEvent(MouseAction.BUTTON_UP, xPos, yPos, buttonState,
+                  modifierState);
             }
 
             @Override
             public void onMove(int buttonState, int modifierState, int xPos, int yPos) {
               super.onMove(buttonState, modifierState, xPos, yPos);
-              notifyHandlers(
-                  new InteractionEvent(WinCitrixClient.this, MouseAction.MOVE, xPos, yPos,
-                      EventHelper.toButtons(buttonState), EventHelper.toModifiers(modifierState)));
+              notifyMouseEvent(MouseAction.MOVE, xPos, yPos, buttonState,
+                  modifierState);
             }
 
           });
         }
-        notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.CONNECT));
+        notifySessionEvent(EventType.CONNECT);
       }
 
       @Override
       public void onLogonFailed() {
         super.onLogonFailed();
-        notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.LOGON_FAIL));
+        notifySessionEvent(EventType.LOGON_FAIL);
       }
 
       @Override
       public void onLogon() {
         super.onLogon();
-        notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.LOGON));
+        notifySessionEvent(EventType.LOGON);
       }
 
       @Override
       public void onLogoffFailed() {
         super.onLogoffFailed();
-        notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.LOGOFF_FAIL));
+        notifySessionEvent(EventType.LOGOFF_FAIL);
       }
 
       @Override
       public void onWindowDisplayed(int wndType) {
         super.onWindowDisplayed(wndType);
-        notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.SHOW));
+        notifySessionEvent(EventType.SHOW);
       }
 
       @Override
       public void onWindowDestroyed(int wndType) {
         super.onWindowDestroyed(wndType);
         // Depends on wndType ?
-        notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.HIDE));
+        notifySessionEvent(EventType.HIDE);
       }
 
       @Override
@@ -752,9 +813,9 @@ public class WinCitrixClient extends AbstractCitrixClient {
         super.onDisconnectFailed();
         LOGGER.debug("On Disconnect Failed!");
         if (isUserLogged()) {
-          notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.LOGOFF_FAIL));
+          notifySessionEvent(EventType.LOGOFF_FAIL);
         }
-        notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.DISCONNECT_FAIL));
+        notifySessionEvent(EventType.DISCONNECT_FAIL);
       }
 
       @Override
@@ -762,9 +823,9 @@ public class WinCitrixClient extends AbstractCitrixClient {
         super.onDisconnect();
         LOGGER.debug("On Disconnect Interrupted:{}", wasInterrupted());
         if (isUserLogged()) {
-          notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.LOGOFF));
+          notifySessionEvent(EventType.LOGOFF);
         }
-        notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.DISCONNECT));
+        notifySessionEvent(EventType.DISCONNECT);
       }
 
       /* (non-Javadoc)
@@ -773,7 +834,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
       @Override
       public void onICAFile() {
         super.onICAFile();
-        notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.ICAFILE));
+        notifySessionEvent(EventType.ICAFILE);
       }
 
       /* (non-Javadoc)
@@ -783,9 +844,17 @@ public class WinCitrixClient extends AbstractCitrixClient {
       public void onICAFileFailed() {
         super.onICAFileFailed();
         LOGGER.error("ICAFileFailed");
-        notifyHandlers(new SessionEvent(WinCitrixClient.this, EventType.ICAFILE_FAIL));
+        notifySessionEvent(EventType.ICAFILE_FAIL);
       }
     });
+  }
+
+  private void setSession() {
+    session = icaClient.session();
+  }
+
+  private boolean isSessionSet() {
+    return session != null;
   }
 
   private EventCookie attachWindow(IWindow window) {
@@ -801,7 +870,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
           area.setLocation(xPos, yPos);
           LOGGER.debug("Sets window position={} to window {}", area.getLocation(),
               this.getWindowID());
-          notifyHandlers(createWindowEvent(WindowState.CHANGE_AREA, winInfo));
+          notifyWindowEvent(WindowState.CHANGE_AREA, winInfo);
         } else {
           LOGGER.debug("Should not happen : Unable to move the disposed window {}",
               this.getWindowID());
@@ -816,7 +885,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
           final Rectangle area = winInfo.getArea();
           area.setSize(width, height);
           LOGGER.debug("Sets window dimension={} to window {}", area.getSize(), this.getWindowID());
-          notifyHandlers(createWindowEvent(WindowState.CHANGE_AREA, winInfo));
+          notifyWindowEvent(WindowState.CHANGE_AREA, winInfo);
         } else {
           LOGGER.debug("Should not happen : Unable to resize the disposed window {}",
               this.getWindowID());
@@ -833,7 +902,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
         windowCookies.get(this.getWindowID()).close();
         windowCookies.remove(this.getWindowID());
         LOGGER.debug("Removes window info of window {}", this.getWindowID());
-        notifyHandlers(createWindowEvent(WindowState.CLOSED, winInfo));
+        notifyWindowEvent(WindowState.CLOSED, winInfo);
       }
 
       @Override
@@ -843,7 +912,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
         if (winInfo != null) {
           winInfo.setCaption(caption);
           LOGGER.debug("Sets window caption={} to window {}", caption, this.getWindowID());
-          notifyHandlers(createWindowEvent(WindowState.CHANGE_CAPTION, winInfo));
+          notifyWindowEvent(WindowState.CHANGE_CAPTION, winInfo);
         } else {
           LOGGER.debug(
               "Should not happen : Unable to change caption of the disposed window {}",
@@ -857,7 +926,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
         final WindowInfo winInfo = windowInfos.get(this.getWindowID());
         if (winInfo != null) {
           LOGGER.debug("Activates window {}", this.getWindowID());
-          notifyHandlers(createWindowEvent(WindowState.ACTIVATED, winInfo));
+          notifyWindowEvent(WindowState.ACTIVATED, winInfo);
         } else {
           LOGGER.debug("Should not happen : Unable to activate the disposed window {}",
               this.getWindowID());
@@ -870,7 +939,7 @@ public class WinCitrixClient extends AbstractCitrixClient {
         final WindowInfo winInfo = windowInfos.get(this.getWindowID());
         if (winInfo != null) {
           LOGGER.debug("Deactivates window {}", this.getWindowID());
-          notifyHandlers(createWindowEvent(WindowState.DEACTIVATED, winInfo));
+          notifyWindowEvent(WindowState.DEACTIVATED, winInfo);
         } else {
           LOGGER.debug("Should not happen : Unable to deactivate the disposed window {}",
               this.getWindowID());

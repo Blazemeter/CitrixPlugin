@@ -7,6 +7,7 @@ import com.blazemeter.jmeter.citrix.recorder.Capture;
 import com.blazemeter.jmeter.citrix.recorder.CaptureItem;
 import com.blazemeter.jmeter.citrix.sampler.gui.InteractionSamplerGUI;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -122,8 +123,9 @@ public class SamplerHelper {
 
             LOGGER.debug(
                 "Initializing sampler from last capture " +
-                    "(keyState={}, keyCode={}) of group {} wich contains {} captures.",
-                lastItem.getEvent().getKeyState(), lastItem.getEvent().getKeyCode(), group.type,
+                    "(winID={}, keyState={}, keyCode={}) of group {} wich contains {} captures.",
+                lastItem.getEvent().getWindowID(), lastItem.getEvent().getKeyState(),
+                lastItem.getEvent().getKeyCode(), group.type,
                 group.items.size());
 
             // Initialize sampler depending on group type
@@ -220,8 +222,30 @@ public class SamplerHelper {
     MouseCaptureGroup currentGroup = new MouseCaptureGroup(MouseSamplerType.SEQUENCE);
     CaptureItem lastBtnDown = null;
     MouseCaptureGroup lastMouseClick = null;
+    int lastWindowID = 0;
+    InteractionEvent lastEvent = null;
     for (CaptureItem capture : items) {
       final InteractionEvent event = capture.getEvent();
+
+      LOGGER.debug("Captured: WindowID {}, Action {}", event.getWindowID(), event.getMouseAction());
+      if (lastEvent != null) {
+        // Group events based on windows area detected
+        Rectangle lastForeground = lastEvent.getForegroundWindowArea();
+        Rectangle currentForeground = event.getForegroundWindowArea();
+        if (!Objects.equals(lastForeground, currentForeground)) {
+          LOGGER.debug("Captured: Focus Windows Area change, create separate group, {}, {}",
+              lastEvent.getForegroundWindowArea(),
+              event.getForegroundWindowArea()
+          );
+          if (!currentGroup.captures.isEmpty()) {
+            LOGGER.debug("Save the current group");
+            groups.add(currentGroup);
+          }
+          LOGGER.debug("Create new group");
+          currentGroup = new MouseCaptureGroup(MouseSamplerType.SEQUENCE);
+          lastBtnDown = null;
+        }
+      }
       switch (event.getMouseAction()) {
         case BUTTON_DOWN:
           lastBtnDown = capture;
@@ -260,6 +284,7 @@ public class SamplerHelper {
         default:
           break;
       }
+      lastEvent = event;
     }
     if (!currentGroup.captures.isEmpty()) {
       groups.add(currentGroup);
@@ -293,8 +318,16 @@ public class SamplerHelper {
 
             LOGGER.debug(
                 "Initializing sampler from last capture" +
-                    " (mouseAction={}) of group {} wich contains {} captures.",
-                lastItem.getEvent().getMouseAction(), group.type, group.captures.size());
+                    " (windowID={}, relative={}, fq={}, mouseAction={}) of group {} " +
+                    "which contains {} captures.",
+                lastItem.getEvent().getWindowID(), capture.isRelative(),
+                lastItem.getEvent().getForegroundWindowArea() != null,
+                lastItem.getEvent().getMouseAction(),
+                group.type, group.captures.size());
+
+            if (capture.isRelative()) {
+              sampler.setRelative(lastItem.getEvent().getForegroundWindowArea() != null);
+            }
 
             // Initialize sampler depending on group type
             switch (group.type) {
