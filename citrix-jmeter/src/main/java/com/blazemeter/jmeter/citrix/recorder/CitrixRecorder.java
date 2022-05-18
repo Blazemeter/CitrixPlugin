@@ -77,6 +77,8 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
   private static final long serialVersionUID = 1194210414410846275L;
   private static final Logger LOGGER = LoggerFactory.getLogger(CitrixRecorder.class);
 
+  private static final String RECORDER_FROM_TEMPLATE_PROPERTY = "CitrixRecorder.from_template";
+
   // Name of the property used to save the path to the controller used to download
   // ICA file
   private static final String DOWNLOADING_CONTROLLER_PATH =
@@ -326,8 +328,6 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
   private Optional<Path> tryICAFileDownloading() throws JMeterEngineException {
     Optional<Path> icaFile = Optional.empty();
     if (!SKIP_ICA_FILE_DOWNLOADING) {
-
-      // Get the current test plan and normalize it
       GuiPackage gui = GuiPackage.getInstance();
       HashTree testTree = gui.getTreeModel().getTestPlan();
       // Ensure Module and Include controllers are setup
@@ -752,5 +752,48 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
 
     void onSessionEvent(SessionEvent e);
   }
+  
+  public void setStorefrontURL(String storefrontURL) {
+    setProperty("storefrontURL", storefrontURL);
+  }
+  
+  public String getStorefrontURL() {
+    return getPropertyAsString("storefrontURL");
+  }
 
+  public void setUsername(String username) {
+    setProperty("username", username);
+  }
+  
+  public String getUsername() {
+    return getPropertyAsString("username");
+  }
+  
+  public void setPassword(String password) {
+    setProperty("password", password);
+  }
+
+  public String getPassword() {
+    return getPropertyAsString("password");
+  }
+
+  public void setDomain(String domain) {
+    setProperty("domain", domain);
+  }
+
+  public String getDomain() {
+    return getPropertyAsString("domain");
+  }
+
+  public void setApplicationName(String applicationName) {
+    setProperty("applicationName", applicationName);
+  }
+
+  public String getApplicationName() {
+    return getPropertyAsString("applicationName");
+  }
+
+  public boolean isFromTemplate() {
+    return getPropertyAsBoolean(RECORDER_FROM_TEMPLATE_PROPERTY, false);
+  }
 }

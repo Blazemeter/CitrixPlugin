@@ -33,7 +33,7 @@
 ### Java version 
 * Install **OpenJDK 8 or higher for x86 architecture or i586 equivalent version** (not 64 bits !)
   
-  It is recommended to use OpenJDK 11 (LTS) provided by AdoptOpenJDK. [Download from here](https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.10%2B9/OpenJDK11U-jdk_x86-32_windows_hotspot_11.0.10_9.msi).
+  It is recommended to use OpenJDK 11 (LTS) provided by Adoptium from Eclipse Foundation. [Download from here](https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.15%2B10/OpenJDK11U-jdk_x86-32_windows_hotspot_11.0.15_10.msi).
   
 * Install Apache JMeter
 

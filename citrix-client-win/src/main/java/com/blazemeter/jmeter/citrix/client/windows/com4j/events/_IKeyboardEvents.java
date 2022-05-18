@@ -8,7 +8,7 @@ import com4j.IID;
  */
 @SuppressWarnings("checkstyle:TypeName")
 @IID("{8A5961DF-314E-4B7C-B57F-AAF35EA33079}")
-public abstract class _IKeyboardEvents {
+public abstract class _IKeyboardEvents { // NOSONAR
   // Methods:
 
   /**

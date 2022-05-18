@@ -141,7 +141,7 @@ public abstract class AbstractCitrixClient implements CitrixClient {
       for (Map.Entry<String, Profile.Section> section : ini.entrySet()) {
         for (Map.Entry<String, String> keyEntry : section.getValue().entrySet()) {
 
-          if ("connectionbar".equals(keyEntry.getKey().toLowerCase())
+          if ("connectionbar".equalsIgnoreCase(keyEntry.getKey())
               && "1".equals(keyEntry.getValue())) {
             keyEntry.setValue("0");
             icaModified = true;

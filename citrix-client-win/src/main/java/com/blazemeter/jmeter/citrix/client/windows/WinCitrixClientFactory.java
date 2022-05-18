@@ -3,12 +3,8 @@ package com.blazemeter.jmeter.citrix.client.windows;
 import com.blazemeter.jmeter.citrix.client.CitrixClient;
 import com.blazemeter.jmeter.citrix.client.factory.AbstractCitrixClientFactory;
 import com.blazemeter.jmeter.citrix.client.windows.com4j.ICAColorDepth;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WinCitrixClientFactory extends AbstractCitrixClientFactory {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(WinCitrixClientFactory.class);
 
   private static final String SCREENSHOT_DIR_PROPERTY = "screenshots_dir";
   private static final String KEEP_SCREENSHOTS_PROPERTY = "keep_screenshots";

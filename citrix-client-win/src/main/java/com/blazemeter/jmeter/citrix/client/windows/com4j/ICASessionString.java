@@ -11,17 +11,17 @@ public enum ICASessionString {
    * The value of this constant is 0.
    * </p>
    */
-  SessionServer, // 0
+  SessionServer, //NOSONAR // 0
   /**
    * <p>
    * The value of this constant is 1.
    * </p>
    */
-  SessionUsername, // 1
+  SessionUsername, //NOSONAR // 1
   /**
    * <p>
    * The value of this constant is 2.
    * </p>
    */
-  SessionDomain, // 2
+  SessionDomain, //NOSONAR // 2
 }

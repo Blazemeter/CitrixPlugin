@@ -1,14 +1,18 @@
 package com.blazemeter.jmeter.citrix.utils;
 
 import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.ListModel;
 import org.apache.jmeter.control.Controller;
 import org.apache.jmeter.control.ModuleController;
 import org.apache.jmeter.control.TestFragmentController;
+import org.apache.jmeter.control.gui.TreeNodeWrapper;
 import org.apache.jmeter.exceptions.IllegalUserActionException;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeModel;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.testelement.TestElement;
+import org.apache.jmeter.testelement.TestPlan;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.threads.AbstractThreadGroup;
 import org.apache.jmeter.util.JMeterUtils;
@@ -126,4 +130,43 @@ public class TestPlanHelper {
     }
     return result;
   }
+
+  public static <T> void listModelAddTo(ListModel<T> from, DefaultListModel<T> to) {
+    for (int index = 0; index < from.getSize(); index++) {
+      to.addElement(from.getElementAt(index));
+    }
+  }
+
+  public static DefaultListModel<TreeNodeWrapper> getTestFragmentNodes(JMeterTreeNode node,
+                                                                       String parentName,
+                                                                       int level) {
+    DefaultListModel<TreeNodeWrapper> listModel = new DefaultListModel<>();
+    String separator = " > ";
+    if (node != null) {
+      for (int i = 0; i < node.getChildCount(); i++) {
+        StringBuilder name = new StringBuilder();
+        JMeterTreeNode cur = (JMeterTreeNode) node.getChildAt(i);
+        TestElement te = cur.getTestElement();
+        if (te instanceof TestFragmentController) {
+          name.append(parentName);
+          name.append(cur.getName());
+          TreeNodeWrapper tnw = new TreeNodeWrapper(cur, name.toString());
+          listModel.addElement(tnw);
+          name.append(separator);
+          DefaultListModel<TreeNodeWrapper> listModelToAppend =
+              getTestFragmentNodes(cur, name.toString(),
+                  level + 1);
+          listModelAddTo(listModelToAppend, listModel);
+        } else if (te instanceof TestPlan) {
+          name.append(cur.getName());
+          name.append(separator);
+          DefaultListModel<TreeNodeWrapper> listModelToAppend =
+              getTestFragmentNodes(cur, name.toString(), 0);
+          listModelAddTo(listModelToAppend, listModel);
+        }
+      }
+    }
+    return listModel;
+  }
+
 }

@@ -2,8 +2,8 @@ package com.blazemeter.jmeter.citrix.assertion.gui;
 
 import com.blazemeter.jmeter.citrix.assertion.CitrixSessionAssertion;
 import com.blazemeter.jmeter.citrix.clause.SessionState;
-import com.blazemeter.jmeter.citrix.gui.BlazeMeterLabsLogo;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
+import com.blazemeter.jmeter.commons.BlazemeterLabsLogo;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import javax.swing.BorderFactory;
@@ -91,8 +91,6 @@ public class CitrixSessionAssertionGui
 
   private void init() { // WARNING: called from ctor so must not be overridden
     // (i.e. must be private or final)
-    BlazeMeterLabsLogo blazeMeterLabsLogo = new BlazeMeterLabsLogo();
-
     setLayout(new BorderLayout(0, 10));
     setBorder(makeBorder());
 
@@ -101,7 +99,7 @@ public class CitrixSessionAssertionGui
     box.add(Box.createVerticalStrut(10));
     box.add(createStatePanel());
     box.add(Box.createVerticalStrut(10));
-    box.add(blazeMeterLabsLogo);
+    box.add(new BlazemeterLabsLogo("https://github.com/Blazemeter/CitrixPlugin"));
     add(box, BorderLayout.NORTH);
   }
 

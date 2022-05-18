@@ -90,7 +90,9 @@ public class SamplerHelper {
           groups.add(group);
           lastType = currentType;
         }
-        group.items.add(capture);
+        if (group != null) {
+          group.items.add(capture);
+        }
       }
     }
     return groups;
@@ -222,7 +224,6 @@ public class SamplerHelper {
     MouseCaptureGroup currentGroup = new MouseCaptureGroup(MouseSamplerType.SEQUENCE);
     CaptureItem lastBtnDown = null;
     MouseCaptureGroup lastMouseClick = null;
-    int lastWindowID = 0;
     InteractionEvent lastEvent = null;
     for (CaptureItem capture : items) {
       final InteractionEvent event = capture.getEvent();

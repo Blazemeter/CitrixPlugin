@@ -7,12 +7,13 @@ public class SamplerRunException extends Exception {
 
   private static final long serialVersionUID = 8096983726542919461L;
 
-  private String code = null;
+  private final String code;
 
   /**
    * Instantiate a new {@link SamplerRunException}.
    */
   public SamplerRunException() {
+    this.code = null;
   }
 
   /**

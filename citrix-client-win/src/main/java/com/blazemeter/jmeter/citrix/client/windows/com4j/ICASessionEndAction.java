@@ -11,11 +11,11 @@ public enum ICASessionEndAction {
    * The value of this constant is 0.
    * </p>
    */
-  SessionEndDefault, // 0
+  SessionEndDefault, //NOSONAR // 0
   /**
    * <p>
    * The value of this constant is 1.
    * </p>
    */
-  SessionEndRestart, // 1
+  SessionEndRestart, //NOSONAR // 1
 }

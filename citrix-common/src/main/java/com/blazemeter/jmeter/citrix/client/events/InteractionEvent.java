@@ -29,6 +29,8 @@ public class InteractionEvent extends ClientEvent {
    * Products a CitrixInteractionEvent for key interaction.
    *
    * @param source    the source of the event
+   * @param windowID  the window ID
+   * @param foregroundWindowArea the Foreground Window Area
    * @param state     the state of the key
    * @param keyCode   the code of pressed key
    * @param modifiers the set of pressed modifier keys
@@ -55,6 +57,8 @@ public class InteractionEvent extends ClientEvent {
    * Products a CitrixInteractionEvent for mouse interaction.
    *
    * @param source      the source of this event
+   * @param windowID    the Window ID
+   * @param foregroundWindowArea the Foreground Window Area
    * @param mouseAction the action on the mouse
    * @param x           position of the mouse
    * @param y           position of the mouse

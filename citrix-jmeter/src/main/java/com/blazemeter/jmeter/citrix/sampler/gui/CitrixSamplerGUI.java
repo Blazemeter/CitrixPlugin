@@ -1,9 +1,9 @@
 package com.blazemeter.jmeter.citrix.sampler.gui;
 
 import com.blazemeter.jmeter.citrix.clause.gui.ClausePanel;
-import com.blazemeter.jmeter.citrix.gui.BlazeMeterLabsLogo;
 import com.blazemeter.jmeter.citrix.sampler.CitrixBaseSampler;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
+import com.blazemeter.jmeter.commons.BlazemeterLabsLogo;
 import java.awt.BorderLayout;
 import javax.swing.Box;
 import javax.swing.JPanel;
@@ -48,7 +48,6 @@ public abstract class CitrixSamplerGUI extends AbstractSamplerGui { // NOSONAR I
   }
 
   private void initialize() {
-    BlazeMeterLabsLogo blazeMeterLabsLogo = new BlazeMeterLabsLogo();
     setLayout(new BorderLayout());
     setBorder(makeBorder());
 
@@ -59,7 +58,7 @@ public abstract class CitrixSamplerGUI extends AbstractSamplerGui { // NOSONAR I
     box.add(Box.createVerticalStrut(10));
     box.add(createClausePanel());
     box.add(Box.createVerticalStrut(10));
-    box.add(blazeMeterLabsLogo);
+    box.add(new BlazemeterLabsLogo("https://github.com/Blazemeter/CitrixPlugin"));
     add(box, BorderLayout.NORTH);
   }
 

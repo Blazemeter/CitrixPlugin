@@ -135,7 +135,7 @@ public class CitrixSampleResult extends SampleResult {
    * do not exist
    */
   public BufferedImage getScreenshot() {
-    Snapshot snapshot = getSnapshot();
-    return snapshot != null ? snapshot.getScreenshot() : null;
+    Snapshot localSnapshot = getSnapshot();
+    return localSnapshot != null ? localSnapshot.getScreenshot() : null;
   }
 }

@@ -13,25 +13,25 @@ public enum ICASoundQuality implements ComEnum {
    * The value of this constant is -1.
    * </p>
    */
-  SoundQualityNone(-1),
+  SoundQualityNone(-1), //NOSONAR
   /**
    * <p>
    * The value of this constant is 0.
    * </p>
    */
-  SoundQualityHigh(0),
+  SoundQualityHigh(0), //NOSONAR
   /**
    * <p>
    * The value of this constant is 1.
    * </p>
    */
-  SoundQualityMedium(1),
+  SoundQualityMedium(1), //NOSONAR
   /**
    * <p>
    * The value of this constant is 2.
    * </p>
    */
-  SoundQualityLow(2);
+  SoundQualityLow(2); //NOSONAR
 
   private final int value;
 

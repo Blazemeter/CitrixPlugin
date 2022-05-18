@@ -90,7 +90,7 @@ public class ClauseHelper {
             .getSubimage(intersection.x, intersection.y, intersection.width, intersection.height);
       } catch (RasterFormatException e) {
         LOGGER.debug("Image Width: {} Height: {} Area: {} Intersection: {} ", image.getWidth(),
-            image.getHeight(), area.toString(), intersection.toString());
+            image.getHeight(), area, intersection);
         LOGGER.error("Error in SubImage", e);
         throw e;
       }
@@ -104,8 +104,8 @@ public class ClauseHelper {
       ).hash(target).getHashValue() : (
           new AverageHash(BIT_RESOLUTION)
       ).hash(target).getHashValue();
-
-      LOGGER.debug("Hash {} area {} useLegacy={}", hashValue.toString(), area, useLegacy);
+      String hashValueString = hashValue.toString();
+      LOGGER.debug("Hash {} area {} useLegacy={}", hashValueString, area, useLegacy);
       return hashValue.toString();
     } catch (Exception e) {
       String msg = MessageFormat

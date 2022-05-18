@@ -98,7 +98,8 @@ public class PollingStrategy implements CheckStrategy {
         context.setPrevious(result);
 
       } catch (CitrixClientException | ClauseComputationException e) {
-        LOGGER.warn("Unable to compute clause value at test #{}: {}", index, e);
+        LOGGER.warn("Unable to compute clause value at test #{}", index);
+        LOGGER.debug("Clause exception", e);
       } finally {
         if (!success) {
           LOGGER.debug("Sleeping for {}ms before next check", ClauseHelper.CLAUSE_INTERVAL);

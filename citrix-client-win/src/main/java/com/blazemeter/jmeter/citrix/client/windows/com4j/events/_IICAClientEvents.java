@@ -8,7 +8,7 @@ import com4j.IID;
  */
 @SuppressWarnings({"checkstyle:TypeName", "checkstyle:AbbreviationAsWordInName"})
 @IID("{238F6F82-B8B4-11CF-8771-00A024541EE3}")
-public abstract class _IICAClientEvents {
+public abstract class _IICAClientEvents { //NOSONAR
   // Methods:
 
   /**

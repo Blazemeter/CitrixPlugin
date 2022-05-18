@@ -8,7 +8,7 @@ import com4j.IID;
  */
 @SuppressWarnings("checkstyle:TypeName")
 @IID("{24013613-FF51-4B50-9832-37FA561594ED}")
-public abstract class _IMouseEvents {
+public abstract class _IMouseEvents { //NOSONAR
   // Methods:
 
   /**

@@ -59,4 +59,22 @@ public class CitrixUtils {
     return resString;
   }
 
+  /*
+    Obtains the text from either JMeter's default values or from our messages.properties.
+    Returns the key if the text is not found.
+  */
+  public static String getText(String key) {
+    String string = getResString(key, true);
+    if (!string.contains("res_key")) {
+      return string;
+    }
+
+    string = getResString(key, false);
+    if (!string.contains("res_key")) {
+      return string;
+    }
+
+    return key;
+  }
+
 }
