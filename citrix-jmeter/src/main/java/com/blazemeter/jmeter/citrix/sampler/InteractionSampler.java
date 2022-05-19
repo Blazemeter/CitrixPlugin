@@ -389,7 +389,7 @@ public class InteractionSampler extends CitrixBaseSampler {
         keystrokes.add(new Keystroke(keyUp, true, false));
       }
     }
-    if (keystrokes.size() > 0) {
+    if (!keystrokes.isEmpty()) {
       // Last keystroke always force a delay
       Keystroke lastKeystroke = keystrokes.get(keystrokes.size() - 1);
       keystrokes.set(

@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.UUID;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +42,7 @@ public class CitrixIcaFileSaver extends AbstractTestElement
    */
   private static final long serialVersionUID = -1123403766809274305L;
   private static final String ICA_CONTENT_TYPE_PREFIX = "application/x-ica";
-  private static final Logger LOG = LoggerFactory.getLogger(CitrixIcaFileSaver.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CitrixIcaFileSaver.class);
   private static final String DEFAULT_VARIABLE_NAME = "citrix_ica_file";
   public static final String DEFAULT_ICA_FILE_PATH_VAR =
       JMeterUtils.getPropDefault(CitrixUtils.PROPERTIES_PFX + "ica_file_path_var",
@@ -92,8 +93,8 @@ public class CitrixIcaFileSaver extends AbstractTestElement
       String sampleLabel = s.getSampleLabel();
       String fileName = UUID.randomUUID().toString() + ICA_FILE_SUFFIX;
       File out = new File(getSaveFolder(), fileName);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Saving ICA file to {} in {}", out.getAbsolutePath(), sampleLabel);
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Saving ICA file to {} in {}", out.getAbsolutePath(), sampleLabel);
       }
       s.setResultFileName(fileName); // Associate sample with file name
       String variable = getVariableName();
@@ -102,16 +103,16 @@ public class CitrixIcaFileSaver extends AbstractTestElement
            BufferedOutputStream bos = new BufferedOutputStream(fos)) {
         // Should we read InputEncoding field to decide in which format to save it ?
         IOUtils.write(s.getResponseDataAsString(), bos, StandardCharsets.UTF_8);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Saved ICA file to {} in {}, storing path in variable {}",
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Saved ICA file to {} in {}, storing path in variable {}",
               out.getAbsolutePath(), sampleLabel,
               variable);
         }
         JMeterContextService.getContext().getVariables().put(variable, out.getAbsolutePath());
       } catch (FileNotFoundException e) {
-        LOG.error("Error creating sample file for {}", sampleLabel, e);
+        LOGGER.error("Error creating sample file for {}", sampleLabel, e);
       } catch (IOException e) {
-        LOG.error("Error saving sample {}", sampleLabel, e);
+        LOGGER.error("Error saving sample {}", sampleLabel, e);
       }
     }
   }
@@ -163,9 +164,9 @@ public class CitrixIcaFileSaver extends AbstractTestElement
     String elementName = getName();
     File icaSaveFolder = new File(getSaveFolder());
     String icaSaveFolderPath = icaSaveFolder.getAbsolutePath();
-    LOG.info("{} checking ICA save folder {}", elementName, icaSaveFolderPath);
+    LOGGER.info("{} checking ICA save folder {}", elementName, icaSaveFolderPath);
     if (!icaSaveFolder.exists()) {
-      LOG.info("{} will create ICA save folder {} as it does not exist, creating", elementName,
+      LOGGER.info("{} will create ICA save folder {} as it does not exist, creating", elementName,
           icaSaveFolderPath);
       if (!icaSaveFolder.mkdirs()) {
         throw new JMeterStopTestException(
@@ -178,9 +179,9 @@ public class CitrixIcaFileSaver extends AbstractTestElement
               + " is not usabled (exists=" + icaSaveFolder.exists() + ", canWrite=" +
               icaSaveFolder.canWrite());
     }
-    LOG.info("{} ICA save folder {} is ok", elementName, icaSaveFolderPath);
+    LOGGER.info("{} ICA save folder {} is ok", elementName, icaSaveFolderPath);
 
-    LOG.info("{} cleaning old ICA files in {}", elementName, icaSaveFolderPath);
+    LOGGER.info("{} cleaning old ICA files in {}", elementName, icaSaveFolderPath);
     cleanupOldIcaFiles(icaSaveFolder);
   }
 
@@ -193,11 +194,13 @@ public class CitrixIcaFileSaver extends AbstractTestElement
     File[] filesToDelete = icaSaveFolder.listFiles(
         (File dir, String name) -> (name.endsWith(".ica") && new File(dir, name).isFile()));
     for (File file : filesToDelete) {
-      LOG.debug("Deleting old ica file:{}", file);
-      if (file.delete()) {
-        LOG.debug("Deleted old ica file:{}", file);
-      } else {
-        LOG.warn("Could not delete old ica file:{}", file);
+      LOGGER.debug("Deleting old ica file:{}", file);
+      try {
+        Files.delete(file.toPath());
+        LOGGER.debug("Deleted old ica file:{}", file);
+      } catch (IOException e) {
+        LOGGER.warn("Could not delete old ica file:{}", file);
+        LOGGER.debug("Delete ica file exception", e);
       }
     }
   }

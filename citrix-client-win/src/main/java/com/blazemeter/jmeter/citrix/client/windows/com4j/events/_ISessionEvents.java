@@ -10,7 +10,7 @@ import com4j.IID;
 
 @SuppressWarnings("checkstyle:TypeName")
 @IID("{24FD31DB-3560-4C78-8950-30F03352D830}")
-public abstract class _ISessionEvents {
+public abstract class _ISessionEvents { //NOSONAR
   // Methods:
 
   /**

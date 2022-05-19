@@ -11,23 +11,23 @@ public enum ICAScalingMode {
    * The value of this constant is 0.
    * </p>
    */
-  ScalingModeDisabled, // 0
+  ScalingModeDisabled,  //NOSONAR // 0
   /**
    * <p>
    * The value of this constant is 1.
    * </p>
    */
-  ScalingModePercent, // 1
+  ScalingModePercent,  //NOSONAR // 1
   /**
    * <p>
    * The value of this constant is 2.
    * </p>
    */
-  ScalingModeSize, // 2
+  ScalingModeSize,  //NOSONAR // 2
   /**
    * <p>
    * The value of this constant is 3.
    * </p>
    */
-  ScalingModeAutoSize, // 3
+  ScalingModeAutoSize,  //NOSONAR // 3
 }

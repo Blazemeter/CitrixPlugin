@@ -13,25 +13,25 @@ public enum ICAColorDepth implements ComEnum {
    * The value of this constant is 1.
    * </p>
    */
-  Color16(1),
+  Color16(1), //NOSONAR
   /**
    * <p>
    * The value of this constant is 2.
    * </p>
    */
-  Color256(2),
+  Color256(2), //NOSONAR
   /**
    * <p>
    * The value of this constant is 4.
    * </p>
    */
-  Color16Bit(4),
+  Color16Bit(4), //NOSONAR
   /**
    * <p>
    * The value of this constant is 8.
    * </p>
    */
-  Color24Bit(8);
+  Color24Bit(8); //NOSONAR
 
   private final int value;
 

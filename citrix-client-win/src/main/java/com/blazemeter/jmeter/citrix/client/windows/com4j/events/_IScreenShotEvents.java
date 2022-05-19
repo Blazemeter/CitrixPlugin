@@ -9,7 +9,7 @@ import com4j.IID;
 
 @SuppressWarnings("checkstyle:TypeName")
 @IID("{785A16E9-4E42-4C87-84AD-BFB4A60570A3}")
-public abstract class _IScreenShotEvents {
+public abstract class _IScreenShotEvents { //NOSONAR
   // Methods:
 
   /**

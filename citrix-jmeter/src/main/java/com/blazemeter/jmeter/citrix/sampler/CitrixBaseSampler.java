@@ -35,7 +35,7 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 
   private static final String END_CLAUSE_PROP = "CitrixBaseSampler.endClause"; // $NON-NLS-1$
 
-  public AbstractCitrixClientFactory factory;
+  public transient AbstractCitrixClientFactory factory;
 
   private final RunningClientPolicy policy;
 
@@ -228,8 +228,8 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
             lastSnapshot[0] = client.takeSnapshot();
             LOGGER.debug("On sampler {} created a default snapshot {}", getName(), checkType);
           } catch (CitrixClientException ex) {
-            LOGGER.warn("On sampler {} is not able to get default snapshot: {}", getName(),
-                ex);
+            LOGGER.warn("On sampler {} is not able to get default snapshot", getName());
+            LOGGER.debug("Sampler exception:", ex);
           }
         }
       } finally {

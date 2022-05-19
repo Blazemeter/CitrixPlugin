@@ -348,7 +348,7 @@ With the previous recommendations, in general, most of the problems with memory 
 
 In case they are not enough, there is also a good article available from BlazeMeter that tries to summarize other possible solutions to other possible causes of memory error.
 
-[BlazeMeter: 9 Easy Solutions for a JMeter Load Test ìOut of Memoryî Failure](https://www.blazemeter.com/blog/9-easy-solutions-jmeter-load-test-%E2%80%9Cout-memory%E2%80%9D-failure)
+[BlazeMeter: 9 Easy Solutions for a JMeter Load Test ‚ÄúOut of Memory‚Äù Failure](https://www.blazemeter.com/blog/9-easy-solutions-jmeter-load-test-%E2%80%9Cout-memory%E2%80%9D-failure)
 
 In case you can't find a solution, don't forget to contact support.
 

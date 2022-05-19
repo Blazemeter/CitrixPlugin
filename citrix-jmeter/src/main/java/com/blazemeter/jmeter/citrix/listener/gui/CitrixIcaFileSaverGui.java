@@ -1,8 +1,8 @@
 package com.blazemeter.jmeter.citrix.listener.gui;
 
-import com.blazemeter.jmeter.citrix.gui.BlazeMeterLabsLogo;
 import com.blazemeter.jmeter.citrix.listener.CitrixIcaFileSaver;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
+import com.blazemeter.jmeter.commons.BlazemeterLabsLogo;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -98,15 +98,13 @@ public class CitrixIcaFileSaverGui extends AbstractListenerGui
 
   private void init() { // WARNING: called from ctor so must not be overridden
     // (i.e. must be private or final)
-    BlazeMeterLabsLogo blazeMeterLabsLogo = new BlazeMeterLabsLogo();
-
     setLayout(new BorderLayout());
     setBorder(makeBorder());
     Box box = Box.createVerticalBox();
     box.add(makeTitlePanel());
     box.add(createSavePanel());
     box.add(Box.createVerticalStrut(10));
-    box.add(blazeMeterLabsLogo);
+    box.add(new BlazemeterLabsLogo("https://github.com/Blazemeter/CitrixPlugin"));
     add(box, BorderLayout.NORTH);
   }
 

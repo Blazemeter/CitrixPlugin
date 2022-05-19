@@ -125,7 +125,7 @@ public enum CheckType {
   /**
    * Gets the check types that can be used by {@link CitrixAssertion}.
    */
-  public static final Set<CheckType> ASSERTION_CHECKS = Arrays.stream(CheckType.values())
+  public static final Set<CheckType> ASSERTION_CHECKS = Arrays.stream(CheckType.values()) //NOSONAR
       .filter(c -> c.checkStrategy.isSupportingImageAssessment() &&
           c.checkStrategy.isSupportingSnapshot())
       .collect(Collectors.toSet());

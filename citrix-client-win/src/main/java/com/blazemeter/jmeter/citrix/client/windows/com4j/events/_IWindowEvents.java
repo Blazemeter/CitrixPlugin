@@ -9,7 +9,7 @@ import com4j.IID;
 
 @SuppressWarnings("checkstyle:TypeName")
 @IID("{49813E6D-17FF-41A1-9A7B-95C3D5B44185}")
-public abstract class _IWindowEvents {
+public abstract class _IWindowEvents { //NOSONAR
   // Methods:
 
   /**

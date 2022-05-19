@@ -1,9 +1,9 @@
 package com.blazemeter.jmeter.citrix.extractor.gui;
 
 import com.blazemeter.jmeter.citrix.extractor.AssessmentExtractor;
-import com.blazemeter.jmeter.citrix.gui.BlazeMeterLabsLogo;
 import com.blazemeter.jmeter.citrix.gui.GuiHelper;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
+import com.blazemeter.jmeter.commons.BlazemeterLabsLogo;
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -27,8 +27,6 @@ public class AssessmentExtractorGUI extends AbstractPostProcessorGui {
   }
 
   private void init() {
-    BlazeMeterLabsLogo blazeMeterLabsLogo = new BlazeMeterLabsLogo();
-
     setLayout(new BorderLayout(0, 10));
     setBorder(makeBorder());
 
@@ -37,7 +35,7 @@ public class AssessmentExtractorGUI extends AbstractPostProcessorGui {
     box.add(Box.createVerticalStrut(10));
     box.add(createMainPanel());
     box.add(Box.createVerticalStrut(10));
-    box.add(blazeMeterLabsLogo);
+    box.add(new BlazemeterLabsLogo("https://github.com/Blazemeter/CitrixPlugin"));
     add(box, BorderLayout.NORTH);
   }
 

@@ -24,10 +24,11 @@ public class EventHelper {
       }
     }
     if (copy != 0) {
+      String copyString = Integer.toBinaryString(copy);
       LOGGER.warn(
           "Converting integer value to set of buttons: Value {} contains unsupported flags {}",
           value,
-          Integer.toBinaryString(copy));
+          copyString);
     }
     return result;
   }
@@ -53,10 +54,11 @@ public class EventHelper {
       }
     }
     if (copy != 0) {
+      String copyString = Integer.toBinaryString(copy);
       LOGGER.warn(
           "Converting integer value to set of modifiers: Value {} contains unsupported flags {}",
           value,
-          Integer.toBinaryString(copy));
+          copyString);
     }
     return result;
   }

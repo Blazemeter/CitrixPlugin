@@ -1,12 +1,16 @@
 package com.blazemeter.jmeter.citrix.client;
 
-import static com.sun.jna.platform.win32.WinUser.MAPVK_VK_TO_VSC;
+import static com.sun.jna.platform.win32.WinUser.MAPVK_VK_TO_VSC; //NOSONAR
 
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.User32; //NOSONAR
+import com.sun.jna.platform.win32.WinDef; //NOSONAR
 import java.awt.event.KeyEvent;
 
 public class Win32Utils {
+
+  private Win32Utils() {
+
+  }
 
   public static int getVirtualKey(int keyCode) {
     // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-vkkeyscanexw

@@ -47,38 +47,41 @@ public class CitrixInstaller {
 
   public static void main(String[] args) throws IOException {
     updateSaveService();
-    if (SystemUtils.IS_OS_WINDOWS) {
-      List<String> errorMsgs = new ArrayList<>();
-      List<String> infoMsgs = new ArrayList<>();
-      String jvmArchitecture = System.getProperty("os.arch");
-      boolean is32BitsJVM = "x86".equals(jvmArchitecture);
-      if (!is32BitsJVM) {
-        errorMsgs.add(
-            "Citrix Plugin must run with a JVM 32 bits, " +
-                "install a 32 bits JVM and restart JMeter with it");
+    //The plugin only works on windows. Other OS wont require any configuration, 
+    // therefore, we skip the configuration.
+    if (!SystemUtils.IS_OS_WINDOWS) {
+      return;
+    }
+    List<String> errorMsgs = new ArrayList<>();
+    List<String> infoMsgs = new ArrayList<>();
+    String jvmArchitecture = System.getProperty("os.arch");
+    boolean is32BitsJVM = "x86".equals(jvmArchitecture);
+    if (!is32BitsJVM) {
+      errorMsgs.add(
+          "Citrix Plugin must run with a JVM 32 bits, " +
+              "install a 32 bits JVM and restart JMeter with it");
+    }
+    Architecture model = Architecture.valueOf("BIT_" + (is64BitWindows() ? "64" : "32"));
+    boolean citrixReceiverInstalled = checkCitrixReceiverVersion(model, infoMsgs, errorMsgs);
+    if (citrixReceiverInstalled) {
+      checkWficaRegistered(is32BitsJVM, infoMsgs, errorMsgs);
+      if (model == Architecture.BIT_32) {
+        checkRegKey(ALLOW_SIMULATION_API_32_PATH, ALLOW_SIMULATION_API_KEY, "1", infoMsgs,
+            errorMsgs);
+        checkRegKey(WINDOWS_32_PREFIX, VD_LOAD_UNLOAD_TIMEOUT_KEY, "30", infoMsgs, errorMsgs);
+      } else {
+        checkRegKey(ALLOW_SIMULATION_API_64_PATH, ALLOW_SIMULATION_API_KEY, "1", infoMsgs,
+            errorMsgs);
+        checkRegKey(WINDOWS_64_PREFIX, VD_LOAD_UNLOAD_TIMEOUT_KEY, "30", infoMsgs, errorMsgs);
       }
-      Architecture model = Architecture.valueOf("BIT_" + (is64BitWindows() ? "64" : "32"));
-      boolean citrixReceiverInstalled = checkCitrixReceiverVersion(model, infoMsgs, errorMsgs);
-      if (citrixReceiverInstalled) {
-        checkWficaRegistered(is32BitsJVM, infoMsgs, errorMsgs);
-        if (model == Architecture.BIT_32) {
-          checkRegKey(ALLOW_SIMULATION_API_32_PATH, ALLOW_SIMULATION_API_KEY, "1", infoMsgs,
-              errorMsgs);
-          checkRegKey(WINDOWS_32_PREFIX, VD_LOAD_UNLOAD_TIMEOUT_KEY, "30", infoMsgs, errorMsgs);
-        } else {
-          checkRegKey(ALLOW_SIMULATION_API_64_PATH, ALLOW_SIMULATION_API_KEY, "1", infoMsgs,
-              errorMsgs);
-          checkRegKey(WINDOWS_64_PREFIX, VD_LOAD_UNLOAD_TIMEOUT_KEY, "30", infoMsgs, errorMsgs);
-        }
-      }
-      if (!errorMsgs.isEmpty()) {
-        reportErrorToUser(String.join("\r\n", errorMsgs),
-            "Citrix Plugin Installation errors");
-      }
-      if (!infoMsgs.isEmpty()) {
-        reportInfoToUser(String.join("\r\n", infoMsgs),
-            "Citrix Plugin Installation informations");
-      }
+    }
+    if (!errorMsgs.isEmpty()) {
+      reportErrorToUser(String.join("\r\n", errorMsgs),
+          "Citrix Plugin Installation errors");
+    }
+    if (!infoMsgs.isEmpty()) {
+      reportInfoToUser(String.join("\r\n", infoMsgs),
+          "Citrix Plugin Installation informations");
     }
   }
 
@@ -306,7 +309,7 @@ public class CitrixInstaller {
 
   private static boolean runCommand(String cmd, List<String> infoMsgs, List<String> errors)
       throws IOException, InterruptedException {
-    LOGGER.info("Running commande line:" + cmd);
+    LOGGER.info("Running commande line:{}", cmd);
     Process process = Runtime.getRuntime().exec(cmd);
     // any output?
     StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream());

@@ -12,17 +12,17 @@ public enum ICAVCDataType {
    * The value of this constant is 0.
    * </p>
    */
-  DataTypeString, // 0
+  DataTypeString, //NOSONAR // 0
   /**
    * <p>
    * The value of this constant is 1.
    * </p>
    */
-  DataTypeBinaryString, // 1
+  DataTypeBinaryString, //NOSONAR // 1
   /**
    * <p>
    * The value of this constant is 2.
    * </p>
    */
-  DataTypeBinary, // 2
+  DataTypeBinary, //NOSONAR // 2
 }

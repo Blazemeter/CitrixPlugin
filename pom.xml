@@ -6,7 +6,7 @@
 
     <groupId>com.blazemeter.jmeter</groupId>
     <artifactId>citrix-parent</artifactId>
-    <version>0.7.4</version>
+    <version>0.7.5</version>
     <packaging>pom</packaging>
     <name>Citrix Plugin for Apache JMeter</name>
 
@@ -15,8 +15,10 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <!--suppress UnresolvedMavenProperty -->
         <jmeter.lib>${jmeter.home}/lib</jmeter.lib>
         <jmeter.lib.ext>${jmeter.lib}/ext</jmeter.lib.ext>
+        <!--suppress UnresolvedMavenProperty -->
         <jmeter.bin.templates>${jmeter.home}/bin/templates</jmeter.bin.templates>
 
         <slf4j.version>1.7.25</slf4j.version>
@@ -82,6 +84,22 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                    <!-- use cacio-tta to avoid GUI in swing tests -->
+                    <systemPropertyVariables>
+                        <java.awt.headless>false</java.awt.headless>
+                        <awt.toolkit>net.java.openjdk.cacio.ctc.CTCToolkit</awt.toolkit>
+                        <java.awt.graphicsenv>net.java.openjdk.cacio.ctc.CTCGraphicsEnvironment
+                        </java.awt.graphicsenv>
+                        <cacio.managed.screensize>1280x800</cacio.managed.screensize>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-eclipse-plugin</artifactId>
                 <version>2.10</version>
                 <configuration>
@@ -92,7 +110,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.4</version>
+                <version>3.3.1</version>
                 <configuration>
                     <source>8</source>
                 </configuration>
