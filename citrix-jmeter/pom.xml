@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.blazemeter.jmeter</groupId>
         <artifactId>citrix-parent</artifactId>
-        <version>0.7.5</version>
+        <version>0.7.6</version>
     </parent>
 
     <artifactId>citrix-jmeter</artifactId>
@@ -56,7 +56,7 @@
         <dependency>
             <groupId>net.sourceforge.tess4j</groupId>
             <artifactId>tess4j</artifactId>
-            <version>4.5.1</version>
+            <version>5.2.1</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_components -->
@@ -72,6 +72,175 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_functions -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_functions</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_java -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_java</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_bolt -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_bolt</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_ftp -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_ftp</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_jdbc -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_jdbc</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_jms -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_jms</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_junit -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_junit</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_ldap -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_ldap</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_mail -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_mail</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_mongodb -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_mongodb</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_native -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_native</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_tcp -->
+        <dependency>
+            <groupId>${jmeter.groupId}</groupId>
+            <artifactId>ApacheJMeter_tcp</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/${jmeter.groupId}/ApacheJMeter_http -->
         <dependency>
             <groupId>${jmeter.groupId}</groupId>
@@ -159,13 +328,6 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>2.25.0</version>
-            <scope>test</scope>
-        </dependency>
-        <!--Added to support JMeter initializations-->
-        <dependency>
-            <groupId>us.abstracta.jmeter</groupId>
-            <artifactId>jmeter-java-dsl</artifactId>
-            <version>0.13</version>
             <scope>test</scope>
         </dependency>
         <dependency>

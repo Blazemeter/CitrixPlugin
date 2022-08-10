@@ -1,8 +1,13 @@
 package com.blazemeter.jmeter.citrix.utils;
 
+import com.blazemeter.jmeter.citrix.recorder.CitrixRecorder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.DefaultListModel;
 import javax.swing.ListModel;
+import org.apache.jmeter.config.Argument;
+import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.control.Controller;
 import org.apache.jmeter.control.ModuleController;
 import org.apache.jmeter.control.TestFragmentController;
@@ -13,6 +18,7 @@ import org.apache.jmeter.gui.tree.JMeterTreeModel;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.TestPlan;
+import org.apache.jmeter.testelement.property.CollectionProperty;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.threads.AbstractThreadGroup;
 import org.apache.jmeter.util.JMeterUtils;
@@ -169,4 +175,82 @@ public class TestPlanHelper {
     return listModel;
   }
 
+  public static Map<String, String> getArguments(JMeterTreeNode root, List<String> propList) {
+    HashMap<String, String> argumentsSet = new HashMap<>();
+
+    for (int i = 0; i < root.getChildCount(); i++) {
+      JMeterTreeNode node = (JMeterTreeNode) root.getChildAt(i);
+      TestElement te = node.getTestElement();
+      if (te instanceof Arguments) {
+        Arguments arguments = (Arguments) te;
+        CollectionProperty variables = arguments.getArguments();
+        for (JMeterProperty variable : variables) {
+          Argument arg = (Argument) variable.getObjectValue();
+          String name = arg.getName();
+          if (propList.contains(name)) {
+            argumentsSet.put(name, arg.getValue());
+          }
+        }
+      }
+      argumentsSet.putAll(getArguments(node, propList));
+    }
+    return argumentsSet;
+  }
+
+  public static void updateArguments(JMeterTreeNode root, Map<String, String> argumentsSet) {
+
+    for (int i = 0; i < root.getChildCount(); i++) {
+      JMeterTreeNode node = (JMeterTreeNode) root.getChildAt(i);
+      TestElement te = node.getTestElement();
+      if (te instanceof Arguments) {
+        Arguments arguments = (Arguments) te;
+        CollectionProperty variables = arguments.getArguments();
+        for (JMeterProperty variable : variables) {
+          Argument arg = (Argument) variable.getObjectValue();
+          String name = arg.getName();
+          if (argumentsSet.containsKey(name)) {
+            arg.setValue(argumentsSet.get(name));
+          }
+        }
+      }
+      updateArguments(node, argumentsSet);
+    }
+  }
+
+
+  /**
+   * Build the the nodeModel. Used to know the possibles targets controller
+   *
+   * @param node   Node to insert to model
+   * @param prefix prefix used for node labeling
+   */
+  public static DefaultListModel<TreeNodeWrapper> buildSamplersParentModel(JMeterTreeNode node,
+                                                                           String prefix) {
+    DefaultListModel<TreeNodeWrapper> listModel = new DefaultListModel<>();
+    String separator = " > ";
+    if (node != null) {
+      for (int i = 0; i < node.getChildCount(); i++) {
+        StringBuilder name = new StringBuilder();
+        JMeterTreeNode cur = (JMeterTreeNode) node.getChildAt(i);
+        TestElement te = cur.getTestElement();
+        if (te instanceof Controller && !(te instanceof CitrixRecorder)) {
+          name.append(prefix);
+          name.append(cur.getName());
+          TreeNodeWrapper tnw = new TreeNodeWrapper(cur, name.toString());
+          listModel.addElement(tnw);
+          name.append(separator);
+          DefaultListModel<TreeNodeWrapper> listModelToAppend =
+              buildSamplersParentModel(cur, name.toString());
+          listModelAddTo(listModelToAppend, listModel);
+        } else if (te instanceof TestPlan) {
+          name.append(cur.getName());
+          name.append(separator);
+          DefaultListModel<TreeNodeWrapper> listModelToAppend =
+              buildSamplersParentModel(cur, name.toString());
+          listModelAddTo(listModelToAppend, listModel);
+        }
+      }
+    }
+    return listModel;
+  }
 }

@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.jmeter.gui.action.template.Template;
 import org.apache.jmeter.gui.action.template.TemplateManager;
 import org.slf4j.Logger;

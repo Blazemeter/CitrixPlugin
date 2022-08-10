@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.ini4j.Config;
 import org.ini4j.Profile;
 import org.ini4j.Wini;
 import org.slf4j.Logger;
@@ -137,6 +138,9 @@ public abstract class AbstractCitrixClient implements CitrixClient {
     // to the ICA file that allow a correct execution.
     try {
       Wini ini = new Wini(icaFilePath.toFile());
+      Config config = ini.getConfig();
+      config.setStrictOperator(true); // does not generate spaces in the assign operation
+      ini.setConfig(config);
       boolean icaModified = false;
       for (Map.Entry<String, Profile.Section> section : ini.entrySet()) {
         for (Map.Entry<String, String> keyEntry : section.getValue().entrySet()) {
