@@ -74,7 +74,7 @@ public final class OcrManager {
     tessInstance.setDatapath(dataPath);
 
     LOGGER.debug("OCR manager {} setting default dpi to {}", this, OCR_DEFAULT_DPI);
-    tessInstance.setTessVariable("user_defined_dpi", OCR_DEFAULT_DPI);
+    tessInstance.setVariable("user_defined_dpi", OCR_DEFAULT_DPI);
   }
 
   // Get OCR default resources

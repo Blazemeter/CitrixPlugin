@@ -72,8 +72,6 @@ import org.slf4j.LoggerFactory;
  */
 public class CitrixRecorder extends GenericController implements NonTestElement, CaptureManager {
 
-  public static final boolean SKIP_ICA_FILE_DOWNLOADING = JMeterUtils
-      .getPropDefault(CitrixUtils.PROPERTIES_PFX + "skip_ica_file_downloading", false);
   private static final long serialVersionUID = 1194210414410846275L;
   private static final Logger LOGGER = LoggerFactory.getLogger(CitrixRecorder.class);
 
@@ -152,6 +150,11 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
     return recordingHandler.getMouseCaptureOptions();
   }
 
+  public boolean skipIcaFileDownloading() {
+    return JMeterUtils.getPropDefault(
+        CitrixUtils.PROPERTIES_PFX + "skip_ica_file_downloading", false);
+  }
+
   /**
    * Download the ICA file.
    *
@@ -215,7 +218,7 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
   public boolean clientIsRunning() {
     return (client != null && client.isConnected());
   }
-  
+
   private void stopClient() {
     if (client != null) {
       try {
@@ -240,9 +243,8 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
    * @param interactionType type of captured interactions
    */
   public void startCapture(InteractionType interactionType) {
-    boolean started = recordingHandler.startCapture(interactionType);
-    if (started && handler != null) {
-      handler.onCaptureChanged(interactionType);
+    if (recordingHandler.startCapture(interactionType)) {
+      notifyOnCaptureChanged(interactionType);
     }
   }
 
@@ -252,6 +254,30 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
 
   private Clause buildClause(Snapshot snapshot, Set<CheckType> checkTypes) {
     return handler != null ? handler.onBuildClause(snapshot, checkTypes) : null;
+  }
+
+  private void setEndClause(InteractionSampler sampler, Snapshot snapshot, ClauseType clauseType)
+      throws ClauseComputationException {
+    if (clauseType != null) {
+      switch (clauseType) {
+        case FULL:
+          // POSSIBLE_IMPROVEMENT Handle relative to foreground window
+          sampler
+              .setEndClause(new Clause(CheckType.HASH, snapshot.getScreenshot(), null, null));
+          break;
+        case FORCE_HASH:
+          sampler.setEndClause(buildClause(snapshot, EnumSet.of(CheckType.HASH)));
+          break;
+        case FORCE_OCR:
+          sampler.setEndClause(buildClause(snapshot, EnumSet.of(CheckType.OCR)));
+          break;
+        case QUERY_USER:
+          sampler.setEndClause(buildClause(snapshot));
+          break;
+        default:
+          break;
+      }
+    }
   }
 
   /**
@@ -275,26 +301,7 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
         Snapshot snapshot = null;
         try {
           snapshot = client.takeSnapshot();
-          if (clauseType != null) {
-            switch (clauseType) {
-              case FULL:
-                // POSSIBLE_IMPROVEMENT Handle relative to foreground window
-                lastSampler
-                    .setEndClause(new Clause(CheckType.HASH, snapshot.getScreenshot(), null, null));
-                break;
-              case FORCE_HASH:
-                lastSampler.setEndClause(buildClause(snapshot, EnumSet.of(CheckType.HASH)));
-                break;
-              case FORCE_OCR:
-                lastSampler.setEndClause(buildClause(snapshot, EnumSet.of(CheckType.OCR)));
-                break;
-              case QUERY_USER:
-                lastSampler.setEndClause(buildClause(snapshot));
-                break;
-              default:
-                break;
-            }
-          }
+          setEndClause(lastSampler, snapshot, clauseType);
         } catch (CitrixClientException ex) {
           LOGGER.error("Unable to get snapshot at the end of the capture.", ex);
         } catch (ClauseComputationException ex) {
@@ -309,29 +316,33 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
         LOGGER.debug("Capture without samplers");
       }
 
-      if (handler != null) {
-        handler.onCaptureChanged(null);
-      }
+      notifyOnCaptureChanged(null);
+
     } else {
       LOGGER.debug("No capture for {}", clauseType);
     }
   }
 
+  private void notifyOnCaptureChanged(InteractionType iType) {
+    if (handler != null) {
+      handler.onCaptureChanged(iType);
+    }
+  }
+
   public void cancelCapture() {
-    boolean canceled = recordingHandler.cancelCapture();
-    if (canceled && handler != null) {
-      handler.onCaptureChanged(null);
+    if (recordingHandler.cancelCapture()) {
+      notifyOnCaptureChanged(null);
     }
   }
 
   /* Use Start validation logic */
   private Optional<Path> tryICAFileDownloading() throws JMeterEngineException {
     Optional<Path> icaFile = Optional.empty();
-    if (!SKIP_ICA_FILE_DOWNLOADING) {
+    if (!skipIcaFileDownloading()) {
       GuiPackage gui = GuiPackage.getInstance();
       HashTree testTree = gui.getTreeModel().getTestPlan();
       // Ensure Module and Include controllers are setup
-      JMeter.convertSubTree(testTree);
+      JMeter.convertSubTree(testTree, false);
 
       // Clone the test to ensure we have all configuration and disable Thread Groups
       TreeClonerForICADownloading disableThreadGroupsCloner = new TreeClonerForICADownloading();
@@ -341,7 +352,7 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
       createThreadGroupForDownload(clonedTree, clonedTree.getArray()[0],
           getDownloadingControllerNode());
       // Ensure ModuleController is replaced
-      JMeter.convertSubTree(clonedTree);
+      JMeter.convertSubTree(clonedTree, false);
 
       // Clone test to avoid using referenced node
       TreeCloner cloner = new TreeCloner(false);
@@ -752,11 +763,11 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
 
     void onSessionEvent(SessionEvent e);
   }
-  
+
   public void setStorefrontURL(String storefrontURL) {
     setProperty("storefrontURL", storefrontURL);
   }
-  
+
   public String getStorefrontURL() {
     return getPropertyAsString("storefrontURL");
   }
@@ -764,11 +775,11 @@ public class CitrixRecorder extends GenericController implements NonTestElement,
   public void setUsername(String username) {
     setProperty("username", username);
   }
-  
+
   public String getUsername() {
     return getPropertyAsString("username");
   }
-  
+
   public void setPassword(String password) {
     setProperty("password", password);
   }

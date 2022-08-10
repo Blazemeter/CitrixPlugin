@@ -2,18 +2,23 @@ package com.blazemeter.jmeter.citrix.recorder.gui;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.swing.fixture.Containers.showInFrame;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThrows;
 
 import com.blazemeter.jmeter.citrix.recorder.CitrixRecorder;
+import com.blazemeter.jmeter.citrix.utils.DialogHelper;
 import java.io.IOException;
+import javax.swing.Icon;
 import junit.framework.TestCase;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
+import org.apache.jmeter.testelement.TestElement;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.assertj.swing.exception.ComponentLookupException;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JButtonFixture;
 import org.assertj.swing.fixture.JLabelFixture;
 import org.assertj.swing.fixture.JTextComponentFixture;
+import org.assertj.swing.fixture.JToggleButtonFixture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -21,10 +26,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import us.abstracta.jmeter.javadsl.core.EmbeddedJmeterEngine.JMeterEnvironment;
 
 @RunWith(SwingTestRunner.class)
-public class CitrixRecorderGUITest extends TestCase {
+public class CitrixRecorderGUITest extends TestCase { //NOSONAR
 
   private static final String STORE_FRONT_URL = "https://test.com:1234/Citrix/StoreWeb";
   private static final String USERNAME = "username";
@@ -37,21 +41,24 @@ public class CitrixRecorderGUITest extends TestCase {
   @Mock
   private CitrixRecorder recorder;
 
+  private JUnitJMeter jmeter;
+  private CitrixRecorderGUI gui = null;
+
   @Before
-  public void setUp() {
-    try {
-      JMeterEnvironment env = new JMeterEnvironment();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    //This avoids the GUI to start recording
+  public void setUp() throws IOException {
+
+    jmeter = new JUnitJMeter();
+    jmeter.start();
+    jmeter.setVisible(false);
+
+    Mockito.when(recorder.skipIcaFileDownloading()).thenReturn(true);
     Mockito.when(recorder.isFromTemplate()).thenReturn(true);
     Mockito.when(recorder.isRecording()).thenReturn(false);
     JMeterTreeNode value = new JMeterTreeNode();
     Mockito.when(recorder.getSamplersParentNode()).thenReturn(value);
     Mockito.when(recorder.getDownloadingControllerNode()).thenReturn(value);
 
-    CitrixRecorderGUI gui = new CitrixRecorderGUI();
+    gui = new CitrixRecorderGUI();
     gui.setRecorder(recorder);
 
     frame = showInFrame(gui);
@@ -61,6 +68,27 @@ public class CitrixRecorderGUITest extends TestCase {
   @After
   public void tearDown() {
     frame.cleanUp();
+    jmeter.close();
+  }
+
+  @Test
+  public void shouldJMeterIsMinimizedWhenSendToMinimize() { // NOSONAR
+    // This test only cover the no error exception error on this methods
+    jmeter.setVisible(true);
+    DialogHelper.focusJMeter();
+    DialogHelper.minimizeJMeter();
+  }
+
+  @Test
+  public void shouldCrossedOutEyeBeVisibleAndInvisibleWhenDisplayEyeIsSelected() {
+    JToggleButtonFixture display = getPasswordDisplay();
+    Icon displayIcon = display.target().getIcon();
+    // Change the icon to crossed out eye
+    display.click();
+    assertNotEquals(display.target().getIcon(), displayIcon);
+    // Reverse action, return to not crossed out eye
+    display.click();
+    assertEquals(display.target().getIcon(), displayIcon);
   }
 
   @Test
@@ -68,6 +96,10 @@ public class CitrixRecorderGUITest extends TestCase {
     getStorefrontURL().setText(STORE_FRONT_URL);
     forceLooseFocus();
     assertThat(getStartButton().isEnabled()).isFalse();
+  }
+
+  private JToggleButtonFixture getPasswordDisplay() {
+    return frame.toggleButton("display");
   }
 
   private JTextComponentFixture getStorefrontURL() {
@@ -108,7 +140,7 @@ public class CitrixRecorderGUITest extends TestCase {
     getDomain().setText("");
     forceLooseFocus();
     Exception exc = assertThrows(ComponentLookupException.class, this::getDomainError);
-    assertThat(exc.getMessage().contains("Unable to find component using matcher")).isTrue();
+    assertThat(exc.getMessage()).contains("Unable to find component using matcher");
   }
 
   private JTextComponentFixture getPassword() {
@@ -163,4 +195,16 @@ public class CitrixRecorderGUITest extends TestCase {
   private JButtonFixture getStopButton() {
     return frame.button("stopButton");
   }
+
+  @Test
+  public void shouldConfiguringRunWithoutError() { //NOSONAR
+    // First with the mocked version of recorder
+    gui.configure(recorder);
+
+    // With the recorder created in the gui class, casted to TestElement
+    TestElement recTE = gui.createTestElement();
+    gui.configure(recTE);
+
+  }
+
 }

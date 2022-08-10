@@ -22,6 +22,7 @@ import com.blazemeter.jmeter.citrix.clause.CheckType;
 import com.blazemeter.jmeter.citrix.clause.Clause;
 import com.blazemeter.jmeter.citrix.client.CitrixClient.Snapshot;
 import com.blazemeter.jmeter.citrix.client.CitrixClientException;
+import com.blazemeter.jmeter.citrix.client.CitrixClientFactoryException;
 import com.blazemeter.jmeter.citrix.client.events.InteractionEvent.InteractionType;
 import com.blazemeter.jmeter.citrix.client.events.SessionEvent;
 import com.blazemeter.jmeter.citrix.gui.GuiHelper;
@@ -30,27 +31,23 @@ import com.blazemeter.jmeter.citrix.recorder.Capture.MouseCaptureOption;
 import com.blazemeter.jmeter.citrix.recorder.CitrixRecorder;
 import com.blazemeter.jmeter.citrix.recorder.CitrixRecorder.CitrixRecorderHandler;
 import com.blazemeter.jmeter.citrix.recorder.CitrixRecorder.ClauseType;
+import com.blazemeter.jmeter.citrix.recorder.gui.workers.DownloadIcaWorker;
+import com.blazemeter.jmeter.citrix.recorder.gui.workers.MonitorRecordingWorker;
+import com.blazemeter.jmeter.citrix.recorder.gui.workers.StartRecordingWorker;
+import com.blazemeter.jmeter.citrix.recorder.gui.workers.StopRecordingWorker;
+import com.blazemeter.jmeter.citrix.recorder.gui.workers.WaitCaptureWorker;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
 import com.blazemeter.jmeter.citrix.utils.DialogHelper;
 import com.blazemeter.jmeter.citrix.utils.TestPlanHelper;
 import com.blazemeter.jmeter.commons.BlazemeterLabsLogo;
-import com.blazemeter.jmeter.commons.FieldValidations;
-import com.blazemeter.jmeter.commons.FormValidation;
-import com.blazemeter.jmeter.commons.PlaceHolderPassword;
-import com.blazemeter.jmeter.commons.PlaceHolderTextField;
 import com.blazemeter.jmeter.commons.SwingUtils;
 import com.blazemeter.jmeter.commons.SwingUtils.ButtonBuilder;
-import com.blazemeter.jmeter.commons.ThemedIcon;
-import com.blazemeter.jmeter.commons.Validation;
 import com.helger.commons.annotation.VisibleForTesting;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.HeadlessException;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -59,20 +56,11 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -80,9 +68,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.Icon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -91,19 +77,13 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
-import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
-import javax.swing.SwingWorker;
-import javax.swing.border.TitledBorder;
-import org.apache.jmeter.config.Argument;
-import org.apache.jmeter.config.Arguments;
-import org.apache.jmeter.control.Controller;
-import org.apache.jmeter.control.TestFragmentController;
+import javax.swing.event.PopupMenuListener;
 import org.apache.jmeter.control.gui.AbstractControllerGui;
 import org.apache.jmeter.control.gui.TreeNodeWrapper;
+import org.apache.jmeter.engine.JMeterEngineException;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.UnsharedComponent;
 import org.apache.jmeter.gui.action.ActionNames;
@@ -116,9 +96,6 @@ import org.apache.jmeter.gui.util.MenuFactory;
 import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.protocol.http.control.RecordingController;
 import org.apache.jmeter.testelement.TestElement;
-import org.apache.jmeter.testelement.TestPlan;
-import org.apache.jmeter.testelement.property.CollectionProperty;
-import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.util.JMeterUtils;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.slf4j.Logger;
@@ -130,9 +107,8 @@ import org.slf4j.LoggerFactory;
 public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore inheritance warning
     implements ActionListener, CitrixRecorderHandler, UnsharedComponent {
 
-  public static final String CMD_CHECK_FULL_SCREENSHOT = "CHECK_FULL_SCREENSHOT";
-  public static final String CMD_CHECK_SELECTION_SCREENSHOT = "CHECK_SELECTION_SCREENSHOT";
-  public static final String CMD_CHECK_OCR_SCREENSHOT = "CHECK_OCR_SCREENSHOT";
+  public static final String CLIENT_EXCEPTION = "client_exception";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(CitrixRecorderGUI.class);
   private static final long serialVersionUID = 1L;
   private static final String ICON_SIZE =
@@ -140,53 +116,11 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
           JMeterToolBar.DEFAULT_TOOLBAR_ICON_SIZE);
   private static final String ICON_PREFIX = "toolbar/" + ICON_SIZE;
 
-  private static final String CMD_TOGGLE_TEXT_CAPTURE = "TOGGLE_TEXT_CAPTURE";
-  private static final String CMD_TOGGLE_MOUSE_CAPTURE = "TOGGLE_MOUSE_CAPTURE";
   private static final String CMD_START_APPLICATION = "START_APPLICATION";
   private static final String START = "START";
   private static final String STOP = "STOP";
-  private static final String RESOURCE_KEY_START_TEXT_CAPTURE = "recorder_record_text_input";
-  private static final String RESOURCE_KEY_START_MOUSE_CAPTURE = "recorder_record_mouse_click";
   private static final TreeNodeWrapper USE_RECORDING_CONTROLLER_NODE = new TreeNodeWrapper(null,
       CitrixUtils.getResString("use_recording_controller", true));
-  private static final TreeNodeWrapper SELECT_CUSTOM_FRAGMENT = new TreeNodeWrapper(null,
-      "Select custom fragment");
-  private static final Validation NOT_EMPTY = new Validation(s -> !s.isEmpty(),
-      "This field can't be empty");
-
-  private static final String VISIBLE_CREDENTIALS_ICON = "visible-credentials.png";
-  private static final String NOT_VISIBLE_CREDENTIAL_ICON = "not-visible-credentials.png";
-
-  private static final String CITRIX_PORTAL_PORT = "citrix_portal_port";
-  private static final String CITRIX_PORTAL_HOST = "citrix_portal_host";
-  private static final String CITRIX_PORTAL_SCHEME = "citrix_portal_scheme";
-  private static final String CITRIX_APP_NAME = "citrix_app_name";
-  private static final String CITRIX_PORTAL_CONTEXT_PATH = "citrix_portal_context_path";
-  private static final String CITRIX_USE_HTTPS = "citrix_use_https";
-  private static final String CITRIX_LOGIN = "citrix_login";
-  private static final String CITRIX_PASSWORD = "citrix_password";
-  private static final String CITRIX_DOMAIN = "citrix_domain";
-
-  private static final String CLIENT_EXCEPTION = "client_exception";
-
-  private static final Pattern URL_PATTERN = Pattern.compile(
-      "^((((https?|ftps?|gopher|telnet|nntp)://)|(mailto:|news:))" +
-          "(%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)" +
-          "([).!';/?:,][[:blank:]])?$");
-  private static final Pattern DOMAIN_PATTERN = Pattern.compile(
-      "^((?!-)[A-Za-z0-9-]{1,63}(?<!-))+|^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}");
-  private static final Validation URL_INVALID = new Validation(s -> {
-    if (s.isEmpty()) {
-      return false;
-    }
-    return URL_PATTERN.matcher(s).matches();
-  }, "This field only accepts valid URL addresses");
-  private static final Validation DOMAIN_INVALID = new Validation(s -> {
-    if (s.isEmpty()) {
-      return true; // Allow blank value in domain
-    }
-    return DOMAIN_PATTERN.matcher(s).matches();
-  }, "This field only accepts valid domain name");
 
   static {
     try {
@@ -200,42 +134,19 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
 
   private CitrixRecorder recorder;
   private boolean stoppingRecord = false;
-  private boolean expectedDisconnect = false;
   private boolean configuring = false;
   private boolean clearing = false;
+  private boolean expectedDisconnect = false;
 
-  private JToggleButton captureText;
-  private JToggleButton captureMouse;
-  private JButton btnFullScreenshotCheck;
-  private JButton btnPartialScreenshotCheck;
-  private JButton btnOCRScreenshotCheck;
   private JButton btnAppStarted;
   private JButton btnStop;
   private JButton btnStopDialog;
   private JButton btnStart;
   private JButton btnRestart;
 
-  private JPanel captureMouseOptions;
-  private JCheckBox includeMouseMoves;
-  private JCheckBox relativeForeground;
-
-  private PlaceHolderTextField storeFrontURL;
-  private PlaceHolderTextField username;
-  private PlaceHolderPassword password;
-  private PlaceHolderTextField domain;
-  private PlaceHolderTextField application;
   private JTextField stepName;
-  private JLabel userError = new JLabel();
-  private JLabel passError = new JLabel();
-  private JLabel storefrontUrlError = new JLabel();
-  private JLabel domainError = new JLabel();
-  private JLabel applicationError = new JLabel();
 
-  private JPanel configurationPanel;
-
-  /* component used to select the Test Fragment to download the ICA File*/
-  private JComboBox<TreeNodeWrapper> testFragmentSelector;
-  private DefaultComboBoxModel<TreeNodeWrapper> testFragmentSelectorModel;
+  private transient ConfigurationPanel configurationPanel;
 
   // components used for sampler insertion in test plan
   private JComboBox<TreeNodeWrapper> cbbSamplerParent; // List of available target controllers
@@ -245,18 +156,14 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
   private JProgressBar recorderStatus;
   private InteractionType capturedInteractionType;
 
-  private transient FormValidation formValidation;
-
-  private transient Icon eyeIcon;
-  private transient Icon eyeSlashIcon;
-
   private transient RecorderDialog recorderDialog;
 
   private JPanel appStartPanel;
   private JPanel recordingStepPanel;
-  private JPanel capturePanel;
   private JPanel logPanel;
   private JTabbedPane tabMain;
+
+  private transient CapturePanel capturePanel;
 
   private transient ButtonBuilder baseButtonBuilder =
       new SwingUtils.ButtonBuilder().isEnabled(false).withActionListener(this);
@@ -275,9 +182,31 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
 
   }
 
+  public void setExpectedDisconnect(boolean expected) {
+    expectedDisconnect = expected;
+  }
+
+  public RecorderDialog getRecorderDialog() {
+    return this.recorderDialog;
+  }
+
   @VisibleForTesting
   public void setRecorder(CitrixRecorder recorder) {
     this.recorder = recorder;
+  }
+
+  @VisibleForTesting
+  public void setRecorderDialog(RecorderDialog dialog) {
+    this.recorderDialog = dialog;
+  }
+
+  @VisibleForTesting
+  public CapturePanel getCapturePanel() {
+    return capturePanel;
+  }
+
+  public CitrixRecorder getRecorder() {
+    return this.recorder;
   }
 
   private void setupTemplate() {
@@ -293,9 +222,6 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
   }
 
   private void init() {
-
-    eyeIcon = ThemedIcon.fromResourceName(VISIBLE_CREDENTIALS_ICON);
-    eyeSlashIcon = ThemedIcon.fromResourceName(NOT_VISIBLE_CREDENTIAL_ICON);
 
     int mainLayoutVerticalGap = 5;
     int mainLayoutHorizontalGap = 0;
@@ -313,22 +239,14 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
 
     Box boxStatus = new Box(BoxLayout.Y_AXIS);
 
-    configurationPanel = createIcaConfigurationPanel();
+    configurationPanel = new ConfigurationPanel(this);
     JPanel icaContainer = new JPanel(new BorderLayout());
-    icaContainer.add(configurationPanel, BorderLayout.NORTH);
+    icaContainer.add(configurationPanel.getPanel(), BorderLayout.NORTH);
     boxStatus.add(icaContainer);
 
     appStartPanel = createAppStartedPanel();
     recordingStepPanel = createRecordingStepPanel();
     recordingStepPanel.setVisible(false);
-
-    capturePanel = new VerticalPanel();
-    JPanel stepCapturePanel = createStepCapturePanel();
-    JPanel stepFinalPanel = createFinalStepCapturePanel();
-    capturePanel.add(stepCapturePanel, BorderLayout.NORTH);
-    capturePanel.add(new JSeparator());
-    capturePanel.add(stepFinalPanel, BorderLayout.CENTER);
-    capturePanel.setVisible(false);
 
     tabMain.addTab("Configuration", boxStatus);
 
@@ -368,16 +286,19 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     recorderStatus = new JProgressBar(0, 2);
     recorderStatus.setStringPainted(true);
 
+    capturePanel = new CapturePanel(this);
+
     VerticalPanel bottomRecDialog = new VerticalPanel();
     bottomRecDialog.add(recorderStatus);
-    bottomRecDialog.add(capturePanel);
+    bottomRecDialog.add(capturePanel.getPanel());
 
     recorderDialog.getContentPane().add(bottomRecDialog, BorderLayout.SOUTH);
 
     recorderDialog.pack();
+  }
 
-    addValidations();
-
+  public void enableCaptureActions(boolean enable) {
+    capturePanel.enableActions(enable);
   }
 
   private JPanel createRecordingPanel() {
@@ -402,127 +323,6 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     return recPanel;
   }
 
-  private JPanel createIcaConfigurationPanel() {
-    JPanel customFragmentSelector = createCustomFragmentSelector();
-
-    JPanel panel = new JPanel();
-    GroupLayout layout = buildGroupLayout(panel);
-    panel.setBorder(createTitledBorder(""));
-
-    JPanel storefrontPanel = createStoreFrontPanel();
-    JPanel credentialsPanel = createConfigurationPanel();
-
-    layout.setHorizontalGroup(layout.createParallelGroup()
-        .addComponent(customFragmentSelector)
-        .addComponent(storefrontPanel)
-        .addGroup(layout.createSequentialGroup()
-            .addComponent(credentialsPanel))
-    );
-
-    layout.setVerticalGroup(layout.createSequentialGroup()
-        .addComponent(customFragmentSelector)
-        .addComponent(storefrontPanel)
-        .addGroup(layout.createParallelGroup()
-            .addComponent(credentialsPanel))
-    );
-    return panel;
-  }
-
-  private GroupLayout buildGroupLayout(JPanel container) {
-    GroupLayout layout = new GroupLayout(container);
-    container.setLayout(layout);
-    layout.setAutoCreateGaps(true);
-    layout.setAutoCreateContainerGaps(true);
-    return layout;
-  }
-
-  private JPanel createStoreFrontPanel() {
-    storeFrontURL = new PlaceHolderTextField();
-    storeFrontURL.setPlaceHolder("<schema>://<host>:<port>/<context_path>");
-    storeFrontURL.setName("storefrontURL");
-    setupValidationLabel(storefrontUrlError, "storefrontUrlError");
-
-    JLabel urlLabel = new JLabel("Storefront URL");
-
-    JPanel panel = new JPanel();
-    panel.setBorder(createTitledBorder("Connection"));
-    GroupLayout layout = buildGroupLayout(panel);
-
-    layout.setHorizontalGroup(layout.createSequentialGroup()
-        .addComponent(urlLabel)
-        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-            .addComponent(storeFrontURL)
-            .addComponent(storefrontUrlError)
-        )
-    );
-
-    layout.setVerticalGroup(layout.createSequentialGroup()
-        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-            .addComponent(urlLabel)
-            .addComponent(storeFrontURL)
-        )
-        .addComponent(storefrontUrlError)
-    );
-
-    return panel;
-  }
-
-  private void setupValidationLabel(JLabel label, String name) {
-    label.setText("N/A");
-    label.setName(name);
-    label.setForeground(Color.RED);
-    label.setVisible(false);
-  }
-
-  private JPanel createCustomFragmentSelector() {
-    testFragmentSelectorModel = new DefaultComboBoxModel<>();
-    testFragmentSelector = new JComboBox<>(testFragmentSelectorModel);
-    testFragmentSelector.setPrototypeDisplayValue(
-        SELECT_CUSTOM_FRAGMENT); // $NON-NLS-1$ // Bug 56303 fixed the width of combo list
-    testFragmentSelector.addItemListener(e -> modifyDownloadingController());
-
-    JLabel label = new JLabel(CitrixUtils.getText("select_custom_fragment")); // $NON-NLS-1$
-    label.setLabelFor(testFragmentSelector);
-
-    HorizontalPanel panel = new HorizontalPanel();
-    panel.add(label);
-    panel.add(testFragmentSelector);
-
-    return panel;
-  }
-
-  private void configureICADownloadingTestFragment() {
-    testFragmentSelectorModel.removeAllElements();
-    testFragmentSelectorModel.addElement(new TreeNodeWrapper(null, "Select custom fragment"));
-    GuiPackage gp = GuiPackage.getInstance();
-    if (gp != null) {
-      JMeterTreeNode testPlanRoot = (JMeterTreeNode) gp.getTreeModel().getRoot();
-      DefaultListModel<TreeNodeWrapper> listModel =
-          TestPlanHelper.getTestFragmentNodes(testPlanRoot, "", 0);
-      for (int index = 0; index < listModel.getSize(); index++) {
-        testFragmentSelectorModel.addElement(listModel.getElementAt(index));
-      }
-    }
-
-    JMeterTreeNode spNode = recorder.getDownloadingControllerNode();
-    if (spNode != null) {
-      final int size = testFragmentSelectorModel.getSize();
-      TreeNodeWrapper selected = null;
-      for (int index = 0; index < size; index++) {
-        TreeNodeWrapper tnw = testFragmentSelectorModel.getElementAt(index);
-        if (tnw.getTreeNode() == spNode) {
-          selected = tnw;
-          break;
-        }
-      }
-      testFragmentSelectorModel.setSelectedItem(selected);
-    } else {
-      if (testFragmentSelectorModel.getSize() > 1) {
-        testFragmentSelectorModel.setSelectedItem(testFragmentSelectorModel.getElementAt(1));
-      }
-    }
-  }
-
   private JPanel createFieldPanel(String labelText, JComponent field) {
     HorizontalPanel panel = new HorizontalPanel();
     int fieldPanelEmptyBorder = 2;
@@ -531,10 +331,6 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
             fieldPanelEmptyBorder));
     panel.add(createLabeledTextField(labelText, field));
     return panel;
-  }
-
-  private TitledBorder createTitledBorder(String title) {
-    return BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), title);
   }
 
   private JPanel createLabeledTextField(String labelText, JComponent field) {
@@ -548,112 +344,10 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     return panel;
   }
 
-  private PlaceHolderTextField buildPlaceHolder(String name, String placeholder) {
-    PlaceHolderTextField textField = new PlaceHolderTextField();
-    textField.setPlaceHolder(placeholder);
-    textField.setName(name);
-    return textField;
-  }
-
-  private JPanel createConfigurationPanel() {
-    Dimension preferredPlaceHolderDimension = new Dimension(200, 30);
-
-    username = buildPlaceHolder("username", "User's name");
-    username.setPreferredSize(preferredPlaceHolderDimension);
-    setupValidationLabel(userError, "userError");
-
-    domain = buildPlaceHolder("domain", "Domain's name");
-    setupValidationLabel(domainError, "domainError");
-
-    application = buildPlaceHolder("application", "Application's name");
-    setupValidationLabel(applicationError, "applicationError");
-
-    password = new PlaceHolderPassword();
-    password.setName("password");
-    password.setPlaceHolder("User's Password");
-    setupValidationLabel(passError, "passError");
-
-    JLabel domainLabel = new JLabel("Domain");
-    JLabel passLabel = new JLabel("Password");
-    JLabel userLabel = new JLabel("Username");
-    JLabel applicationLabel = new JLabel("Application");
-
-    JToggleButton display = new JToggleButton();
-    display.setBorderPainted(false);
-    display.setContentAreaFilled(false);
-    display.setIcon(eyeIcon);
-    display.setRequestFocusEnabled(false);
-    display.setMargin(new Insets(display.getMargin().top, 0, display.getMargin().bottom, 0));
-
-    display.setName("display");
-    display.addItemListener(e -> {
-      if (display.isSelected()) {
-        password.setEchoChar((char) 0);
-        display.setIcon(eyeSlashIcon);
-      } else {
-        password.setEchoChar('*');
-        display.setIcon(eyeIcon);
-      }
-    });
-
-    JPanel panel = new JPanel();
-    GroupLayout layout = buildGroupLayout(panel);
-    panel.setBorder(createTitledBorder("Login's Info"));
-    layout.setHorizontalGroup(layout.createSequentialGroup()
-        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-            .addComponent(domainLabel)
-            .addComponent(userLabel)
-            .addComponent(passLabel)
-            .addComponent(applicationLabel))
-        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-            .addComponent(domain)
-            .addComponent(domainError)
-            .addComponent(username)
-            .addComponent(userError)
-            .addComponent(password)
-            .addComponent(passError)
-            .addComponent(application)
-            .addComponent(applicationError))
-        .addComponent(display)
-    );
-
-    layout.setVerticalGroup(layout.createSequentialGroup()
-        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-            .addComponent(userLabel)
-            .addComponent(username))
-        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(userError)))
-        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-            .addComponent(passLabel)
-            .addComponent(password)
-            .addComponent(display))
-        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(passError)))
-        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-            .addComponent(domainLabel)
-            .addComponent(domain))
-        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(domainError)))
-        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-            .addComponent(applicationLabel)
-            .addComponent(application))
-        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(applicationError)))
-    );
-
-    layout.linkSize(SwingConstants.HORIZONTAL, username, password, domain, application);
-    layout.linkSize(SwingConstants.VERTICAL, username, password, domain, application, display);
-
-    return panel;
-  }
-
   private Component createDownloadStatusIndicatorPanel() {
     JPanel panel = new JPanel(new BorderLayout());
     logTextArea = JSyntaxTextArea.getInstance(20, 120, true);
+    logTextArea.setText("");
     logTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
     logTextArea.setCodeFoldingEnabled(false);
     logTextArea.setAntiAliasingEnabled(false);
@@ -681,6 +375,17 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     cbbSamplerParent = new JComboBox<>(samplerParentModel);
     cbbSamplerParent.setPrototypeDisplayValue(USE_RECORDING_CONTROLLER_NODE);
     cbbSamplerParent.addItemListener(e -> modifySamplersParent());
+
+    // Force to refresh the list of JMeter elements always when focus is gained
+    cbbSamplerParent.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        configureSamplersParent();
+      }
+    });
+
+    PopupMenuListener listener = new BoundsPopupMenuListener(true, false);
+    cbbSamplerParent.addPopupMenuListener(listener);
 
     stepName = new JTextField();
     stepName.setName("stepName");
@@ -721,211 +426,12 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     return panel;
   }
 
-  private JPanel createStepCapturePanel() {
-    // Button used to capture keyboard interactions
-    captureText = buildToggleButton(RESOURCE_KEY_START_TEXT_CAPTURE, CMD_TOGGLE_TEXT_CAPTURE);
-    // Button used to capture mouse interactions
-    captureMouse = buildToggleButton(RESOURCE_KEY_START_MOUSE_CAPTURE, CMD_TOGGLE_MOUSE_CAPTURE);
-    JPanel mouseCaptureOptionsPanel = createMouseCaptureOptions();
-
-    JLabel stepCaptureLabel = new JLabel("Pick an action to record");
-    JLabel orLabel = new JLabel("OR");
-
-    JPanel panel = new JPanel();
-    GroupLayout layout = buildGroupLayout(panel);
-
-    layout.setHorizontalGroup(layout.createSequentialGroup()
-        .addComponent(stepCaptureLabel)
-        .addComponent(captureText)
-        .addComponent(orLabel)
-        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-            .addComponent(captureMouse)
-            .addComponent(mouseCaptureOptionsPanel))
-    );
-
-    layout.setVerticalGroup(layout.createSequentialGroup()
-        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-            .addComponent(stepCaptureLabel)
-            .addComponent(captureText)
-            .addComponent(orLabel)
-            .addComponent(captureMouse))
-        .addComponent(mouseCaptureOptionsPanel)
-    );
-
-    return panel;
-  }
-
-  private JToggleButton buildToggleButton(String textName, String command) {
-    JToggleButton button = new JToggleButton(CitrixUtils.getText(textName));
-    button.setActionCommand(command);
-    button.addActionListener(this);
-    button.setEnabled(false);
-    return button;
-  }
-
-  private JPanel createMouseCaptureOptions() {
-    // Panel with the Mouse Capture options
-    captureMouseOptions = new JPanel();
-    captureMouseOptions
-        .setBorder(BorderFactory.createTitledBorder(
-            CitrixUtils.getText("recorder_mouse_capture_options")));
-    captureMouseOptions.setEnabled(false);
-
-    // Checkbox used to include/exclude mouse moves during capture
-    includeMouseMoves =
-        new JCheckBox(CitrixUtils.getText("recorder_mouse_capture_options_include_mouse_moves"));
-    includeMouseMoves.setEnabled(false);
-    includeMouseMoves.addActionListener(e -> {
-      if (includeMouseMoves.isSelected()) {
-        recorder.getMouseCaptureOptions().add(MouseCaptureOption.INCLUDE_MOVES);
-      } else {
-        recorder.getMouseCaptureOptions().remove(MouseCaptureOption.INCLUDE_MOVES);
-      }
-    });
-
-    // Checkbox used to include/exclude mouse moves during capture
-    relativeForeground = new JCheckBox(
-        CitrixUtils.getText("recorder_mouse_capture_options_relative"));
-    relativeForeground.setEnabled(false);
-    relativeForeground.addActionListener(e -> {
-      if (relativeForeground.isSelected()) {
-        recorder.getMouseCaptureOptions().add(MouseCaptureOption.RELATIVE_TO_FOREGROUND);
-      } else {
-        recorder.getMouseCaptureOptions().remove(MouseCaptureOption.RELATIVE_TO_FOREGROUND);
-      }
-    });
-
-    JPanel panel = new JPanel();
-    panel.setBorder(createTitledBorder(CitrixUtils.getText("recorder_mouse_capture_options")));
-    GroupLayout layout = new GroupLayout(panel);
-    panel.setLayout(layout);
-
-    layout.setHorizontalGroup(layout.createParallelGroup()
-        .addComponent(includeMouseMoves)
-        .addComponent(relativeForeground)
-    );
-
-    layout.setVerticalGroup(layout.createSequentialGroup()
-        .addComponent(includeMouseMoves)
-        .addComponent(relativeForeground)
-    );
-
-    return panel;
-  }
-
-  private JPanel createFinalStepCapturePanel() {
-
-    // Button used to stop capture and build Full Screenshot Hash assertion
-    btnFullScreenshotCheck = baseButtonBuilder.withAction(CMD_CHECK_FULL_SCREENSHOT)
-        .withName(CitrixUtils.getText("recorder_full_screenshot_check"))
-        .build();
-
-    // Button used to stop capture and build Partial Screenshot Hash assertion
-    btnPartialScreenshotCheck = baseButtonBuilder.withAction(CMD_CHECK_SELECTION_SCREENSHOT)
-        .withName(CitrixUtils.getText("recorder_selection_screenshot_check"))
-        .build();
-
-    // Button used to stop capture and build Partial of Full Screenshot OCR assertion
-    btnOCRScreenshotCheck = baseButtonBuilder.withAction(CMD_CHECK_OCR_SCREENSHOT)
-        .withName(CitrixUtils.getText("recorder_ocr_screenshot_check"))
-        .build();
-
-    JLabel finalStepCaptureLabel = new JLabel("Pick final action check");
-
-    JPanel panel = new JPanel();
-    GroupLayout layout = new GroupLayout(panel);
-    panel.setLayout(layout);
-
-    layout.setHorizontalGroup(layout.createSequentialGroup()
-        .addComponent(finalStepCaptureLabel)
-        .addComponent(btnFullScreenshotCheck)
-        .addComponent(btnPartialScreenshotCheck)
-        .addComponent(btnOCRScreenshotCheck)
-    );
-
-    layout.setVerticalGroup(layout.createParallelGroup(Alignment.BASELINE)
-        .addComponent(finalStepCaptureLabel)
-        .addComponent(btnFullScreenshotCheck)
-        .addComponent(btnPartialScreenshotCheck)
-        .addComponent(btnOCRScreenshotCheck)
-    );
-
-    return panel;
-  }
-
-  private void addValidations() {
-    FieldValidations storeFrontValidations =
-        new FieldValidations(storeFrontURL, storefrontUrlError);
-    FieldValidations userValidations = new FieldValidations(username, userError);
-    FieldValidations passwordValidations = new FieldValidations(password, passError);
-    FieldValidations appValidation = new FieldValidations(application, applicationError);
-    FieldValidations domainValidation = new FieldValidations(domain, domainError);
-
-    storeFrontValidations.addValidations(URL_INVALID);
-    userValidations.addValidations(NOT_EMPTY);
-    passwordValidations.addValidations(NOT_EMPTY);
-    appValidation.addValidations(NOT_EMPTY);
-    domainValidation.addValidations(DOMAIN_INVALID);
-
-    formValidation = new FormValidation(Arrays
-        .asList(storeFrontValidations, userValidations, passwordValidations, domainValidation,
-            appValidation));
-
-    formValidation.onSuccess(() -> setFormValidation(true));
-    formValidation.onFailure(() -> setFormValidation(false));
-
-    storeFrontURL.addFocusListener(validateForms(formValidation));
-    username.addFocusListener(validateForms(formValidation));
-    password.addFocusListener(validateForms(formValidation));
-    domain.addFocusListener(validateForms(formValidation));
-    application.addFocusListener(validateForms(formValidation));
-  }
-
-  private FocusAdapter validateForms(FormValidation formValidation) {
-    return new FocusAdapter() {
-      @Override
-      public void focusLost(FocusEvent e) {
-        super.focusLost(e);
-        //Only displays the error in the Fields that triggers the event
-        formValidation.validate((JTextField) e.getSource());
-      }
-    };
-  }
-
-  private void setFormValidation(boolean enable) {
-    if (!recorder.isRecording()) {
-      btnStart.setEnabled(enable);
-      btnStart.setToolTipText(enable ? "Start Recording" : "Some fields are invalid.");
-    }
-  }
-
-  /**
-   * Build the the nodeModel. Used to know the possibles targets controller
-   *
-   * @param node   Node to insert to model
-   * @param prefix prefix used for node labeling
-   */
-  private void buildSamplersParentModel(JMeterTreeNode node, String prefix) {
-    String separator = " > ";
-    if (node != null) {
-      for (int i = 0; i < node.getChildCount(); i++) {
-        StringBuilder name = new StringBuilder();
-        JMeterTreeNode cur = (JMeterTreeNode) node.getChildAt(i);
-        TestElement te = cur.getTestElement();
-        if (te instanceof Controller && !(te instanceof CitrixRecorder)) {
-          name.append(prefix);
-          name.append(cur.getName());
-          TreeNodeWrapper tnw = new TreeNodeWrapper(cur, name.toString());
-          samplerParentModel.addElement(tnw);
-          name.append(separator);
-          buildSamplersParentModel(cur, name.toString());
-        } else if (te instanceof TestPlan) {
-          name.append(cur.getName());
-          name.append(separator);
-          buildSamplersParentModel(cur, name.toString());
-        }
-      }
-    }
+  protected GroupLayout buildGroupLayout(JPanel container) {
+    GroupLayout layout = new GroupLayout(container);
+    container.setLayout(layout);
+    layout.setAutoCreateGaps(true);
+    layout.setAutoCreateContainerGaps(true);
+    return layout;
   }
 
   /**
@@ -937,7 +443,11 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     GuiPackage gp = GuiPackage.getInstance();
     if (gp != null) {
       JMeterTreeNode testPlanRoot = (JMeterTreeNode) gp.getTreeModel().getRoot();
-      buildSamplersParentModel(testPlanRoot, "");
+      DefaultListModel<TreeNodeWrapper> listModel =
+          TestPlanHelper.buildSamplersParentModel(testPlanRoot, "");
+      for (int index = 0; index < listModel.getSize(); index++) {
+        samplerParentModel.addElement(listModel.getElementAt(index));
+      }
     }
 
     JMeterTreeNode spNode = recorder.getSamplersParentNode();
@@ -987,70 +497,39 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
 
       // When Recorder is new and UDV is with values, takes the values as default set
       if (isNewRecorder(recorder)) {
-
-        HashMap<String, String> propSet = getUserDefinedValues();
-
-        String portalPort = propSet.getOrDefault(CITRIX_PORTAL_PORT, "");
-        String url = propSet.getOrDefault(CITRIX_PORTAL_SCHEME, "") + "://" +
-            propSet.getOrDefault(CITRIX_PORTAL_HOST, "") +
-            ("".equals(portalPort) || "-1".equals(portalPort) ? "" : (":" + portalPort)) +
-            propSet.getOrDefault(CITRIX_PORTAL_CONTEXT_PATH, "");
-        if (!"://".equals(url)) {
-          recorder.setStorefrontURL(url);
-        }
-        recorder.setUsername(propSet.getOrDefault(CITRIX_LOGIN, ""));
-        recorder.setPassword(propSet.getOrDefault(CITRIX_PASSWORD, ""));
-        recorder.setDomain(propSet.getOrDefault(CITRIX_DOMAIN, ""));
-        recorder.setApplicationName(propSet.getOrDefault(CITRIX_APP_NAME, ""));
-
+        configurationPanel.setConfigFromUV();
       }
 
-      storeFrontURL.setText(recorder.getStorefrontURL());
-
-      username.setText(recorder.getUsername());
-      password.setText(recorder.getPassword());
-      domain.setText(recorder.getDomain());
-      application.setText(recorder.getApplicationName());
+      configurationPanel.loadConfigFromRecorder();
 
     } else {
       // Hide the containers from Portal and Credentials
-      storeFrontURL.getParent().setVisible(false);
-      username.getParent().setVisible(false);
+      configurationPanel.hideConfigPanel();
 
       // Disable the validation and enable the Start Button
-      formValidation.setActive(false);
-      setFormValidation(true);
+      configurationPanel.setFormValidationActive(false);
+      configurationPanel.setFormValidation(true);
     }
 
     stepName.setText(recorder.getStepName());
     configureSamplersParent();
-    configureICADownloadingTestFragment();
+    configurationPanel.configureICADownloadingTestFragment();
     Set<MouseCaptureOption> options = recorder.getMouseCaptureOptions();
-    relativeForeground.setSelected(options.contains(MouseCaptureOption.RELATIVE_TO_FOREGROUND));
-    includeMouseMoves.setSelected(options.contains(MouseCaptureOption.INCLUDE_MOVES));
 
-    formValidation.validate();
+    capturePanel.setRelativeForeground(options.contains(MouseCaptureOption.RELATIVE_TO_FOREGROUND));
+    capturePanel.setIncludeMouseMoves(options.contains(MouseCaptureOption.INCLUDE_MOVES));
+
+    configurationPanel.validate();
 
     configuring = false;
   }
 
-  private void modifyDownloadingController() {
-    if (!configuring && !clearing) {
-      // Update test plan using "Downloading controller" components
-      JMeterTreeNode selectedNode = null;
-      TreeNodeWrapper selectedWrapper = (TreeNodeWrapper) testFragmentSelectorModel
-          .getSelectedItem();
-      if (selectedWrapper != null) {
-        selectedNode = selectedWrapper.getTreeNode();
-      }
+  public boolean isConfiguring() {
+    return configuring;
+  }
 
-      //If no TestFragment is selected, define the first appearance as a temporal alternative
-      if (selectedNode == null) {
-        recorder.setAltSamplersParentNode(
-            TestPlanHelper.findFirstNodeOfType(TestFragmentController.class));
-      }
-      recorder.setDownloadingControllerNode(selectedNode);
-    }
+  public boolean isClearing() {
+    return clearing;
   }
 
   private void modifySamplersParent() {
@@ -1080,14 +559,10 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
       recorder.setHandler(null);
     }
     recorder = (CitrixRecorder) el;
-    modifyDownloadingController();
+    configurationPanel.modifyDownloadingController();
     modifySamplersParent();
     recorder.setHandler(this);
-    recorder.setUsername(username.getText());
-    recorder.setPassword(String.valueOf(password.getPassword()));
-    recorder.setStorefrontURL(storeFrontURL.getText());
-    recorder.setDomain(domain.getText());
-    recorder.setApplicationName(application.getText());
+    configurationPanel.setConfigFromGUI();
   }
 
   // should never be used as we override getStaticLabel
@@ -1121,58 +596,92 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
         break;
       // handle the start application button
       case CMD_START_APPLICATION:
-        recorderDialog.setVisible(false);
-        btnAppStarted.setSelected(false);
-        if (recorder.createStartApplicationSampler()) {
-          toggleAppStartedUI(true);
-          appStartPanel.setVisible(false);
-          configurationPanel.setVisible(false);
-          recorderStatus.setVisible(false);
-          recordingStepPanel.setVisible(true);
-          capturePanel.setVisible(true);
-          recorderDialog.pack();
-          recorderDialog.setVisible(true);
-          stepName.grabFocus();
-          recorderDialog.setTopRightLocation();
-        } else {
-          recorderDialog.setVisible(true);
-        }
-
+        startApplication();
         break;
 
       // Handle the recording buttons
-      case CMD_TOGGLE_TEXT_CAPTURE:
-        toggleButton(captureText, InteractionType.KEY);
+      case CapturePanel.CMD_ADD_ACTION:
+        stopCapture(null);
         break;
 
-      case CMD_TOGGLE_MOUSE_CAPTURE:
-        toggleButton(captureMouse, InteractionType.MOUSE);
+      case CapturePanel.CMD_START_TEXT_CAPTURE:
+        startCapture(InteractionType.KEY);
         break;
 
-      case CMD_CHECK_FULL_SCREENSHOT:
+      case CapturePanel.CMD_START_MOUSE_CAPTURE:
+        startCapture(InteractionType.MOUSE);
+        break;
+
+      case CapturePanel.CMD_CHECK_FULL_SCREENSHOT:
         stopCapture(ClauseType.FULL);
         break;
 
-      case CMD_CHECK_SELECTION_SCREENSHOT:
+      case CapturePanel.CMD_CHECK_SELECTION_SCREENSHOT:
         stopCapture(ClauseType.FORCE_HASH);
         break;
 
-      case CMD_CHECK_OCR_SCREENSHOT:
+      case CapturePanel.CMD_CHECK_OCR_SCREENSHOT:
         stopCapture(ClauseType.FORCE_OCR);
+        break;
+      case CapturePanel.CMD_DISCARD_ACTION:
+        if (recorder.hasCapturedItems()) {
+          int response = saveEventsPopup(true);
+          // if cancel, we don't do anything
+          if (response == JOptionPane.CANCEL_OPTION) {
+            return;
+          } else if (response == JOptionPane.NO_OPTION) {
+            // if no is selected, clear capture and finish the function
+            recorder.cancelCapture();
+          }
+          // if yes is selected, finish the function
+        }
+        stopCapture(null);
         break;
       default:
         LOGGER.error("Unknown actionCommand: {}", actionCommand);
     }
   }
 
-  private void stopRecording() {
+  private void showRecorderDialog(boolean show) {
+    recorderDialog.setVisible(show);
+  }
+
+  private void startApplication() {
+    showRecorderDialog(false);
+    btnAppStarted.setSelected(false);
+    if (recorder.createStartApplicationSampler()) {
+      toggleAppStartedUI(true);
+      appStartPanel.setVisible(false);
+      configurationPanel.getPanel().setVisible(false);
+      recorderStatus.setVisible(false);
+      recordingStepPanel.setVisible(true);
+      capturePanel.getPanel().setVisible(true);
+      recorderDialog.pack();
+      showRecorderDialog(true);
+      stepName.grabFocus();
+      recorderDialog.setTopRightLocation();
+    } else {
+      showRecorderDialog(true);
+    }
+  }
+
+  public void setStartEnabled(boolean enable) {
+    btnStart.setEnabled(enable);
+    btnStart.setToolTipText(enable ? "Start Recording" : "Some fields are invalid.");
+  }
+
+  public void stopRecording() {
     expectedDisconnect = false;
     toggleRecording(false, true);
   }
 
+  public void stopRecordingNoCancel() {
+    toggleRecording(false, false);
+  }
+
   private void startRecording() {
     expectedDisconnect = true;
-    setEnabledRecursively(configurationPanel, false);
+    setEnabledRecursively(configurationPanel.getPanel(), false);
     toggleRecording(true, true);
   }
 
@@ -1185,50 +694,48 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     }
   }
 
-  private void toggleButton(JToggleButton button, InteractionType key) {
-    boolean selected = button.isSelected();
-    button.setSelected(false);
-    if (selected) {
-      startCapture(key);
-    } else {
-      stopCapture(null);
-    }
-  }
-
   private void toggleAppStartedUI(boolean appStarted) {
     this.btnAppStarted.setEnabled(!appStarted);
-    captureMouse.setEnabled(appStarted);
-    captureText.setEnabled(appStarted);
-    toggleMouseCaptureOptionsUI(appStarted);
-  }
-
-  private void toggleMouseCaptureOptionsUI(boolean active) {
-    captureMouseOptions.setEnabled(active);
-    includeMouseMoves.setEnabled(active);
-    relativeForeground.setEnabled(active);
   }
 
   private void toggleCaptureUI(InteractionType type) {
     if (capturedInteractionType != type) {
       capturedInteractionType = type;
 
-      boolean capturingMouse = capturedInteractionType == InteractionType.MOUSE;
-      String mouseLabel =
-          capturingMouse ? "recorder_mouse_selected" : RESOURCE_KEY_START_MOUSE_CAPTURE;
-      captureMouse.setSelected(capturingMouse);
-      captureMouse.setText(CitrixUtils.getResString(mouseLabel, false));
-
-      boolean capturingKey = capturedInteractionType == InteractionType.KEY;
-      String keyLabel = capturingKey ? "recorder_text_selected" : RESOURCE_KEY_START_TEXT_CAPTURE;
-      captureText.setSelected(capturingKey);
-      captureText.setText(CitrixUtils.getResString(keyLabel, false));
-
       boolean capturing = capturedInteractionType != null;
-      btnFullScreenshotCheck.setEnabled(capturing);
-      btnPartialScreenshotCheck.setEnabled(capturing);
-      btnOCRScreenshotCheck.setEnabled(capturing);
-      toggleMouseCaptureOptionsUI(!capturing);
+
+      capturePanel.startCapturing(capturing);
+
+      recorderDialog.pack();
+
+      if (isRecording() && !recorderDialog.isVisible()) {
+        showRecorderDialog(true);
+      }
+
     }
+  }
+
+  private int saveEventsPopup(boolean cancelable) {
+    // Define available options according to cancelable switch
+    Object[] options;
+    if (cancelable) {
+      options = new Object[] {CitrixUtils.getResString("yes", false),
+          CitrixUtils.getResString("no", false), CitrixUtils.getResString("cancel", false)};
+    } else {
+      options = new Object[] {CitrixUtils.getResString("yes", false),
+          CitrixUtils.getResString("no", false)};
+    }
+    int response = DialogHelper.showOptionDialog(GuiPackage.getInstance().getMainFrame(),
+        CitrixUtils.getResString("save_events_popup_question", false),
+        CitrixUtils.getResString("save_events_popup_title", false),
+        JOptionPane.DEFAULT_OPTION,
+        JOptionPane.WARNING_MESSAGE, options, options[0]);
+
+    // Interpret Close response according to cancelable
+    if (response == JOptionPane.CLOSED_OPTION) {
+      response = cancelable ? JOptionPane.CANCEL_OPTION : JOptionPane.OK_OPTION;
+    }
+    return response;
   }
 
   private void toggleRecordingUI(boolean recording) {
@@ -1246,7 +753,6 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
       DialogHelper.showError(CitrixUtils.getResString("recorder_no_samplers_parent", false));
       return false;
     }
-
     return true;
   }
 
@@ -1259,13 +765,13 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
         btnStopDialog.setEnabled(true);
         tabMain.setSelectedComponent(logPanel);
         downloadIcaAndRecord();
-        configurationPanel.setVisible(false);
+        configurationPanel.getPanel().setVisible(false);
         recordingStepPanel.setVisible(false);
-        capturePanel.setVisible(false);
+        capturePanel.getPanel().setVisible(false);
         appStartPanel.setVisible(true);
         recorderStatus.setVisible(true);
         recorderDialog.pack();
-        recorderDialog.setVisible(true);
+        showRecorderDialog(true);
         recorderDialog.setTopRightLocation();
       }
     } else {
@@ -1273,26 +779,7 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
       if (recorder.isRecording() && !stoppingRecord) {
         if (recorder.hasCapturedItems()) {
 
-          // Define available options according to cancelable switch
-          Object[] options;
-          if (cancelable) {
-            options = new Object[] {CitrixUtils.getResString("yes", false),
-                CitrixUtils.getResString("no", false), CitrixUtils.getResString("cancel", false)};
-          } else {
-            options = new Object[] {CitrixUtils.getResString("yes", false),
-                CitrixUtils.getResString("no", false)};
-          }
-          int response = JOptionPane.showOptionDialog(GuiPackage.getInstance().getMainFrame(),
-              CitrixUtils.getResString("save_events_popup_question", false),
-              CitrixUtils.getResString("save_events_popup_title", false),
-              JOptionPane.DEFAULT_OPTION,
-              JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-
-          // Interpret Close response according to cancelable
-          if (response == JOptionPane.CLOSED_OPTION) {
-            response = cancelable ? JOptionPane.CANCEL_OPTION : JOptionPane.OK_OPTION;
-          }
-
+          int response = saveEventsPopup(cancelable);
           // if cancel, we don't do anything
           if (response == JOptionPane.CANCEL_OPTION) {
             return;
@@ -1303,8 +790,9 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
           // if yes is selected, finish the function
         }
         stoppingRecord = true;
+        showRecorderDialog(false);
         appendStatus("Stopping recorder");
-        new StopRecording().execute();
+        new StopRecordingWorker(this).execute();
 
         stoppingRecord = false;
       } else {
@@ -1312,10 +800,10 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
           btnStart.setEnabled(true);
           btnStop.setEnabled(false);
           btnStopDialog.setEnabled(false);
-          configurationPanel.setVisible(true);
-          setEnabledRecursively(configurationPanel, true);
+          configurationPanel.getPanel().setVisible(true);
+          setEnabledRecursively(configurationPanel.getPanel(), true);
           recordingStepPanel.setVisible(false);
-          recorderDialog.setVisible(false);
+          showRecorderDialog(false);
         }
       }
     }
@@ -1325,102 +813,31 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
    * Starts the ICA Download and Record background jobs.
    */
   private void downloadIcaAndRecord() {
-    if (!CitrixRecorder.SKIP_ICA_FILE_DOWNLOADING) {
+    if (!recorder.skipIcaFileDownloading()) {
       clearStatus();
       appendStatus("Downloading ICA File");
     }
     if (recorder.isFromTemplate()) {
-      updateUserDefinedValues();
+      configurationPanel.updateUserDefinedValues();
     }
-    new DownloadIca().execute();
-  }
-
-  private void updateUserDefinedValues() {
-    HashMap<String, String> argumentsSet = new HashMap<>();
-
-    try {
-      URL url = new URI(this.storeFrontURL.getText()).toURL();
-
-      argumentsSet.put(CITRIX_APP_NAME, application.getText());
-      argumentsSet.put(CITRIX_PORTAL_SCHEME, url.getProtocol());
-      argumentsSet.put(CITRIX_PORTAL_HOST, url.getHost());
-      argumentsSet.put(CITRIX_PORTAL_PORT, String.valueOf(url.getPort()));
-      argumentsSet.put(CITRIX_PORTAL_CONTEXT_PATH, url.getPath());
-      argumentsSet.put(CITRIX_USE_HTTPS,
-          url.getProtocol().equalsIgnoreCase("https") ? "Yes" : "No");
-
-      argumentsSet.put(CITRIX_LOGIN, username.getText());
-      argumentsSet.put(CITRIX_PASSWORD, String.valueOf(password.getPassword()));
-      argumentsSet.put(CITRIX_DOMAIN, domain.getText());
-
-    } catch (MalformedURLException | URISyntaxException | IllegalArgumentException e) {
-      LOGGER.error("There was an error trying to parse the Storefront URL", e);
-      stopRecording();
-      return;
+    // Only execute the download on real JMeter instance
+    if (!recorder.skipIcaFileDownloading() && GuiPackage.getInstance() != null) {
+      new DownloadIcaWorker(this).execute();
     }
-    updateArguments((JMeterTreeNode) GuiPackage.getInstance().getTreeModel().getRoot(),
-        argumentsSet);
-  }
-
-  private void updateArguments(JMeterTreeNode root, HashMap<String, String> argumentsSet) {
-
-    for (int i = 0; i < root.getChildCount(); i++) {
-      JMeterTreeNode node = (JMeterTreeNode) root.getChildAt(i);
-      TestElement te = node.getTestElement();
-      if (te instanceof Arguments) {
-        Arguments arguments = (Arguments) te;
-        CollectionProperty variables = arguments.getArguments();
-        for (JMeterProperty variable : variables) {
-          Argument arg = (Argument) variable.getObjectValue();
-          String name = arg.getName();
-          if (argumentsSet.containsKey(name)) {
-            arg.setValue(argumentsSet.get(name));
-          }
-        }
-      }
-      updateArguments(node, argumentsSet);
-    }
-  }
-
-  private HashMap<String, String> getUserDefinedValues() {
-
-    List<String> propList = Arrays.asList(CITRIX_APP_NAME,
-        CITRIX_PORTAL_SCHEME, CITRIX_PORTAL_HOST, CITRIX_PORTAL_PORT,
-        CITRIX_PORTAL_CONTEXT_PATH, CITRIX_USE_HTTPS, CITRIX_LOGIN, CITRIX_PASSWORD,
-        CITRIX_DOMAIN);
-
-    return getArguments((JMeterTreeNode) GuiPackage.getInstance().getTreeModel().getRoot(),
-        propList);
-
-  }
-
-  private HashMap<String, String> getArguments(JMeterTreeNode root, List<String> propList) {
-    HashMap<String, String> argumentsSet = new HashMap<>();
-
-    for (int i = 0; i < root.getChildCount(); i++) {
-      JMeterTreeNode node = (JMeterTreeNode) root.getChildAt(i);
-      TestElement te = node.getTestElement();
-      if (te instanceof Arguments) {
-        Arguments arguments = (Arguments) te;
-        CollectionProperty variables = arguments.getArguments();
-        for (JMeterProperty variable : variables) {
-          Argument arg = (Argument) variable.getObjectValue();
-          String name = arg.getName();
-          if (propList.contains(name)) {
-            argumentsSet.put(name, arg.getValue());
-          }
-        }
-      }
-      argumentsSet.putAll(getArguments(node, propList));
-    }
-    return argumentsSet;
   }
 
   private void startCapture(InteractionType interactionType) {
-    recorder.startCapture(interactionType);
+    if (!recorder.isCapturing()) {
+      recorder.startCapture(interactionType);
+      enableCaptureActions(false);
+      new WaitCaptureWorker(this).execute();
+    }
   }
 
   private void stopCapture(ClauseType clauseType) {
+    if (clauseType != null) {
+      showRecorderDialog(false);
+    }
     recorder.stopCapture(clauseType);
   }
 
@@ -1440,7 +857,7 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
         break;
       case SHOW:
         appendStatus("Display Citrix Client");
-        DialogHelper.minimizeJMeter(this);
+        DialogHelper.minimizeJMeter();
         break;
       case HIDE:
         appendStatus("Hide Citrix Client");
@@ -1495,67 +912,17 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     recorderStatus.setIndeterminate(state);
   }
 
-  private class StartRecording extends SwingWorker<Boolean, Object> {
+  public Boolean stopRecordingUI() throws CitrixClientException {
+    setWait(true);
+    recorder.stopRecord();
+    return true;
+  }
 
-    private final Optional<Path> icaPath;
-
-    StartRecording(Optional<Path> path) {
-      this.icaPath = path;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.swing.SwingWorker#doInBackground()
-     */
-    @Override
-    protected Boolean doInBackground() throws Exception {
-      setWait(true);
-      LOGGER.info("Started recording");
-      // SwingWorker doesn't allow to define the Thread Name
-      // WA, set the thread name inside the running thread
-      // Required for set a correct session title and for session instance identification.
-      // TODO: In the future this will be resolved when the concept of mode is implemented
-      //  in the client.
-      Thread.currentThread().setName("Citrix Recorder 1-1");
-
-      recorder.startRecord(icaPath);
-      new MonitorRecording().execute();
-
-      return true;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.swing.SwingWorker#done()
-     */
-    @Override
-    protected void done() {
-      setWait(false);
-      try {
-        Boolean result = get();
-        if (Boolean.TRUE.equals(result)) {
-          appendStatus("Recording started");
-        } else {
-          appendStatus(CitrixUtils.getResString(CLIENT_EXCEPTION, false));
-          expectedDisconnect = true;
-          toggleRecording(false, false);
-        }
-      } catch (InterruptedException | ExecutionException e) {
-        Throwable ex = e.getCause();
-        if (ex instanceof CitrixClientException) {
-          appendStatus(
-              "Recorder Error: " +
-                  ((CitrixClientException) ex).code() + " " + ex.getMessage());
-        } else {
-          LOGGER.error("Error occurred starting citrix application {}", e.getMessage(), e);
-          appendStatus(CitrixUtils.getResString(CLIENT_EXCEPTION, false));
-        }
-        expectedDisconnect = true;
-        toggleRecording(false, false);
-      }
-    }
+  public boolean startRecord(Optional<Path> icaPath)
+      throws CitrixClientException, CitrixClientFactoryException {
+    recorder.startRecord(icaPath);
+    new MonitorRecordingWorker(this).execute();
+    return true;
   }
 
   private void clearStatus() {
@@ -1563,112 +930,55 @@ public class CitrixRecorderGUI extends AbstractControllerGui // NOSONAR Ignore i
     recorderStatus.setString("");
   }
 
-  private void appendStatus(String text) {
+  public void appendStatus(String text) {
     logTextArea.append(text + "\n");
     logTextArea.setCaretPosition(logTextArea.getDocument().getLength());
     recorderStatus.setString(text);
     LOGGER.info(text);
   }
 
-  private class MonitorRecording extends SwingWorker<Boolean, Object> {
-
-    @Override
-    protected Boolean doInBackground() throws Exception {
-      long chunkWaitTime = 1000;
-      // Polling over client waiting the finish state
-      while (recorder.clientIsRunning() && !isCancelled()) {
-        Thread.sleep(chunkWaitTime);
-        LOGGER.info("[MonitorRecording] Monitoring...");
+  public Boolean waitCapture() throws InterruptedException {
+    boolean eventCaptured = false;
+    while (recorder.isCapturing()) {
+      if (recorder.hasCapturedItems()) {
+        eventCaptured = true;
+        break;
       }
-      return true;
+      Thread.sleep(1000); // Free CPU
     }
+    return eventCaptured;
+  }
 
-    @Override
-    protected void done() {
-      try {
-        get();
-      } catch (InterruptedException | ExecutionException e) {
-        LOGGER.error("Error occurred recording citrix application {}", e.getMessage(), e);
-        appendStatus(CitrixUtils.getResString(CLIENT_EXCEPTION, false));
-      }
-      if (recorder.isRecording()) {
-        toggleRecording(false, false);
-      }
+  public void downloadIcaFileDone(Optional<Path> path) {
+    boolean canRecord = false;
+    if (path.isPresent()) {
+      appendStatus("Downloaded ICA File to " + path.get().toString());
+      appendStatus("ICA File downloaded");
+      appendStatus("Launching application and recording");
+      canRecord = true;
+    } else if (recorder.skipIcaFileDownloading()) {
+      canRecord = true;
+    } else {
+      appendStatus(CitrixUtils.getResString("recorder_ica_downloading_failed", false));
+    }
+    if (canRecord) {
+      StartRecordingWorker startRecorder = new StartRecordingWorker(this, path);
+      startRecorder.execute();
+    } else {
+      stopRecordingNoCancel();
     }
   }
 
-  private class StopRecording extends SwingWorker<Boolean, Object> {
-
-    @Override
-    protected Boolean doInBackground() throws Exception {
-      setWait(true);
-      recorder.stopRecord();
-      return true;
-    }
-
-    @Override
-    protected void done() {
-      setWait(false);
-      try {
-        get();
-        toggleRecording(false, false);
-      } catch (InterruptedException | ExecutionException e) {
-        Throwable ex = e.getCause();
-        if (ex instanceof CitrixClientException) {
-          appendStatus(
-              "Unable to stop Recorder: " +
-                  ((CitrixClientException) ex).code() + " " + ex.getMessage());
-        } else {
-          LOGGER.error("Error occurred stopping citrix recorder {}", e.getMessage(), e);
-          appendStatus(CitrixUtils.getResString(CLIENT_EXCEPTION, false));
-          toggleRecording(false, false);
-        }
-      }
-      DialogHelper.focusJMeter(logTextArea.getTopLevelAncestor());
-    }
+  public Optional<Path> downloadIcaFile() throws JMeterEngineException {
+    setWait(true);
+    return recorder.downloadIcaFile();
   }
 
-  private class DownloadIca extends SwingWorker<Optional<Path>, Object> {
+  public boolean isRecording() {
+    return recorder.isRecording();
+  }
 
-    @Override
-    protected Optional<Path> doInBackground() throws Exception {
-      setWait(true);
-      return recorder.downloadIcaFile();
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.swing.SwingWorker#done()
-     */
-    @Override
-    protected void done() {
-      setWait(false);
-      Optional<Path> path;
-      try {
-        path = get();
-        boolean canRecord = false;
-        if (path.isPresent()) {
-          appendStatus("Downloaded ICA File to " + path.get().toString());
-          appendStatus("ICA File downloaded");
-          appendStatus("Launching application and recording");
-          canRecord = true;
-        } else if (CitrixRecorder.SKIP_ICA_FILE_DOWNLOADING) {
-          canRecord = true;
-        } else {
-          appendStatus(CitrixUtils.getResString("recorder_ica_downloading_failed", false));
-        }
-        if (canRecord) {
-          StartRecording startRecorder = new StartRecording(path);
-          startRecorder.execute();
-        } else {
-          toggleRecording(false, false);
-        }
-      } catch (InterruptedException | ExecutionException e) {
-        LOGGER.error("ICA file downloading error : {}", e.getMessage(), e);
-        appendStatus(CitrixUtils.getResString("recorder_ica_downloading_failed", false));
-        toggleRecording(false, false);
-      }
-    }
+  public boolean clientIsRunning() {
+    return recorder.clientIsRunning();
   }
 }

@@ -91,5 +91,6 @@ modules.xml
 .idea/codeStyles/codeStyleConfig.xml
 .idea/checkstyleidea-libs/readme.txt
 .idea/checkstyle-idea.xml
+.idea/sonarlint/
 *.log
 citrix-jmeter/.DS_Store
