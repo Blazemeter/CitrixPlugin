@@ -13,10 +13,16 @@ import com.blazemeter.jmeter.citrix.client.events.SessionEvent.EventType;
 import com.blazemeter.jmeter.citrix.client.factory.AbstractCitrixClientFactory;
 import com.blazemeter.jmeter.citrix.sampler.SamplerRunException.ErrorCode;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
+import com.blazemeter.jmeter.citrix.utils.TestPlanHelper;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import org.apache.jmeter.engine.util.CompoundVariable;
+import org.apache.jmeter.gui.GuiPackage;
+import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
@@ -106,7 +112,13 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
       throws SamplerRunException, CitrixClientException, InterruptedException;
 
   public void initClient(CitrixClient client) {
-
+    List<String> propList = Arrays.asList("citrix_client_name");
+    Map<String, String> propSet = TestPlanHelper
+        .getArguments((JMeterTreeNode) GuiPackage.getInstance().getTreeModel().getRoot(), propList);
+    String clientName = propSet.getOrDefault("citrix_client_name", "");
+    if (!clientName.isEmpty()) {
+      client.setClientName(new CompoundVariable(clientName).execute());
+    }
   }
 
   // Instantiates a Citrix client and place it the session holder

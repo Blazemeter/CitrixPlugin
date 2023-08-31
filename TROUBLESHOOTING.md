@@ -89,10 +89,6 @@ It is possible that due to overload the server is not managing to start a Window
 
 You can increase the timeout value by setting the [bzm.citrix.client_factory.client_property.logon_timeout_ms](SETUP.md#plugin-properties) property.
 
-##### ACTIVEAPP_TIMEOUT: Timed out waiting for Active App
-
-The application under load may not be able to start in time or there is some other problem on the server that is preventing the application from starting.
- 
 ##### START_SESSION_ERROR: Unable to start session
 
 This error is an unexpected error.
