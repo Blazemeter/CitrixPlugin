@@ -132,6 +132,22 @@
         </collectionProp>
       </Arguments>
       <hashTree/>
+	  <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="UDV Citrix Client Properties" enabled="true">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="citrix_client_name" elementType="Argument">
+            <stringProp name="Argument.name">citrix_client_name</stringProp>
+            <stringProp name="Argument.value"></stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">The identification name of the Desktop. Empty uses the default policy.</stringProp>
+          </elementProp>
+        </collectionProp>
+      </Arguments>
+      <hashTree/>
+      <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="HTTP Cookie Manager" enabled="true">
+        <collectionProp name="CookieManager.cookies"/>
+        <boolProp name="CookieManager.clearEachIteration">true</boolProp>
+      </CookieManager>
+      <hashTree/>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">stopthread</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
@@ -1040,7 +1056,7 @@ AssertionResult.setFailureMessage(error_message);
               <boolProp name="Cookie.domain_specified">true</boolProp>
             </elementProp>
           </collectionProp>
-          <boolProp name="CookieManager.clearEachIteration">false</boolProp>
+          <boolProp name="CookieManager.clearEachIteration">true</boolProp>
           <boolProp name="CookieManager.controlledByThreadGroup">false</boolProp>
         </CookieManager>
         <hashTree/>

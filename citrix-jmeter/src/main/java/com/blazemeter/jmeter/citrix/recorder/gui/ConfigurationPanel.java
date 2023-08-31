@@ -60,6 +60,7 @@ public class ConfigurationPanel extends BasePanel {
   private static final String CITRIX_LOGIN = "citrix_login";
   private static final String CITRIX_PASSWORD = "citrix_password";
   private static final String CITRIX_DOMAIN = "citrix_domain";
+  private static final String CITRIX_CLIENT_NAME = "citrix_client_name";
 
   private static final Validation NOT_EMPTY = new Validation(s -> !s.isEmpty(),
       "This field can't be empty");

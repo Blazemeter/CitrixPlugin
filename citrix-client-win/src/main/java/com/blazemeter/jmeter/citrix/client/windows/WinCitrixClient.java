@@ -90,6 +90,8 @@ public class WinCitrixClient extends AbstractCitrixClient {
   private boolean visibleWindow;
   private boolean scalingEnabled = false;
 
+  private String clientName = "";
+
   @Override
   public void onVisible() {
     super.onVisible();
@@ -254,6 +256,10 @@ public class WinCitrixClient extends AbstractCitrixClient {
     this.scalingEnabled = scalingEnabled;
   }
 
+  public void setClientName(String clientName) {
+    this.clientName = clientName;
+  }
+
   @Override
   public Rectangle getForegroundWindowArea() {
     if (!isSessionSet()) {
@@ -275,6 +281,15 @@ public class WinCitrixClient extends AbstractCitrixClient {
   }
 
   @Override
+  public String getForegroundWindowCaption() {
+    if (!isSessionSet()) {
+      return "";
+    }
+    IWindow window = session.foregroundWindow();
+    return window != null ? window.caption() : "";
+  }
+
+  @Override
   public Collection<WindowInfo> getWindowInfos() {
     return new ArrayList<>(windowInfos.values());
   }
@@ -286,6 +301,10 @@ public class WinCitrixClient extends AbstractCitrixClient {
       this.visibleWindow = visible;
 
       icaClient = createICAClient();
+
+      if (!clientName.isEmpty()) {
+        icaClient.clientName(clientName);
+      }
       attachEvents();
       loadIcaFile();
       if (waitICAFileConnected(getICAFileTimeoutInMs())) {
@@ -310,8 +329,11 @@ public class WinCitrixClient extends AbstractCitrixClient {
           throw new CitrixClientException(ErrorCode.SESSION_ERROR,
               "The user session was not in the expected state");
         } else {
-          throw new CitrixClientException(ErrorCode.ACTIVEAPP_TIMEOUT,
-              "Timed out waiting for Active App");
+          // In the past an exception is thrown if a screen is not detected.
+          // This does not allow programming strategies to solve screens that
+          // do not have structure information.
+          // Now, we allow to enable "Application started" if the session is valid.
+          LOGGER.warn("Timed out waiting for Active App");
         }
       }
     } catch (CitrixClientException e) {

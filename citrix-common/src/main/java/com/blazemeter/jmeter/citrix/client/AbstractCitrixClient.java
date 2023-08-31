@@ -58,7 +58,7 @@ public abstract class AbstractCitrixClient implements CitrixClient {
   private Long icaFileTimeoutInMs = 10000L;
   private Long connectTimeoutInMs = 90000L;
   private Long logonTimeoutInMs = 90000L;
-  private Long activeAppTimeoutInMs = 120000L;
+  private Long activeAppTimeoutInMs = 15000L;
   private Long logoffTimeoutInMs = 65000L;
   private Long disconnectTimeoutInMs = 65000L;
   private Long socketTimeoutInMs = 5000L;

@@ -201,6 +201,10 @@ public interface CitrixClient {
 
   int getForegroundWindowID();
 
+  String getForegroundWindowCaption();
+
+  void setClientName(String clientName);
+
   class Snapshot {
     private final Rectangle fgWindowArea;
     private final BufferedImage screenshot;
