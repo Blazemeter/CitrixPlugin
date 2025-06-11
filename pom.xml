@@ -6,7 +6,7 @@
 
     <groupId>com.blazemeter.jmeter</groupId>
     <artifactId>citrix-parent</artifactId>
-    <version>0.7.7</version>
+    <version>0.7.8</version>
     <packaging>pom</packaging>
     <name>Citrix Plugin for Apache JMeter</name>
 

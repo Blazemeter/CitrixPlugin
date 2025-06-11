@@ -13,20 +13,20 @@ import com.blazemeter.jmeter.citrix.client.events.SessionEvent.EventType;
 import com.blazemeter.jmeter.citrix.client.factory.AbstractCitrixClientFactory;
 import com.blazemeter.jmeter.citrix.sampler.SamplerRunException.ErrorCode;
 import com.blazemeter.jmeter.citrix.utils.CitrixUtils;
-import com.blazemeter.jmeter.citrix.utils.TestPlanHelper;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.jmeter.engine.util.CompoundVariable;
-import org.apache.jmeter.gui.GuiPackage;
-import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testelement.property.ObjectProperty;
+import org.apache.jmeter.threads.JMeterContextService;
+import org.apache.jmeter.threads.JMeterVariables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,8 +113,15 @@ public abstract class CitrixBaseSampler extends AbstractSampler {
 
   public void initClient(CitrixClient client) {
     List<String> propList = Arrays.asList("citrix_client_name");
-    Map<String, String> propSet = TestPlanHelper
-        .getArguments((JMeterTreeNode) GuiPackage.getInstance().getTreeModel().getRoot(), propList);
+    // Get the variables from runtime context
+    Map<String, String> propSet = new HashMap<>();
+    JMeterVariables vars = JMeterContextService.getContext().getVariables();
+    for (String key : propList) {
+      String value = vars.get(key);
+      if (value != null) {
+        propSet.put(key, value);
+      }
+    }
     String clientName = propSet.getOrDefault("citrix_client_name", "");
     if (!clientName.isEmpty()) {
       client.setClientName(new CompoundVariable(clientName).execute());
