@@ -14,8 +14,7 @@ jobs:
       - name: Run Publish JMeter Plugin Action
         id: publish-plugin
         uses: abstracta/jmeter-plugin-publish-action@main
-        with:
-          upstream-repository: https://github.com/Abstracta/jmeter-plugins.git 
+        with: 
           forked-repository: https://github.com/Abstracta/jmeter-plugins.git
           plugin-artifact-name: citrix-jmeter
           plugin-id: bzm-jmeter-citrix-plugin
